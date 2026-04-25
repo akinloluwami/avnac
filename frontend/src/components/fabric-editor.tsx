@@ -174,7 +174,7 @@ import ImageCropModal, {
   type ImageCropModalApplyPayload,
 } from './image-crop-modal'
 import { getAvnacLocked, setAvnacLocked } from '../lib/avnac-object-lock'
-import type { ExportPngOptions } from './editor-export-menu'
+import type { ExportPngOptions, ExportSvgOptions } from './editor-export-menu'
 import EditorFloatingSidebar, {
   type EditorSidebarPanelId,
 } from './editor-floating-sidebar'
@@ -341,6 +341,7 @@ function fabricObjectLabel(
 
 export type FabricEditorHandle = {
   exportPng: (opts?: ExportPngOptions) => void
+  exportSvg: (opts?: ExportSvgOptions) => void
   saveDocument: () => void
   loadDocument: (file: File) => Promise<void>
 }
@@ -3257,6 +3258,53 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
     })()
   }, [])
 
+  const exportSvg = useCallback((opts?: ExportSvgOptions) => {
+    void (async () => {
+      const canvas = fabricCanvasRef.current
+      const mod = fabricModRef.current
+      if (!canvas || !mod) return
+      setExportError(null)
+      const transparent = opts?.transparent ?? false
+      const aw = artboardWRef.current
+      const ah = artboardHRef.current
+
+      try {
+        await normalizeCanvasImagesForExport(canvas, mod)
+        const prevBg = canvas.backgroundColor
+        try {
+          if (transparent) {
+            canvas.backgroundColor = 'transparent'
+            canvas.requestRenderAll()
+          }
+
+          const svg = canvas.toSVG({
+            width: `${aw}`,
+            height: `${ah}`,
+            viewBox: { x: 0, y: 0, width: aw, height: ah },
+          })
+
+          const blob = new Blob([svg], { type: 'image/svg+xml' })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = 'avnac-design.svg'
+          a.click()
+          URL.revokeObjectURL(url)
+        } finally {
+          if (transparent) {
+            canvas.backgroundColor = prevBg
+            canvas.requestRenderAll()
+          }
+        }
+      } catch (err) {
+        console.error('FabricEditor: SVG export failed', err)
+        setExportError(
+          'Could not export this canvas. External images could not be prepared for download.',
+        )
+      }
+    })()
+  }, [])
+
   const saveDocument = useCallback(() => {
     const doc = captureDoc()
     const blob = new Blob([JSON.stringify(doc, null, 2)], {
@@ -3594,8 +3642,8 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
 
   useImperativeHandle(
     ref,
-    () => ({ exportPng, saveDocument, loadDocument }),
-    [exportPng, saveDocument, loadDocument],
+    () => ({ exportPng, exportSvg, saveDocument, loadDocument }),
+    [exportPng, exportSvg, saveDocument, loadDocument],
   )
 
   const onReadyChangeRef = useRef(onReadyChange)

@@ -164,6 +164,7 @@ function CreatePage() {
           <EditorExportMenu
             disabled={!editorReady}
             onExport={(opts) => editorRef.current?.exportPng(opts)}
+            onExportSvg={(opts) => editorRef.current?.exportSvg(opts)}
           />
         </div>
       </header>
