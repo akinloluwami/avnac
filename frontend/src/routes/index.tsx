@@ -314,7 +314,7 @@ function Landing() {
 
   return (
     <main className="landing-page">
-      <section className="hero-page relative flex min-h-[100dvh] flex-col justify-center overflow-hidden px-5 py-16 sm:px-10 sm:py-20 lg:px-16 lg:py-24">
+      <section className="hero-page relative flex min-h-[100svh] flex-col justify-center overflow-hidden px-5 py-16 sm:px-10 sm:py-20 lg:px-16 lg:py-24">
         <div className="hero-bg-orb hero-bg-orb-a" aria-hidden="true" />
         <div className="hero-bg-orb hero-bg-orb-b" aria-hidden="true" />
         <div className="hero-grid" aria-hidden="true" />
