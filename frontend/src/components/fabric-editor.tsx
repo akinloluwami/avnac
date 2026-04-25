@@ -1,9 +1,15 @@
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ArrowDown01Icon,
+  Copy01Icon,
+  Delete02Icon,
+  FilePasteIcon,
   HelpCircleIcon,
   Image01Icon,
   CropIcon,
+  Layers02Icon,
+  SquareLock01Icon,
+  SquareUnlock01Icon,
   TextFontIcon,
 } from '@hugeicons/core-free-icons'
 import type { Canvas, FabricImage, FabricObject, IText } from 'fabric'
@@ -18,6 +24,7 @@ import {
   useRef,
   useState,
   type DragEvent,
+  type MouseEvent as ReactMouseEvent,
 } from 'react'
 import { createPortal } from 'react-dom'
 import { useViewportAwarePopoverPlacement } from '../hooks/use-viewport-aware-popover'
@@ -356,6 +363,55 @@ type FabricEditorProps = {
   initialArtboardHeight?: number
 }
 
+type EditorContextMenuState = {
+  x: number
+  y: number
+  sceneX: number
+  sceneY: number
+  hasSelection: boolean
+  locked: boolean
+}
+
+async function readClipboardImageFiles(): Promise<File[]> {
+  const read = navigator.clipboard?.read
+  if (!read) return []
+  const items = await read.call(navigator.clipboard)
+  const files: File[] = []
+  for (const item of items) {
+    const imageType = item.types.find((type) => type.startsWith('image/'))
+    if (!imageType) continue
+    const blob = await item.getType(imageType)
+    const ext = imageType.split('/')[1]?.split('+')[0] || 'png'
+    files.push(
+      new File([blob], `clipboard-image.${ext}`, {
+        type: imageType,
+      }),
+    )
+  }
+  return files
+}
+
+function isImageFile(file: File): boolean {
+  if (file.type.startsWith('image/')) return true
+  return /\.(avif|bmp|gif|jpe?g|png|svg|webp)$/i.test(file.name)
+}
+
+function imageFilesFromClipboardData(dt: DataTransfer | null): File[] {
+  if (!dt) return []
+  const files = Array.from(dt.files).filter(isImageFile)
+  const itemFiles = Array.from(dt.items)
+    .filter((item) => item.kind === 'file')
+    .map((item) => item.getAsFile())
+    .filter((file): file is File => !!file && isImageFile(file))
+  const seen = new Set<string>()
+  return [...files, ...itemFiles].filter((file) => {
+    const key = `${file.name}:${file.size}:${file.type}:${file.lastModified}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
   function FabricEditor(
     {
@@ -484,6 +540,8 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
   const [vectorWorkspaceId, setVectorWorkspaceId] = useState<string | null>(null)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
+  const [contextMenu, setContextMenu] =
+    useState<EditorContextMenuState | null>(null)
   const [elementToolbarLayout, setElementToolbarLayout] = useState<{
     left: number
     top: number
@@ -494,6 +552,7 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
 
   const backgroundPopoverAnchorRef = useRef<HTMLDivElement>(null)
   const backgroundPopoverPanelRef = useRef<HTMLDivElement>(null)
+  const contextMenuRef = useRef<HTMLDivElement>(null)
   const pickBackgroundPopoverPanel = useCallback(
     () => backgroundPopoverPanelRef.current,
     [],
@@ -2434,31 +2493,38 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
     }
   }, [])
 
-  const pasteFromClipboard = useCallback(async () => {
+  const pasteAvnacClipText = useCallback(async (
+    text: string,
+    atPoint?: { x: number; y: number },
+  ): Promise<boolean> => {
     const canvas = fabricCanvasRef.current
     const mod = fabricModRef.current
-    if (!canvas || !mod) return
-    let text: string
-    try {
-      text = await navigator.clipboard.readText()
-    } catch {
-      return
-    }
+    if (!canvas || !mod) return false
     let parsed: { avnacClip?: boolean; objects?: unknown[] }
     try {
       parsed = JSON.parse(text) as { avnacClip?: boolean; objects?: unknown[] }
     } catch {
-      return
+      return false
     }
-    if (!parsed.avnacClip || !Array.isArray(parsed.objects)) return
+    if (!parsed.avnacClip || !Array.isArray(parsed.objects)) return false
 
     const objs = (await mod.util.enlivenObjects(
       parsed.objects as object[],
       {},
     )) as FabricObject[]
 
-    const dx = 32
-    const dy = 32
+    let dx = 32
+    let dy = 32
+    if (atPoint && objs.length > 0) {
+      objs.forEach((o) => o.setCoords())
+      const rects = objs.map((o) => o.getBoundingRect())
+      const left = Math.min(...rects.map((r) => r.left))
+      const top = Math.min(...rects.map((r) => r.top))
+      const right = Math.max(...rects.map((r) => r.left + r.width))
+      const bottom = Math.max(...rects.map((r) => r.top + r.height))
+      dx = atPoint.x - (left + right) / 2
+      dy = atPoint.y - (top + bottom) / 2
+    }
     objs.forEach((o) => {
       o.set({
         left: (o.left ?? 0) + dx,
@@ -2486,7 +2552,30 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
     } catch (err) {
       console.error('FabricEditor: font reload after paste failed', err)
     }
+    return true
   }, [syncShapeToolbar, syncTextToolbar])
+
+  const pasteFromClipboard = useCallback(async (atPoint?: { x: number; y: number }) => {
+    const canvas = fabricCanvasRef.current
+    const mod = fabricModRef.current
+    if (!canvas || !mod) return
+    try {
+      const imageFiles = await readClipboardImageFiles()
+      if (imageFiles.length > 0) {
+        addImageFromFiles(imageFiles, atPoint)
+        return
+      }
+    } catch {
+      /* Async clipboard image reads are permission-gated in some browsers. */
+    }
+    let text: string
+    try {
+      text = await navigator.clipboard.readText()
+    } catch {
+      return
+    }
+    await pasteAvnacClipText(text, atPoint)
+  }, [addImageFromFiles, pasteAvnacClipText])
 
   const alignElementToArtboard = useCallback((kind: CanvasAlignKind) => {
     const canvas = fabricCanvasRef.current
@@ -2890,6 +2979,35 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
     [addImageFromFiles, addImageFromRemoteUrl, placeVectorBoardOnCanvas],
   )
 
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null)
+  }, [])
+
+  const onViewportContextMenu = useCallback((e: ReactMouseEvent<HTMLDivElement>) => {
+    if (!ready || vectorWorkspaceId) return
+    const t = e.target as HTMLElement
+    if (t.closest('input, textarea, [contenteditable="true"]')) return
+    const canvas = fabricCanvasRef.current
+    const mod = fabricModRef.current
+    if (!canvas || !mod) return
+    e.preventDefault()
+    const p = canvas.getScenePoint(e.nativeEvent)
+    const active = canvas.getActiveObject()
+    const activeObjects = canvas.getActiveObjects()
+    const locked =
+      activeObjects.length > 0
+        ? activeObjects.some((o) => getAvnacLocked(o))
+        : !!active && getAvnacLocked(active)
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      sceneX: p.x,
+      sceneY: p.y,
+      hasSelection: !!active,
+      locked,
+    })
+  }, [ready, vectorWorkspaceId])
+
   const openVectorBoardWorkspace = useCallback((id: string) => {
     setVectorWorkspaceId(id)
   }, [])
@@ -2897,6 +3015,28 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
   const closeVectorWorkspace = useCallback(() => {
     setVectorWorkspaceId(null)
   }, [])
+
+  useEffect(() => {
+    if (!contextMenu) return
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (contextMenuRef.current?.contains(t)) return
+      closeContextMenu()
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeContextMenu()
+    }
+    window.addEventListener('mousedown', onDown)
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('resize', closeContextMenu)
+    window.addEventListener('scroll', closeContextMenu, true)
+    return () => {
+      window.removeEventListener('mousedown', onDown)
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('resize', closeContextMenu)
+      window.removeEventListener('scroll', closeContextMenu, true)
+    }
+  }, [closeContextMenu, contextMenu])
 
   const deleteVectorBoard = useCallback(
     (boardId: string) => {
@@ -3145,14 +3285,6 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
           void copyElementToClipboard()
           return
         }
-        if (
-          !vectorWorkspaceId &&
-          (e.key === 'v' || e.key === 'V')
-        ) {
-          e.preventDefault()
-          void pasteFromClipboard()
-          return
-        }
         if (e.key === 'z' || e.key === 'Z') {
           e.preventDefault()
           if (e.shiftKey) void redo()
@@ -3168,8 +3300,42 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
     redo,
     vectorWorkspaceId,
     copyElementToClipboard,
-    pasteFromClipboard,
   ])
+
+  useEffect(() => {
+    if (!ready || vectorWorkspaceId) return
+    const onPaste = (e: ClipboardEvent) => {
+      const t = e.target as HTMLElement
+      if (t.closest('input, textarea, [contenteditable="true"]')) return
+      const c = fabricCanvasRef.current
+      const mod = fabricModRef.current
+      const a = c?.getActiveObject()
+      if (
+        a &&
+        mod?.IText &&
+        a instanceof mod.IText &&
+        a.isEditing
+      ) {
+        return
+      }
+      const atPoint = {
+        x: artboardWRef.current / 2,
+        y: artboardHRef.current / 2,
+      }
+      const files = imageFilesFromClipboardData(e.clipboardData)
+      if (files.length > 0) {
+        e.preventDefault()
+        addImageFromFiles(files, atPoint)
+        return
+      }
+      const text = e.clipboardData?.getData('text/plain') ?? ''
+      if (!text) return
+      e.preventDefault()
+      void pasteAvnacClipText(text, atPoint)
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+  }, [addImageFromFiles, pasteAvnacClipText, ready, vectorWorkspaceId])
 
   const exportPng = useCallback((opts?: ExportPngOptions) => {
     void (async () => {
@@ -3831,6 +3997,9 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
     </>
   ) : null
 
+  const contextMenuButtonClass =
+    'flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-medium text-neutral-800 outline-none hover:bg-black/[0.05] focus:bg-black/[0.05]'
+
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       <input
@@ -3988,6 +4157,7 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
         className="relative flex min-h-0 flex-1 flex-col overflow-auto rounded-2xl bg-[var(--surface-subtle)]"
         onDragOver={ready ? onVectorBoardDragOver : undefined}
         onDrop={ready ? onViewportDrop : undefined}
+        onContextMenu={ready ? onViewportContextMenu : undefined}
       >
         <div className="flex min-h-min w-full flex-1 flex-col items-center justify-center px-4 pb-4 pt-0 sm:px-6 sm:pb-6 sm:pt-1">
           <div
@@ -4044,6 +4214,120 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
           </div>
         </div>
       </div>
+
+      {contextMenu ? (
+        <div
+          ref={contextMenuRef}
+          role="menu"
+          className="fixed z-[90] min-w-48 overflow-hidden rounded-xl border border-black/[0.08] bg-white py-1 shadow-[0_18px_48px_rgba(0,0,0,0.16)] backdrop-blur"
+          style={{
+            left: `min(${contextMenu.x}px, calc(100vw - 12.5rem))`,
+            top: `min(${contextMenu.y}px, calc(100vh - 18rem))`,
+          }}
+          data-avnac-chrome
+        >
+          {contextMenu.hasSelection ? (
+            <>
+              <button
+                type="button"
+                role="menuitem"
+                className={contextMenuButtonClass}
+                onClick={() => {
+                  void copyElementToClipboard()
+                  closeContextMenu()
+                }}
+              >
+                <HugeiconsIcon
+                  icon={Copy01Icon}
+                  size={18}
+                  strokeWidth={1.75}
+                  className="shrink-0 text-neutral-600"
+                />
+                Copy
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className={contextMenuButtonClass}
+                onClick={() => {
+                  void duplicateElement()
+                  closeContextMenu()
+                }}
+              >
+                <HugeiconsIcon
+                  icon={Layers02Icon}
+                  size={18}
+                  strokeWidth={1.75}
+                  className="shrink-0 text-neutral-600"
+                />
+                Duplicate
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className={contextMenuButtonClass}
+                onClick={() => {
+                  toggleElementLock()
+                  closeContextMenu()
+                }}
+              >
+                <HugeiconsIcon
+                  icon={
+                    contextMenu.locked ? SquareUnlock01Icon : SquareLock01Icon
+                  }
+                  size={18}
+                  strokeWidth={1.75}
+                  className="shrink-0 text-neutral-600"
+                />
+                {contextMenu.locked ? 'Unlock' : 'Lock'}
+              </button>
+              <div className="my-1 h-px bg-black/[0.06]" aria-hidden />
+            </>
+          ) : null}
+          <button
+            type="button"
+            role="menuitem"
+            className={contextMenuButtonClass}
+            onClick={() => {
+              void pasteFromClipboard({
+                x: contextMenu.sceneX,
+                y: contextMenu.sceneY,
+              })
+              closeContextMenu()
+            }}
+          >
+            <HugeiconsIcon
+              icon={FilePasteIcon}
+              size={18}
+              strokeWidth={1.75}
+              className="shrink-0 text-neutral-600"
+            />
+            Paste
+          </button>
+          {contextMenu.hasSelection ? (
+            <>
+              <div className="my-1 h-px bg-black/[0.06]" aria-hidden />
+              <button
+                type="button"
+                role="menuitem"
+                className={contextMenuButtonClass}
+                onClick={() => {
+                  deleteSelection()
+                  closeContextMenu()
+                }}
+              >
+                <HugeiconsIcon
+                  icon={Delete02Icon}
+                  size={18}
+                  strokeWidth={1.75}
+                  className="shrink-0 text-neutral-600"
+                />
+                Delete
+              </button>
+            </>
+          ) : null}
+        </div>
+      ) : null}
 
       <div
         ref={canvasZoomRef}
