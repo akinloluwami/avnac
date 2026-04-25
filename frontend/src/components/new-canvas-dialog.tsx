@@ -93,7 +93,7 @@ export default function NewCanvasDialog({
       }}
     >
       <div
-        className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-[var(--overlay-backdrop)] backdrop-blur-[2px]"
         aria-hidden
       />
       <div
@@ -135,7 +135,7 @@ export default function NewCanvasDialog({
           </div>
         ) : (
           <>
-            <div className="mt-6 flex gap-2 rounded-full border border-black/[0.1] bg-black/[0.03] p-1">
+            <div className="theme-segmented mt-6 flex gap-2 rounded-full border p-1">
               <button
                 type="button"
                 className={[
@@ -168,7 +168,7 @@ export default function NewCanvasDialog({
                   <li key={p.id}>
                     <button
                       type="button"
-                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-transparent bg-black/[0.03] px-4 py-3 text-left transition-colors hover:border-black/[0.1] hover:bg-black/[0.05]"
+                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-transparent bg-[var(--hover)] px-4 py-3 text-left transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--hover-strong)]"
                       onClick={() => goCreate(p.width, p.height, p.label)}
                     >
                       <span className="min-w-0 text-[15px] font-medium text-[var(--text)]">
@@ -197,7 +197,7 @@ export default function NewCanvasDialog({
                       inputMode="numeric"
                       value={customW}
                       onChange={(e) => setCustomW(e.target.value)}
-                      className="w-full rounded-xl border border-black/[0.12] bg-[var(--surface)] px-3 py-2.5 text-[15px] text-[var(--text)] outline-none focus:border-black/[0.22]"
+                      className="theme-input w-full rounded-xl border px-3 py-2.5 text-[15px] outline-none focus:border-[var(--button-secondary-border-hover)]"
                       autoComplete="off"
                     />
                   </div>
@@ -214,7 +214,7 @@ export default function NewCanvasDialog({
                       inputMode="numeric"
                       value={customH}
                       onChange={(e) => setCustomH(e.target.value)}
-                      className="w-full rounded-xl border border-black/[0.12] bg-[var(--surface)] px-3 py-2.5 text-[15px] text-[var(--text)] outline-none focus:border-black/[0.22]"
+                      className="theme-input w-full rounded-xl border px-3 py-2.5 text-[15px] outline-none focus:border-[var(--button-secondary-border-hover)]"
                       autoComplete="off"
                     />
                   </div>
@@ -224,7 +224,7 @@ export default function NewCanvasDialog({
                 ) : null}
                 <button
                   type="button"
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[var(--text)] px-6 py-2.5 text-[15px] font-medium text-white hover:bg-[#262626]"
+                  className="theme-primary-button inline-flex min-h-11 w-full items-center justify-center rounded-full px-6 py-2.5 text-[15px] font-medium"
                   onClick={() => submitCustom()}
                 >
                   Create canvas
@@ -234,10 +234,10 @@ export default function NewCanvasDialog({
           </>
         )}
 
-        <div className="mt-6 flex justify-end border-t border-black/[0.06] pt-5">
+        <div className="mt-6 flex justify-end border-t border-[var(--line)] pt-5">
           <button
             type="button"
-            className="min-h-10 rounded-full bg-black/[0.05] px-5 text-[15px] font-medium text-[var(--text)] transition-colors hover:bg-black/[0.08]"
+            className="theme-secondary-button min-h-10 rounded-full border px-5 text-[15px] font-medium transition-colors"
             onClick={onClose}
           >
             {editorUnsupported ? "Close" : "Cancel"}

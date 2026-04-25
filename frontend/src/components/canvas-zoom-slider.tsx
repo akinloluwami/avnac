@@ -19,7 +19,7 @@ export default function CanvasZoomSlider({
 }: CanvasZoomSliderProps) {
   return (
     <div
-      className="flex items-center gap-3 rounded-xl bg-[var(--surface-subtle)] px-3 py-2 sm:bg-white/90 sm:shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+      className="theme-toolbar-shell flex items-center gap-3 rounded-xl border px-3 py-2"
       title="Drag to zoom. Click the percentage to fit the page in view."
     >
       <EditorRangeSlider
@@ -37,12 +37,12 @@ export default function CanvasZoomSlider({
           type="button"
           disabled={disabled}
           onClick={onFitRequest}
-          className="min-w-[2.75rem] text-left text-sm tabular-nums text-neutral-600 outline-none hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40"
+          className="min-w-[2.75rem] text-left text-sm tabular-nums text-[var(--text-muted)] outline-none hover:text-[var(--text)] disabled:pointer-events-none disabled:opacity-40"
         >
           {value}%
         </button>
       ) : (
-        <span className="min-w-[2.75rem] text-sm tabular-nums text-neutral-600">
+        <span className="min-w-[2.75rem] text-sm tabular-nums text-[var(--text-muted)]">
           {value}%
         </span>
       )}

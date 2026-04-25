@@ -48,7 +48,7 @@ export default function EditorFloatingSidebar({
       data-avnac-chrome
       aria-label="Editor tools"
       className={[
-        'pointer-events-auto fixed left-3 top-[calc(0.75rem+2.5rem+0.75rem+1px+0.75rem)] z-[45] flex flex-col gap-0.5 rounded-3xl border border-black/[0.08] bg-neutral-100/95 p-1.5 backdrop-blur-md sm:top-[calc(0.875rem+2.5rem+0.875rem+1px+0.75rem)]',
+        'pointer-events-auto fixed left-3 top-[calc(0.75rem+2.5rem+0.75rem+1px+0.75rem)] z-[45] flex flex-col gap-0.5 rounded-3xl border border-[var(--line)] bg-[var(--surface-panel)] p-1.5 backdrop-blur-md sm:top-[calc(0.875rem+2.5rem+0.875rem+1px+0.75rem)]',
         disabled ? 'pointer-events-none opacity-40' : '',
       ]
         .filter(Boolean)
@@ -93,8 +93,8 @@ export default function EditorFloatingSidebar({
             className={[
               'flex w-[4.25rem] flex-col items-center gap-1 rounded-2xl px-1.5 py-2.5 text-[11px] font-medium transition-colors',
               active
-                ? 'bg-white text-neutral-900'
-                : 'text-neutral-600 hover:bg-white/70 hover:text-neutral-900',
+                ? 'bg-[var(--surface-overlay-strong)] text-[var(--text)]'
+                : 'text-[var(--text-muted)] hover:bg-[var(--surface-soft)] hover:text-[var(--text)]',
               disabled ? 'cursor-not-allowed' : '',
             ].join(' ')}
           >
@@ -102,7 +102,7 @@ export default function EditorFloatingSidebar({
               icon={item.icon}
               size={22}
               strokeWidth={1.65}
-              className="shrink-0 text-neutral-700"
+              className="shrink-0 text-[var(--text-muted)]"
             />
             <span className="max-w-full truncate">{item.label}</span>
           </button>

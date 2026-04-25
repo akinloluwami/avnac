@@ -451,7 +451,7 @@ function Landing() {
             <div className="flex flex-wrap items-center gap-4">
               <button
                 type="button"
-                className="bg-black text-white inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full border-0 px-10 py-3.5 text-base font-medium sm:min-h-14 sm:px-12 sm:py-4 sm:text-[1.0625rem]"
+                className="theme-primary-button inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full border-0 px-10 py-3.5 text-base font-medium sm:min-h-14 sm:px-12 sm:py-4 sm:text-[1.0625rem]"
                 onClick={openEditor}
               >
                 {primaryCtaLabel}
@@ -460,7 +460,7 @@ function Landing() {
                 href="https://github.com/akinloluwami/avnac"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-black/[0.14] bg-white/70 px-8 py-3.5 text-base font-medium text-[var(--text)] no-underline backdrop-blur-sm hover:border-black/[0.22] hover:bg-white sm:min-h-14 sm:px-10 sm:py-4 sm:text-[1.0625rem]"
+                className="theme-secondary-button inline-flex min-h-12 items-center justify-center rounded-full border px-8 py-3.5 text-base font-medium text-[var(--text)] no-underline backdrop-blur-sm sm:min-h-14 sm:px-10 sm:py-4 sm:text-[1.0625rem]"
               >
                 GitHub
               </a>
@@ -616,7 +616,7 @@ function Landing() {
             <div className="landing-cta-actions">
               <button
                 type="button"
-                className="bg-black text-white min-h-12 cursor-pointer items-center justify-center rounded-full border-0 px-10 py-3.5 text-base font-medium sm:min-h-14 sm:px-12 sm:py-4 sm:text-[1.0625rem]"
+                className="theme-primary-button min-h-12 cursor-pointer items-center justify-center rounded-full border-0 px-10 py-3.5 text-base font-medium sm:min-h-14 sm:px-12 sm:py-4 sm:text-[1.0625rem]"
                 onClick={openEditor}
               >
                 {primaryCtaLabel}
@@ -625,7 +625,7 @@ function Landing() {
                 href="https://github.com/akinloluwami/avnac"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-black/[0.14] bg-white/85 px-8 py-3.5 text-base font-medium text-[var(--text)] no-underline hover:border-black/[0.22] hover:bg-white sm:min-h-14 sm:px-10 sm:py-4 sm:text-[1.0625rem]"
+                className="theme-secondary-button inline-flex min-h-12 items-center justify-center rounded-full border px-8 py-3.5 text-base font-medium text-[var(--text)] no-underline sm:min-h-14 sm:px-10 sm:py-4 sm:text-[1.0625rem]"
               >
                 View source
               </a>

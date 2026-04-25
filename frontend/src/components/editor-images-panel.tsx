@@ -136,22 +136,22 @@ export default function EditorImagesPanel({ open, onClose, controller }: Props) 
     <div
       data-avnac-chrome
       className={[
-        'pointer-events-auto fixed z-40 flex w-[min(100vw-1.5rem,340px)] max-h-[min(92dvh,720px)] flex-col overflow-hidden rounded-3xl border border-black/[0.08] bg-white/95 backdrop-blur-md',
+        'theme-sidebar-panel pointer-events-auto fixed z-40 flex w-[min(100vw-1.5rem,340px)] max-h-[min(92dvh,720px)] flex-col overflow-hidden rounded-3xl border backdrop-blur-md',
         editorSidebarPanelLeftClass,
         editorSidebarPanelTopClass,
       ].join(' ')}
       role="dialog"
       aria-label="Images"
     >
-      <div className="flex shrink-0 items-start justify-between border-b border-black/[0.06] px-3 py-2">
+      <div className="flex shrink-0 items-start justify-between border-b border-[var(--line)] px-3 py-2">
         <div className="min-w-0">
-          <div className="text-sm font-semibold text-neutral-800">Images</div>
-          <p className="mt-0.5 text-[11px] text-neutral-500">
+          <div className="text-sm font-semibold text-[var(--text)]">Images</div>
+          <p className="mt-0.5 text-[11px] text-[var(--text-muted)]">
             <a
               href={unsplashReferralLink('https://unsplash.com/')}
               target="_blank"
               rel="noreferrer"
-              className="text-neutral-600 underline-offset-2 hover:underline"
+              className="text-[var(--text-muted)] underline-offset-2 hover:underline"
             >
               Powered by Unsplash
             </a>
@@ -159,7 +159,7 @@ export default function EditorImagesPanel({ open, onClose, controller }: Props) 
         </div>
         <button
           type="button"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-600 hover:bg-black/[0.06]"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--hover)]"
           onClick={onClose}
           aria-label="Close images"
         >
@@ -168,14 +168,14 @@ export default function EditorImagesPanel({ open, onClose, controller }: Props) 
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="shrink-0 border-b border-black/[0.06] p-2">
+          <div className="shrink-0 border-b border-[var(--line)] p-2">
             <label className="relative block">
               <span className="sr-only">Search Unsplash</span>
               <HugeiconsIcon
                 icon={Search01Icon}
                 size={16}
                 strokeWidth={1.75}
-                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400"
+                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-subtle)]"
               />
               <input
                 type="search"
@@ -183,7 +183,7 @@ export default function EditorImagesPanel({ open, onClose, controller }: Props) 
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Search Unsplash…"
                 autoComplete="off"
-                className="h-10 w-full rounded-xl border border-black/[0.08] bg-white pl-9 pr-3 text-[13px] text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/45"
+                className="theme-input h-10 w-full rounded-xl border pl-9 pr-3 text-[13px] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/45"
               />
             </label>
           </div>
@@ -194,7 +194,7 @@ export default function EditorImagesPanel({ open, onClose, controller }: Props) 
             ) : null}
 
             {photos.length === 0 && !loading && !error ? (
-              <p className="px-1 py-6 text-center text-[12px] text-neutral-500">
+              <p className="px-1 py-6 text-center text-[12px] text-[var(--text-muted)]">
                 No photos found.
               </p>
             ) : (
@@ -212,9 +212,9 @@ export default function EditorImagesPanel({ open, onClose, controller }: Props) 
                         type="button"
                         disabled={busy}
                         onClick={() => void addPhoto(photo)}
-                        className="group flex w-full flex-col overflow-hidden rounded-xl border border-black/[0.06] bg-white text-left transition-colors hover:border-black/[0.12] disabled:opacity-60"
+                        className="group flex w-full flex-col overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface-overlay)] text-left transition-colors hover:border-[var(--border-strong)] disabled:opacity-60"
                       >
-                        <span className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
+                        <span className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--surface-subtle)]">
                           <img
                             src={photo.urls.small}
                             alt={label}
@@ -227,18 +227,18 @@ export default function EditorImagesPanel({ open, onClose, controller }: Props) 
                             </span>
                           ) : null}
                         </span>
-                        <span className="border-t border-black/[0.06] px-1.5 py-1.5">
-                          <span className="line-clamp-2 text-[10.5px] leading-snug text-neutral-600">
+                        <span className="border-t border-[var(--line)] px-1.5 py-1.5">
+                          <span className="line-clamp-2 text-[10.5px] leading-snug text-[var(--text-muted)]">
                             <a
                               href={profileUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="font-medium text-neutral-800 underline-offset-2 hover:underline"
+                              className="font-medium text-[var(--text)] underline-offset-2 hover:underline"
                               onClick={(e) => e.stopPropagation()}
                             >
                               {photo.user.name}
                             </a>
-                            <span className="text-neutral-400"> on </span>
+                            <span className="text-[var(--text-subtle)]"> on </span>
                             <a
                               href={unsplashReferralLink('https://unsplash.com/')}
                               target="_blank"
@@ -265,7 +265,7 @@ export default function EditorImagesPanel({ open, onClose, controller }: Props) 
                   onClick={() =>
                     setCommitted((c) => ({ ...c, page: c.page + 1 }))
                   }
-                  className="w-full rounded-xl border border-black/[0.08] bg-[var(--surface-subtle)] px-3 py-2 text-[12px] font-medium text-neutral-800 transition-colors hover:bg-black/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-xl border border-[var(--line)] bg-[var(--surface-subtle)] px-3 py-2 text-[12px] font-medium text-[var(--text)] transition-colors hover:bg-[var(--hover)] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {loadingMore ? 'Loading…' : 'Load more'}
                 </button>
@@ -273,7 +273,7 @@ export default function EditorImagesPanel({ open, onClose, controller }: Props) 
             ) : null}
 
             {loading && photos.length === 0 ? (
-              <p className="py-8 text-center text-[12px] text-neutral-500">Loading…</p>
+              <p className="py-8 text-center text-[12px] text-[var(--text-muted)]">Loading…</p>
             ) : null}
           </div>
       </div>

@@ -22,11 +22,11 @@ const DEFAULT_EXPORT: ExportPngOptions = {
 const PANEL_ESTIMATE_H = 220;
 
 const exportTriggerClass = [
-  "inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-black/[0.08] px-4 text-sm font-medium sm:h-10 sm:px-5",
-  "bg-gradient-to-br from-[#fafaf9] via-[#f2f0f3] to-[#ebe7f3]",
+  "inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--line)] px-4 text-sm font-medium sm:h-10 sm:px-5",
+  "bg-[linear-gradient(135deg,var(--surface-overlay-strong)_0%,var(--surface-soft)_55%,var(--surface-subtle)_100%)]",
   "text-[var(--text)] shadow-[0_1px_2px_rgba(0,0,0,0.04)]",
   "outline-none transition-[background,box-shadow,filter] duration-200",
-  "hover:from-[#f5f4f2] hover:via-[#eceaf1] hover:to-[#e5e0f2] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]",
+  "hover:shadow-[0_2px_8px_rgba(0,0,0,0.12)]",
   "focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)]",
   "disabled:pointer-events-none disabled:opacity-40",
 ].join(" ");
@@ -79,7 +79,7 @@ export default function EditorExportMenu({ disabled, onExport }: Props) {
           icon={FileExportIcon}
           size={18}
           strokeWidth={1.75}
-          className="shrink-0 text-neutral-800"
+          className="shrink-0 text-[var(--text)]"
         />
         <span className="text-[var(--text)]">Export</span>
       </button>
@@ -98,10 +98,10 @@ export default function EditorExportMenu({ disabled, onExport }: Props) {
           aria-label="Export"
         >
           <div className="mb-3 flex items-center justify-between gap-3">
-            <span className="text-[13px] font-medium text-neutral-800">
+            <span className="text-[13px] font-medium text-[var(--text)]">
               Export scale
             </span>
-            <span className="text-[13px] tabular-nums text-neutral-600">
+            <span className="text-[13px] tabular-nums text-[var(--text-muted)]">
               {mult}×
             </span>
           </div>
@@ -119,7 +119,7 @@ export default function EditorExportMenu({ disabled, onExport }: Props) {
             aria-valuenow={mult}
             trackClassName="mb-4 w-full"
           />
-          <label className="mb-4 flex cursor-pointer items-center gap-2.5 text-[13px] text-neutral-800">
+          <label className="mb-4 flex cursor-pointer items-center gap-2.5 text-[13px] text-[var(--text)]">
             <input
               type="checkbox"
               checked={opts.transparent}
@@ -133,7 +133,7 @@ export default function EditorExportMenu({ disabled, onExport }: Props) {
           </label>
           <button
             type="button"
-            className="w-full rounded-lg bg-neutral-900 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-neutral-800"
+            className="theme-primary-button w-full rounded-lg py-2.5 text-[13px] font-medium transition-colors"
             onClick={() => {
               const finalOpts = { ...opts, multiplier: mult };
               posthog.capture("png_exported", {

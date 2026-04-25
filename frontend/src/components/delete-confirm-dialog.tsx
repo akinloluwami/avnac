@@ -53,7 +53,7 @@ export default function DeleteConfirmDialog({
       }}
     >
       <div
-        className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-[var(--overlay-backdrop)] backdrop-blur-[2px]"
         aria-hidden
       />
       <div
@@ -80,7 +80,7 @@ export default function DeleteConfirmDialog({
         <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2">
           <button
             type="button"
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-black/[0.14] bg-white px-6 py-2.5 text-[15px] font-medium text-[var(--text)] transition-colors hover:bg-black/[0.04] sm:w-auto"
+            className="theme-secondary-button inline-flex min-h-11 w-full items-center justify-center rounded-full border px-6 py-2.5 text-[15px] font-medium transition-colors sm:w-auto"
             onClick={onClose}
           >
             {cancelLabel}

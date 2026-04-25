@@ -163,7 +163,7 @@ function FilesPage() {
           <div className="mx-auto flex w-full max-w-6xl justify-end px-5 sm:px-8 pointer-events-auto">
             <button
               type="button"
-              className="inline-flex min-h-11 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[var(--text)] px-6 py-2.5 text-[15px] font-medium text-white transition hover:bg-[#262626] sm:min-h-12 sm:px-8 sm:py-3 sm:text-[1.0625rem]"
+              className="theme-primary-button inline-flex min-h-11 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 px-6 py-2.5 text-[15px] font-medium transition sm:min-h-12 sm:px-8 sm:py-3 sm:text-[1.0625rem]"
               onClick={() => setNewCanvasOpen(true)}
             >
               New file
@@ -201,7 +201,7 @@ function FilesPage() {
                 </p>
                 <button
                   type="button"
-                  className="mt-8 inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full border-0 bg-[var(--text)] px-10 py-3.5 text-base font-medium text-white hover:bg-[#262626] sm:min-h-14 sm:px-12 sm:py-4 sm:text-[1.0625rem]"
+                  className="theme-primary-button mt-8 inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full border-0 px-10 py-3.5 text-base font-medium sm:min-h-14 sm:px-12 sm:py-4 sm:text-[1.0625rem]"
                   onClick={() => setNewCanvasOpen(true)}
                 >
                   Open editor

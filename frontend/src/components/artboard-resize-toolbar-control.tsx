@@ -184,7 +184,7 @@ export default function ArtboardResizeToolbarControl({
         }}
       >
         <HugeiconsIcon icon={AspectRatioIcon} size={18} strokeWidth={1.75} />
-        <span className="max-w-[5.5rem] truncate text-left text-xs font-medium tabular-nums text-neutral-700 sm:max-w-none">
+        <span className="max-w-[5.5rem] truncate text-left text-xs font-medium tabular-nums text-[var(--text-muted)] sm:max-w-none">
           {label}
         </span>
       </button>
@@ -200,14 +200,14 @@ export default function ArtboardResizeToolbarControl({
             transform: `translateX(calc(-50% + ${shiftX}px))`,
           }}
         >
-          <p className="mb-2 text-[13px] font-medium text-neutral-800">
+          <p className="mb-2 text-[13px] font-medium text-[var(--text)]">
             Artboard size
           </p>
           <div className="relative -mx-3 mb-3 w-auto shrink-0">
             <div className="relative w-full shrink-0">
               <button
                 type="button"
-                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[13px] font-medium text-neutral-800 hover:bg-black/[0.05]"
+                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] hover:bg-[var(--hover)]"
                 aria-label="Artboard preset"
                 aria-expanded={presetOpen}
                 aria-haspopup="menu"
@@ -243,14 +243,14 @@ export default function ArtboardResizeToolbarControl({
                     role="menuitemradio"
                     aria-checked={!currentPreset}
                     className={[
-                      'flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] outline-none transition-colors hover:bg-black/[0.05]',
-                      currentPreset ? 'text-neutral-700' : 'bg-black/[0.04] text-neutral-900',
+                      'flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] outline-none transition-colors hover:bg-[var(--hover)]',
+                      currentPreset ? 'text-[var(--text-muted)]' : 'bg-[var(--hover)] text-[var(--text)]',
                     ].join(' ')}
                     onClick={() => setPresetOpen(false)}
                   >
                     <span className="truncate">Custom dimensions</span>
                     {!currentPreset ? (
-                      <span className="ml-auto text-[10px] font-medium uppercase tracking-[0.08em] text-neutral-500">
+                      <span className="ml-auto text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--text-subtle)]">
                         Current
                       </span>
                     ) : null}
@@ -264,8 +264,8 @@ export default function ArtboardResizeToolbarControl({
                         role="menuitemradio"
                         aria-checked={active}
                         className={[
-                          'flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] outline-none transition-colors hover:bg-black/[0.05]',
-                          active ? 'bg-black/[0.04] text-neutral-900' : 'text-neutral-700',
+                          'flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] outline-none transition-colors hover:bg-[var(--hover)]',
+                          active ? 'bg-[var(--hover)] text-[var(--text)]' : 'text-[var(--text-muted)]',
                         ].join(' ')}
                         onClick={() => {
                           setPresetOpen(false)
@@ -274,7 +274,7 @@ export default function ArtboardResizeToolbarControl({
                       >
                         <span className="truncate">{preset.label}</span>
                         {active ? (
-                          <span className="ml-auto text-[10px] font-medium uppercase tracking-[0.08em] text-neutral-500">
+                          <span className="ml-auto text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--text-subtle)]">
                             Current
                           </span>
                         ) : null}
@@ -285,11 +285,11 @@ export default function ArtboardResizeToolbarControl({
               ) : null}
             </div>
           </div>
-          <div className="mb-2 text-[12px] font-medium text-neutral-700">
+          <div className="mb-2 text-[12px] font-medium text-[var(--text-muted)]">
             Custom size
           </div>
           <div className="grid grid-cols-[1fr_auto_1fr_auto] items-end gap-2">
-            <label className="block text-[12px] font-medium text-neutral-700">
+            <label className="block text-[12px] font-medium text-[var(--text-muted)]">
               Width
               <DimensionInput
                 value={sizeDraftW}
@@ -307,10 +307,10 @@ export default function ArtboardResizeToolbarControl({
                 }}
               />
             </label>
-            <div className="flex h-9 items-center justify-center pb-[2px] text-neutral-300">
+            <div className="flex h-9 items-center justify-center pb-[2px] text-[var(--text-subtle)]">
               ×
             </div>
-            <label className="block text-[12px] font-medium text-neutral-700">
+            <label className="block text-[12px] font-medium text-[var(--text-muted)]">
               Height
               <DimensionInput
                 value={sizeDraftH}
@@ -333,8 +333,8 @@ export default function ArtboardResizeToolbarControl({
               className={[
                 'mt-1 flex h-9 w-9 items-center justify-center rounded-lg border transition-colors',
                 linked
-                  ? 'border-black/15 bg-black/[0.05] text-neutral-900'
-                  : 'border-black/10 bg-white text-neutral-600 hover:border-black/15',
+                  ? 'border-[var(--border-strong)] bg-[var(--hover)] text-[var(--text)]'
+                  : 'border-[var(--line)] bg-[var(--surface-overlay)] text-[var(--text-muted)] hover:border-[var(--border-strong)]',
               ].join(' ')}
               aria-label={
                 linked ? 'Unlink dimensions' : 'Link dimensions'
@@ -417,7 +417,7 @@ function DimensionInput({
           setEditing(false)
         }
       }}
-      className="mt-1 box-border h-9 w-full rounded-lg border border-black/20 bg-white px-2 text-center font-mono text-[13px] tabular-nums text-neutral-900 outline-none focus:ring-2 focus:ring-black/15"
+      className="theme-input mt-1 box-border h-9 w-full rounded-lg border px-2 text-center font-mono text-[13px] tabular-nums outline-none focus:ring-2 focus:ring-[var(--accent)]/25"
       aria-label={ariaLabel}
     />
   ) : (
@@ -428,7 +428,7 @@ function DimensionInput({
       aria-valuemax={max}
       aria-label={`${ariaLabel} — drag horizontally to change, double-click to type`}
       title="Drag to change size · Shift for faster steps · Double-click to type"
-      className="mt-1 flex h-9 w-full cursor-ew-resize select-none items-center justify-center rounded-lg border border-black/10 bg-white px-2 font-mono text-[13px] tabular-nums text-neutral-900 touch-none transition-colors hover:border-black/18"
+      className="theme-input mt-1 flex h-9 w-full cursor-ew-resize select-none items-center justify-center rounded-lg border px-2 font-mono text-[13px] tabular-nums touch-none transition-colors hover:border-[var(--button-secondary-border-hover)]"
       onPointerDown={(e) => {
         if (editing || e.button !== 0) return
         e.preventDefault()

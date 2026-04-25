@@ -38,20 +38,20 @@ export default function EditorVectorBoardPanel({
     <div
       data-avnac-chrome
       className={[
-        'pointer-events-auto fixed z-40 flex w-[min(100vw-1.5rem,300px)] flex-col overflow-hidden rounded-3xl border border-black/[0.08] bg-white/95 backdrop-blur-md',
+        'theme-sidebar-panel pointer-events-auto fixed z-40 flex w-[min(100vw-1.5rem,300px)] flex-col overflow-hidden rounded-3xl border backdrop-blur-md',
         editorSidebarPanelLeftClass,
         editorSidebarPanelTopClass,
       ].join(' ')}
       role="dialog"
       aria-label="Vector boards"
     >
-      <div className="flex items-center justify-between border-b border-black/[0.06] px-3 py-2">
-        <span className="text-sm font-semibold text-neutral-800">
+      <div className="flex items-center justify-between border-b border-[var(--line)] px-3 py-2">
+        <span className="text-sm font-semibold text-[var(--text)]">
           Vector boards
         </span>
         <button
           type="button"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-600 hover:bg-black/[0.06]"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--hover)]"
           onClick={onClose}
           aria-label="Close vector boards"
         >
@@ -60,7 +60,7 @@ export default function EditorVectorBoardPanel({
       </div>
       <div className="flex max-h-[min(50vh,360px)] flex-col gap-2 overflow-auto p-2">
         {boards.length === 0 ? (
-          <p className="px-2 py-6 text-center text-sm text-neutral-500">
+          <p className="px-2 py-6 text-center text-sm text-[var(--text-muted)]">
             No vector boards yet.
           </p>
         ) : (
@@ -70,7 +70,7 @@ export default function EditorVectorBoardPanel({
               const hasContent = vectorDocHasRenderableStrokes(doc)
               return (
                 <li key={b.id}>
-                  <div className="flex items-center gap-2 rounded-xl border border-black/[0.06] bg-neutral-50/80 p-2">
+                  <div className="flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-2">
                     <div
                       draggable={hasContent}
                       onDragStart={(e) => {
@@ -82,7 +82,7 @@ export default function EditorVectorBoardPanel({
                         e.dataTransfer.effectAllowed = 'copy'
                       }}
                       className={[
-                        'shrink-0 overflow-hidden rounded-lg border border-black/10 bg-white shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)]',
+                        'shrink-0 overflow-hidden rounded-lg border border-[var(--border-strong)] bg-[var(--surface-overlay-strong)] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)]',
                         hasContent
                           ? 'cursor-grab active:cursor-grabbing'
                           : 'cursor-not-allowed opacity-50',
@@ -97,17 +97,17 @@ export default function EditorVectorBoardPanel({
                     </div>
                     <button
                       type="button"
-                      className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-left text-sm text-neutral-800 transition-colors hover:bg-white/80"
+                      className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-left text-sm text-[var(--text)] transition-colors hover:bg-[var(--surface-soft-hover)]"
                       onClick={() => onOpenBoard(b.id)}
                     >
                       <span className="block truncate font-medium">{b.name}</span>
-                      <span className="mt-0.5 block text-[11px] text-neutral-500">
+                      <span className="mt-0.5 block text-[11px] text-[var(--text-muted)]">
                         {hasContent ? 'Click to edit · drag preview to place' : 'Click to edit'}
                       </span>
                     </button>
                     <button
                       type="button"
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-red-500/10 hover:text-red-500"
                       title="Delete vector board"
                       aria-label={`Delete ${b.name}`}
                       onClick={(e) => {
@@ -124,10 +124,10 @@ export default function EditorVectorBoardPanel({
           </ul>
         )}
       </div>
-      <div className="border-t border-black/[0.06] p-2">
+      <div className="border-t border-[var(--line)] p-2">
         <button
           type="button"
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-900 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
+          className="theme-primary-button flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-colors"
           onClick={onCreateNew}
         >
           <HugeiconsIcon icon={Add01Icon} size={18} strokeWidth={1.75} />

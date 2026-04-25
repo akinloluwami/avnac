@@ -257,7 +257,7 @@ const QUICK_SHAPE_TITLE: Record<ShapesQuickAddKind, string> = {
 
 function toolbarIconBtn(disabled?: boolean) {
   const base =
-    'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'
+    'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] outline-none transition-colors hover:bg-[var(--hover)]'
   if (disabled) {
     return `${base} pointer-events-none cursor-not-allowed opacity-35`
   }
@@ -266,7 +266,7 @@ function toolbarIconBtn(disabled?: boolean) {
 
 function backgroundTopBtn(disabled?: boolean) {
   const base =
-    'flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium text-neutral-700 outline-none transition-colors hover:bg-black/[0.06]'
+    'flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium text-[var(--text)] outline-none transition-colors hover:bg-[var(--hover)]'
   if (disabled) {
     return `${base} pointer-events-none cursor-not-allowed opacity-35`
   }
@@ -4097,7 +4097,7 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
         !shapeToolbarModel &&
         canvasBodySelected ? (
           <div ref={backgroundPopoverAnchorRef} className="relative">
-            <div className="flex items-center rounded-full border border-black/[0.08] bg-white/90 px-2 py-1 shadow-[0_4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md">
+            <div className="theme-toolbar-shell flex items-center rounded-full border px-2 py-1 backdrop-blur-md">
               <ArtboardResizeToolbarControl
                 width={artboardW}
                 height={artboardH}
@@ -4115,7 +4115,7 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
                 title="Background"
               >
                 <span
-                  className="h-5 w-5 shrink-0 rounded-md border border-black/15 shadow-inner"
+                  className="h-5 w-5 shrink-0 rounded-md border border-[var(--border-strong)] shadow-inner"
                   style={bgValueToSwatch(bgValue)}
                 />
                 <span className="pr-0.5">Background</span>
@@ -4205,8 +4205,8 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
                 lineHeight: 0,
                 boxShadow:
                   artboardEmptyHovered && !hasObjectSelected
-                    ? `0 4px 24px rgba(0,0,0,0.08), 0 0 0 2px ${EDITOR_CANVAS_ACCENT}`
-                    : '0 4px 24px rgba(0,0,0,0.08)',
+                    ? `var(--canvas-shell-shadow), 0 0 0 2px ${EDITOR_CANVAS_ACCENT}`
+                    : 'var(--canvas-shell-shadow)',
               }}
             >
               <canvas ref={canvasElRef} className="block max-w-none" />
@@ -4347,13 +4347,13 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-2 pt-24">
         <div
           ref={bottomToolbarRef}
-          className="pointer-events-auto flex items-center gap-1 rounded-full border border-black/[0.08] bg-white/85 px-2 py-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.08),0_0_0_1px_rgba(255,255,255,0.8)_inset] backdrop-blur-xl"
+          className="theme-toolbar-shell pointer-events-auto flex items-center gap-1 rounded-full border px-2 py-1.5 backdrop-blur-xl"
           role="toolbar"
           aria-label="Editor tools"
         >
           <div
             ref={shapeToolSplitRef}
-            className="relative flex items-stretch rounded-lg border border-black/[0.06] bg-black/[0.02]"
+            className="theme-segmented relative flex items-stretch rounded-lg border"
           >
             <button
               type="button"
@@ -4372,7 +4372,7 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
             <button
               type="button"
               disabled={!ready}
-              className={`${toolbarIconBtn(!ready)} rounded-l-none rounded-r-lg border-0 border-l border-black/[0.06]`}
+              className={`${toolbarIconBtn(!ready)} rounded-l-none rounded-r-lg border-0 border-l border-[var(--line)]`}
               onClick={() => setShapesPopoverOpen((o) => !o)}
               aria-expanded={shapesPopoverOpen}
               aria-haspopup="menu"

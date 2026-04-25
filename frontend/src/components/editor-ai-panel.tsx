@@ -85,7 +85,7 @@ export default function EditorAiPanel({ open, onClose, controller }: Props) {
     <div
       data-avnac-chrome
       className={[
-        "pointer-events-auto fixed z-40 flex w-[min(100vw-1.5rem,400px)] flex-col overflow-hidden rounded-3xl border border-black/[0.08] bg-white/95 backdrop-blur-md",
+        "theme-sidebar-panel pointer-events-auto fixed z-40 flex w-[min(100vw-1.5rem,400px)] flex-col overflow-hidden rounded-3xl border backdrop-blur-md",
         "bottom-3",
         editorSidebarPanelLeftClass,
         editorSidebarPanelTopClass,
@@ -93,7 +93,7 @@ export default function EditorAiPanel({ open, onClose, controller }: Props) {
       role="dialog"
       aria-label="Magic"
     >
-      <div className="flex items-center justify-between border-b border-black/[0.06] px-3 py-2">
+      <div className="flex items-center justify-between border-b border-[var(--line)] px-3 py-2">
         <div className="flex items-center gap-2">
           <HugeiconsIcon
             icon={AiMagicIcon}
@@ -104,13 +104,13 @@ export default function EditorAiPanel({ open, onClose, controller }: Props) {
           <span className="avnac-ai-gradient-text text-sm font-semibold">
             Magic
           </span>
-          <span className="rounded-full bg-[var(--surface-subtle)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-500">
+          <span className="rounded-full bg-[var(--surface-subtle)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--text-muted)]">
             beta
           </span>
         </div>
         <button
           type="button"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-600 hover:bg-black/[0.06]"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--hover)]"
           onClick={onClose}
           aria-label="Close magic"
         >
@@ -138,7 +138,7 @@ export default function EditorAiPanel({ open, onClose, controller }: Props) {
 
 function MissingKeyPlaceholder() {
   return (
-    <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4 text-sm text-neutral-700">
+    <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4 text-sm text-[var(--text-muted)]">
       <p>
         Magic uses{" "}
         <a
@@ -152,10 +152,10 @@ function MissingKeyPlaceholder() {
         to turn natural-language prompts into real edits on your artboard.
       </p>
       <p>To enable it, add a Tambo API key to your frontend env:</p>
-      <pre className="rounded-xl border border-black/[0.08] bg-[var(--surface-subtle)] p-3 text-[12px] text-neutral-800">
+      <pre className="rounded-xl border border-[var(--line)] bg-[var(--surface-subtle)] p-3 text-[12px] text-[var(--text)]">
         <code>VITE_TAMBO_API_KEY=your-key-here</code>
       </pre>
-      <p className="text-[12px] text-neutral-500">
+      <p className="text-[12px] text-[var(--text-muted)]">
         Get a free key at{" "}
         <a
           className="underline decoration-dotted underline-offset-2"
@@ -384,7 +384,7 @@ function MagicChat({ quickPrompts }: { quickPrompts: string[] }) {
 
       <form
         onSubmit={onSubmit}
-        className="mt-auto flex shrink-0 flex-col gap-2 border-t border-black/[0.06] px-3 pt-2 pb-1.5"
+        className="mt-auto flex shrink-0 flex-col gap-2 border-t border-[var(--line)] px-3 pt-2 pb-1.5"
       >
         <input
           ref={imageInputRef}
@@ -401,7 +401,7 @@ function MagicChat({ quickPrompts }: { quickPrompts: string[] }) {
             {stagedImages.map((img) => (
               <div
                 key={img.id}
-                className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-black/[0.08] bg-[var(--surface-subtle)]"
+                className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface-subtle)]"
               >
                 <img
                   src={img.dataUrl}
@@ -432,7 +432,7 @@ function MagicChat({ quickPrompts }: { quickPrompts: string[] }) {
           onKeyDown={onKeyDown}
           placeholder="Describe a design, change, or layout…"
           rows={2}
-          className="w-full resize-none rounded-xl border border-black/[0.08] bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#8B3DFF]/25"
+          className="theme-input w-full resize-none rounded-xl border px-3 py-2 text-sm placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[#8B3DFF]/25"
         />
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
@@ -440,7 +440,7 @@ function MagicChat({ quickPrompts }: { quickPrompts: string[] }) {
               type="button"
               disabled={busy}
               onClick={() => imageInputRef.current?.click()}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-600 hover:bg-black/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--hover)] disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Attach images"
               title="Attach images"
             >
@@ -450,7 +450,7 @@ function MagicChat({ quickPrompts }: { quickPrompts: string[] }) {
                 strokeWidth={1.75}
               />
             </button>
-            <span className="text-[11px] text-neutral-500">
+            <span className="text-[11px] text-[var(--text-muted)]">
               Enter to send · Shift+Enter for newline
             </span>
           </div>
@@ -484,7 +484,7 @@ function EmptyState({
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-2xl border border-dashed border-black/[0.1] bg-[var(--surface-subtle)] px-4 py-4">
+      <div className="rounded-2xl border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] px-4 py-4">
         <div className="flex items-start gap-2">
           <HugeiconsIcon
             icon={SparklesIcon}
@@ -496,7 +496,7 @@ function EmptyState({
             <div className="avnac-ai-gradient-text text-sm font-semibold">
               Design with prompts
             </div>
-            <p className="mt-1 text-[12.5px] leading-snug text-neutral-600">
+            <p className="mt-1 text-[12.5px] leading-snug text-[var(--text-muted)]">
               Describe a full layout, a single element, or an edit — Magic will
               place, resize, and style objects directly on your artboard.
             </p>
@@ -505,7 +505,7 @@ function EmptyState({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <div className="px-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+        <div className="px-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
           Try one
         </div>
         {prompts.map((p) => (
@@ -513,7 +513,7 @@ function EmptyState({
             key={p}
             type="button"
             onClick={() => onPick(p)}
-            className="flex items-start gap-2 rounded-xl border border-black/[0.08] bg-white px-3 py-2 text-left text-[12.5px] text-neutral-700 transition-colors hover:bg-[var(--surface-subtle)]"
+            className="flex items-start gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-overlay)] px-3 py-2 text-left text-[12.5px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-subtle)]"
           >
             <HugeiconsIcon
               icon={SparklesIcon}
@@ -531,13 +531,13 @@ function EmptyState({
 
 function ThinkingBubble() {
   return (
-    <div className="flex items-center gap-2 self-start rounded-2xl border border-black/[0.06] bg-[var(--surface-subtle)] px-3 py-2">
+    <div className="flex items-center gap-2 self-start rounded-2xl border border-[var(--line)] bg-[var(--surface-subtle)] px-3 py-2">
       <div className="flex gap-1">
         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#8B3DFF] [animation-delay:-0.25s]" />
         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#8B3DFF] [animation-delay:-0.1s]" />
         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#8B3DFF]" />
       </div>
-      <span className="text-[11.5px] text-neutral-500">Thinking…</span>
+      <span className="text-[11.5px] text-[var(--text-muted)]">Thinking…</span>
     </div>
   );
 }
@@ -565,7 +565,7 @@ function ChatMarkdown({ text }: { text: string }) {
               return (
                 <code
                   {...rest}
-                  className="rounded-md bg-black/[0.06] px-1 py-0.5 text-[0.92em]"
+                  className="rounded-md bg-[var(--hover)] px-1 py-0.5 text-[0.92em]"
                 >
                   {children}
                 </code>
@@ -578,7 +578,7 @@ function ChatMarkdown({ text }: { text: string }) {
             );
           },
           pre: ({ children }) => (
-            <pre className="my-2 overflow-x-auto rounded-xl border border-black/[0.08] bg-[var(--surface-subtle)] p-2.5 text-[12px] leading-relaxed">
+            <pre className="my-2 overflow-x-auto rounded-xl border border-[var(--line)] bg-[var(--surface-subtle)] p-2.5 text-[12px] leading-relaxed">
               {children}
             </pre>
           ),
@@ -644,7 +644,7 @@ function MessageBubble({ message }: { message: MessageLike }) {
       ].join(" ")}
     >
       {showToolActivity ? (
-        <div className="flex max-w-[85%] items-center gap-1.5 rounded-full border border-black/[0.06] bg-[var(--surface-subtle)] px-2 py-0.5 text-[10.5px] text-neutral-600">
+        <div className="flex max-w-[85%] items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-subtle)] px-2 py-0.5 text-[10.5px] text-[var(--text-muted)]">
           <HugeiconsIcon
             icon={ToolsIcon}
             size={11}
@@ -666,7 +666,7 @@ function MessageBubble({ message }: { message: MessageLike }) {
               key={i}
               src={src}
               alt=""
-              className="max-h-40 max-w-[min(100%,220px)] rounded-2xl border border-black/[0.08] bg-[var(--surface-subtle)] object-contain"
+              className="max-h-40 max-w-[min(100%,220px)] rounded-2xl border border-[var(--line)] bg-[var(--surface-subtle)] object-contain"
             />
           ))}
         </div>
@@ -677,7 +677,7 @@ function MessageBubble({ message }: { message: MessageLike }) {
             "max-w-[85%] rounded-2xl px-3 py-2 text-[13px] leading-snug",
             isUser
               ? "whitespace-pre-wrap bg-[#8B3DFF] text-white"
-              : "border border-black/[0.06] bg-white text-neutral-800",
+              : "border border-[var(--line)] bg-[var(--surface-overlay)] text-[var(--text)]",
           ].join(" ")}
         >
           {isUser ? text : <ChatMarkdown text={text} />}

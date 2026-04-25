@@ -55,7 +55,7 @@ function LayerRowLabelControl({
     return (
       <input
         type="text"
-        className="min-w-0 flex-1 rounded-md border border-black/15 bg-white px-2 py-1 text-sm text-neutral-800 outline-none focus:border-black/30"
+        className="theme-input min-w-0 flex-1 rounded-md border px-2 py-1 text-sm outline-none focus:border-[var(--button-secondary-border-hover)]"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={() => {
@@ -82,7 +82,7 @@ function LayerRowLabelControl({
   return (
     <button
       type="button"
-      className="flex min-w-0 flex-1 items-center gap-2 px-1 py-1.5 text-left text-sm text-neutral-800"
+      className="flex min-w-0 flex-1 items-center gap-2 px-1 py-1.5 text-left text-sm text-[var(--text)]"
       onClick={() => onSelectLayer(row.index)}
       title={onRenameLayer ? 'Double-click to rename' : undefined}
     >
@@ -105,7 +105,7 @@ function LayerRowLabelControl({
 function layerRowClass(selected: boolean) {
   return [
     'flex items-center gap-0.5 rounded-lg py-0.5',
-    selected ? 'bg-[var(--accent)]/20' : 'hover:bg-black/[0.04]',
+    selected ? 'bg-[var(--accent)]/20' : 'hover:bg-[var(--hover)]',
   ].join(' ')
 }
 
@@ -149,7 +149,7 @@ function LayerReorderRow({
         tabIndex={0}
         aria-label={`Reorder ${row.label}`}
         title="Drag to reorder"
-        className="flex h-8 w-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-neutral-400 hover:bg-black/[0.06] hover:text-neutral-600 active:cursor-grabbing"
+        className="flex h-8 w-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-[var(--text-subtle)] hover:bg-[var(--hover)] hover:text-[var(--text-muted)] active:cursor-grabbing"
         onPointerDown={onHandlePointerDown}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') e.preventDefault()
@@ -168,7 +168,7 @@ function LayerReorderRow({
       />
       <button
         type="button"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-600 hover:bg-black/[0.06]"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--hover)]"
         title={row.visible ? 'Hide' : 'Show'}
         aria-label={row.visible ? 'Hide layer' : 'Show layer'}
         onClick={() => onToggleVisible(row.index)}
@@ -181,7 +181,7 @@ function LayerReorderRow({
       </button>
       <button
         type="button"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-600 hover:bg-black/[0.06]"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--hover)]"
         title="Forward"
         aria-label="Bring forward"
         onClick={() => onBringForward(row.index)}
@@ -190,7 +190,7 @@ function LayerReorderRow({
       </button>
       <button
         type="button"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-600 hover:bg-black/[0.06]"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--hover)]"
         title="Backward"
         aria-label="Send backward"
         onClick={() => onSendBackward(row.index)}
@@ -225,7 +225,7 @@ function StaticLayerRow({
       />
       <button
         type="button"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-600 hover:bg-black/[0.06]"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--hover)]"
         title={row.visible ? 'Hide' : 'Show'}
         aria-label={row.visible ? 'Hide layer' : 'Show layer'}
         onClick={() => onToggleVisible(row.index)}
@@ -238,7 +238,7 @@ function StaticLayerRow({
       </button>
       <button
         type="button"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-600 hover:bg-black/[0.06]"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--hover)]"
         title="Forward"
         aria-label="Bring forward"
         onClick={() => onBringForward(row.index)}
@@ -247,7 +247,7 @@ function StaticLayerRow({
       </button>
       <button
         type="button"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-600 hover:bg-black/[0.06]"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--hover)]"
         title="Backward"
         aria-label="Send backward"
         onClick={() => onSendBackward(row.index)}
@@ -277,18 +277,18 @@ export default function EditorLayersPanel({
     <div
       data-avnac-chrome
       className={[
-        'pointer-events-auto fixed z-40 flex w-[min(100vw-1.5rem,280px)] flex-col overflow-hidden rounded-3xl border border-black/[0.08] bg-white/95 backdrop-blur-md',
+        'theme-sidebar-panel pointer-events-auto fixed z-40 flex w-[min(100vw-1.5rem,280px)] flex-col overflow-hidden rounded-3xl border backdrop-blur-md',
         editorSidebarPanelLeftClass,
         editorSidebarPanelTopClass,
       ].join(' ')}
       role="dialog"
       aria-label="Layers"
     >
-      <div className="flex items-center justify-between border-b border-black/[0.06] px-3 py-2">
-        <span className="text-sm font-semibold text-neutral-800">Layers</span>
+      <div className="flex items-center justify-between border-b border-[var(--line)] px-3 py-2">
+        <span className="text-sm font-semibold text-[var(--text)]">Layers</span>
         <button
           type="button"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-600 hover:bg-black/[0.06]"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--hover)]"
           onClick={onClose}
           aria-label="Close layers"
         >
@@ -297,7 +297,7 @@ export default function EditorLayersPanel({
       </div>
       {rows.length === 0 ? (
         <ul className={listClass}>
-          <li className="px-3 py-6 text-center text-sm text-neutral-500">
+          <li className="px-3 py-6 text-center text-sm text-[var(--text-muted)]">
             No objects yet
           </li>
         </ul>

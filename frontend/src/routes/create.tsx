@@ -93,7 +93,7 @@ function CreatePage() {
         <div className="hero-grid" aria-hidden="true" />
 
         <div className="relative z-[1] mx-auto flex w-full max-w-2xl flex-1 items-center justify-center">
-          <div className="w-full rounded-[2rem] border border-[var(--line)] bg-white/82 p-7 text-center shadow-[0_24px_80px_rgba(0,0,0,0.08)] backdrop-blur-md sm:p-10">
+          <div className="theme-glass-card w-full rounded-[2rem] border p-7 text-center backdrop-blur-md sm:p-10">
             <div className="landing-kicker mb-3">Desktop Only</div>
             <h1 className="display-title text-[clamp(2rem,8vw,3rem)] font-medium leading-[1.04] tracking-[-0.03em] text-[var(--text)]">
               The editor is not available on mobile.
@@ -105,13 +105,13 @@ function CreatePage() {
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
                 to="/files"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border-0 bg-[var(--text)] px-8 py-3 text-base font-medium text-white no-underline hover:bg-[#262626]"
+                className="theme-primary-button inline-flex min-h-12 items-center justify-center rounded-full border-0 px-8 py-3 text-base font-medium no-underline"
               >
                 Go to files
               </Link>
               <Link
                 to="/"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-black/[0.14] bg-white/70 px-8 py-3 text-base font-medium text-[var(--text)] no-underline hover:border-black/[0.22] hover:bg-white"
+                className="theme-secondary-button inline-flex min-h-12 items-center justify-center rounded-full border px-8 py-3 text-base font-medium text-[var(--text)] no-underline"
               >
                 Back home
               </Link>
