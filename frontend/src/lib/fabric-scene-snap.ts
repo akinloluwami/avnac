@@ -1,5 +1,4 @@
-import type { Canvas, FabricObject } from 'fabric'
-import { Point } from 'fabric'
+import type { Canvas, FabricObject, TPointerEvent } from 'fabric'
 
 type TMat2D = [number, number, number, number, number, number]
 
@@ -17,22 +16,14 @@ type Options = {
 const DEFAULT_GUIDE_COLOR = 'rgba(255, 88, 0, 0.95)'
 
 /**
- * Movements smaller than this (canvas units) after a snap-correction are skipped.
- * Without this, sub-pixel "corrections" applied every mousemove cause visible jitter
- * because Fabric resets the position from the original mouse delta on each frame.
+ * Once a guide is engaged, the cursor must drag this far past the engage
+ * threshold before the snap releases. Cursor-anchored: applies to the
+ * intended (un-snapped) position, not the corrected one.
  */
-const SNAP_DEADBAND_PX = 0.25
+const SNAP_RELEASE_MULTIPLIER = 2.2
 
-/** Once a guide is engaged, the new candidate must beat it by this many px to switch. */
+/** Once snapped, a different candidate must beat the current guide by this much. */
 const SNAP_SWITCH_HYSTERESIS_PX = 4
-
-/**
- * Multiplier applied to the engage threshold to compute the "release" threshold.
- * Once snapped to a line we stay snapped until the user drags this much past it,
- * eliminating the threshold-edge oscillation that caused the snap to flicker on
- * and off as the cursor crossed the engage boundary.
- */
-const SNAP_RELEASE_MULTIPLIER = 2.5
 
 function collectTargets(
   canvas: Canvas,
@@ -51,17 +42,18 @@ function collectTargets(
   })
 }
 
+type IntendedRect = { left: number; top: number; width: number; height: number }
+
 type SnapResult = {
   guides: SceneSnapGuide[]
-  /** Position correction in canvas units, relative to current bounding rect. */
+  /** Correction in canvas units, added to the intended top-left to get the final position. */
   dx: number
   dy: number
 }
 
-function computeSnap(
-  moving: FabricObject,
-  canvas: Canvas,
-  fabricMod: typeof import('fabric'),
+function computeSnapForRect(
+  intended: IntendedRect,
+  targets: FabricObject[],
   width: number,
   height: number,
   threshold: number,
@@ -71,15 +63,12 @@ function computeSnap(
   const midX = width / 2
   const midY = height / 2
 
-  const br = moving.getBoundingRect()
-  const left = br.left
-  const right = br.left + br.width
-  const top = br.top
-  const bottom = br.top + br.height
-  const cx = left + br.width / 2
-  const cy = top + br.height / 2
-
-  const targets = collectTargets(canvas, moving, fabricMod)
+  const left = intended.left
+  const right = intended.left + intended.width
+  const top = intended.top
+  const bottom = intended.top + intended.height
+  const cx = left + intended.width / 2
+  const cy = top + intended.height / 2
 
   let bestDx = 0
   let bestXScore = Infinity
@@ -111,7 +100,9 @@ function computeSnap(
       tryX(right, tx)
     }
   }
+  tryX(left, 0)
   tryX(cx, midX)
+  tryX(right, width)
 
   let bestDy = 0
   let bestYScore = Infinity
@@ -143,7 +134,9 @@ function computeSnap(
       tryY(bottom, ty)
     }
   }
+  tryY(top, 0)
   tryY(cy, midY)
+  tryY(bottom, height)
 
   const guides: SceneSnapGuide[] = []
   if (guideX !== null) guides.push({ axis: 'v', pos: guideX })
@@ -184,6 +177,20 @@ function drawGuidesOnOverlay(
   ctx.restore()
 }
 
+type DragState = {
+  target: FabricObject
+  startPointerX: number
+  startPointerY: number
+  /** Bounding rect of the target at drag start, in scene coords. */
+  startBR: { left: number; top: number; width: number; height: number }
+  /** Offset from object's `left/top` to its bounding-rect top-left at drag start. */
+  leftToBRX: number
+  topToBRY: number
+  /** Cached scene-pointer at last move, used by object:moving handler. */
+  lastPointerX: number
+  lastPointerY: number
+}
+
 export function installSceneSnap(
   canvas: Canvas,
   { width, height, threshold: thOpt, fabricMod, guideColor }: Options,
@@ -195,13 +202,72 @@ export function installSceneSnap(
   let activeGuides: SceneSnapGuide[] = []
   let lastGuideX: number | null = null
   let lastGuideY: number | null = null
+  let drag: DragState | null = null
+
+  const captureDragStart = (target: FabricObject, pointerX: number, pointerY: number) => {
+    const br = target.getBoundingRect()
+    drag = {
+      target,
+      startPointerX: pointerX,
+      startPointerY: pointerY,
+      startBR: { left: br.left, top: br.top, width: br.width, height: br.height },
+      leftToBRX: br.left - (target.left ?? 0),
+      topToBRY: br.top - (target.top ?? 0),
+      lastPointerX: pointerX,
+      lastPointerY: pointerY,
+    }
+    lastGuideX = null
+    lastGuideY = null
+  }
+
+  const onMouseDown = (opt: { e: TPointerEvent; target?: FabricObject }) => {
+    const target = opt.target
+    if (!target) {
+      drag = null
+      return
+    }
+    const p = canvas.getScenePoint(opt.e)
+    captureDragStart(target, p.x, p.y)
+  }
+
+  const onMouseMove = (opt: { e: TPointerEvent }) => {
+    if (!drag) return
+    const p = canvas.getScenePoint(opt.e)
+    drag.lastPointerX = p.x
+    drag.lastPointerY = p.y
+  }
 
   const onMoving = (opt: { target: FabricObject }) => {
     const target = opt.target
-    const { guides, dx, dy } = computeSnap(
-      target,
-      canvas,
-      fabricMod,
+    if (!drag || drag.target !== target) {
+      const br = target.getBoundingRect()
+      drag = {
+        target,
+        startPointerX: 0,
+        startPointerY: 0,
+        startBR: { left: br.left, top: br.top, width: br.width, height: br.height },
+        leftToBRX: br.left - (target.left ?? 0),
+        topToBRY: br.top - (target.top ?? 0),
+        lastPointerX: 0,
+        lastPointerY: 0,
+      }
+      return
+    }
+
+    const dxPointer = drag.lastPointerX - drag.startPointerX
+    const dyPointer = drag.lastPointerY - drag.startPointerY
+
+    const intended: IntendedRect = {
+      left: drag.startBR.left + dxPointer,
+      top: drag.startBR.top + dyPointer,
+      width: drag.startBR.width,
+      height: drag.startBR.height,
+    }
+
+    const targets = collectTargets(canvas, target, fabricMod)
+    const { guides, dx, dy } = computeSnapForRect(
+      intended,
+      targets,
       width,
       height,
       threshold,
@@ -209,17 +275,15 @@ export function installSceneSnap(
       lastGuideY,
     )
 
-    const needsShift =
-      Math.abs(dx) >= SNAP_DEADBAND_PX || Math.abs(dy) >= SNAP_DEADBAND_PX
-    if (needsShift) {
-      const c = target.getCenterPoint()
-      const ddx = Math.abs(dx) >= SNAP_DEADBAND_PX ? dx : 0
-      const ddy = Math.abs(dy) >= SNAP_DEADBAND_PX ? dy : 0
-      target.setPositionByOrigin(
-        new Point(c.x + ddx, c.y + ddy),
-        'center',
-        'center',
-      )
+    const finalBRLeft = intended.left + dx
+    const finalBRTop = intended.top + dy
+    const finalLeft = finalBRLeft - drag.leftToBRX
+    const finalTop = finalBRTop - drag.topToBRY
+
+    const curLeft = target.left ?? 0
+    const curTop = target.top ?? 0
+    if (curLeft !== finalLeft || curTop !== finalTop) {
+      target.set({ left: finalLeft, top: finalTop })
       target.setCoords()
     }
 
@@ -228,8 +292,13 @@ export function installSceneSnap(
     lastGuideY = guides.find((g) => g.axis === 'h')?.pos ?? null
   }
 
-  const clearGuides = () => {
-    if (activeGuides.length === 0 && lastGuideX === null && lastGuideY === null) {
+  const endDrag = () => {
+    drag = null
+    if (
+      activeGuides.length === 0 &&
+      lastGuideX === null &&
+      lastGuideY === null
+    ) {
       return
     }
     activeGuides = []
@@ -239,8 +308,6 @@ export function installSceneSnap(
   }
 
   const beforeRender = () => {
-    // Ensure the overlay starts clean each render so stale guides never linger
-    // when fabric does not otherwise re-paint the upper canvas (e.g. on release).
     const topCtx = canvas.contextTop
     if (!topCtx) return
     canvas.clearContext(topCtx)
@@ -250,23 +317,28 @@ export function installSceneSnap(
     drawGuidesOnOverlay(canvas, activeGuides, width, height, color)
   }
 
+  canvas.on('mouse:down', onMouseDown)
+  canvas.on('mouse:move', onMouseMove)
   canvas.on('object:moving', onMoving)
-  canvas.on('object:modified', clearGuides)
-  canvas.on('selection:cleared', clearGuides)
-  canvas.on('mouse:up', clearGuides)
+  canvas.on('object:modified', endDrag)
+  canvas.on('selection:cleared', endDrag)
+  canvas.on('mouse:up', endDrag)
   canvas.on('before:render', beforeRender)
   canvas.on('after:render', afterRender)
 
   return () => {
+    canvas.off('mouse:down', onMouseDown)
+    canvas.off('mouse:move', onMouseMove)
     canvas.off('object:moving', onMoving)
-    canvas.off('object:modified', clearGuides)
-    canvas.off('selection:cleared', clearGuides)
-    canvas.off('mouse:up', clearGuides)
+    canvas.off('object:modified', endDrag)
+    canvas.off('selection:cleared', endDrag)
+    canvas.off('mouse:up', endDrag)
     canvas.off('before:render', beforeRender)
     canvas.off('after:render', afterRender)
     activeGuides = []
     lastGuideX = null
     lastGuideY = null
+    drag = null
     canvas.requestRenderAll()
   }
 }
