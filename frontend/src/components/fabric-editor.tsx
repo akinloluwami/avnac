@@ -1132,6 +1132,7 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
     (
       files: FileList | readonly File[] | null,
       atPoint?: { x: number; y: number },
+      options?: { addAll?: boolean },
     ) => {
       const canvas = fabricCanvasRef.current
       const mod = fabricModRef.current
@@ -1140,7 +1141,8 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
         ? Array.from(files).filter((f) => f.type.startsWith('image/'))
         : []
       if (list.length === 0) return
-      const toProcess = atPoint ? list : list.slice(0, 1)
+      const addAll = atPoint != null || options?.addAll === true
+      const toProcess = addAll ? list : list.slice(0, 1)
       const aw = artboardW
       const ah = artboardH
       const baseX = atPoint?.x ?? aw / 2
@@ -1164,8 +1166,8 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
             crossOrigin: 'anonymous',
           })
             .then((img) => {
-              const dx = atPoint && toProcess.length > 1 ? i * stagger : 0
-              const dy = atPoint && toProcess.length > 1 ? i * stagger : 0
+              const dx = toProcess.length > 1 ? i * stagger : 0
+              const dy = toProcess.length > 1 ? i * stagger : 0
               img.set({
                 left: baseX + dx,
                 top: baseY + dy,
@@ -4543,6 +4545,9 @@ const FabricEditor = forwardRef<FabricEditorHandle, FabricEditorProps>(
       <EditorUploadsPanel
         open={ready && editorSidebarPanel === 'uploads'}
         onClose={() => setEditorSidebarPanel(null)}
+        addImages={(files) =>
+          addImageFromFiles(files, undefined, { addAll: true })
+        }
       />
       <EditorImagesPanel
         open={ready && editorSidebarPanel === 'images'}
