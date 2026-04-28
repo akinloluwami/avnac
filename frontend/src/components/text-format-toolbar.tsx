@@ -58,9 +58,11 @@ export default function TextFormatToolbar({
   const [fontQuery, setFontQuery] = useState('')
   const [fontMenuOpenUpward, setFontMenuOpenUpward] = useState(false)
   const [fontListMaxHeightPx, setFontListMaxHeightPx] = useState(224)
+  const [displayCount, setDisplayCount] = useState(LIST_LIMIT)
   const rootRef = useRef<HTMLDivElement>(null)
   const fontTriggerWrapRef = useRef<HTMLDivElement>(null)
   const fontMenuRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!fontOpen) return
@@ -82,21 +84,42 @@ export default function TextFormatToolbar({
     if (!fontOpen) {
       setFontMenuOpenUpward(false)
       setFontListMaxHeightPx(224)
+      setDisplayCount(LIST_LIMIT)
     }
   }, [fontOpen])
 
-  const filteredFonts = useMemo(() => {
-    const q = fontQuery.trim().toLowerCase()
-    if (!q) return GOOGLE_FONT_FAMILIES.slice(0, LIST_LIMIT)
-    const out: string[] = []
-    for (const f of GOOGLE_FONT_FAMILIES) {
-      if (f.toLowerCase().includes(q)) {
-        out.push(f)
-        if (out.length >= LIST_LIMIT) break
-      }
-    }
-    return out
+  useEffect(() => {
+    setDisplayCount(LIST_LIMIT)
   }, [fontQuery])
+
+
+  const allFilteredFonts = useMemo(() => {
+    const q = fontQuery.trim().toLowerCase()
+    if (!q) return GOOGLE_FONT_FAMILIES
+    return GOOGLE_FONT_FAMILIES.filter((f) => f.toLowerCase().includes(q))
+  }, [fontQuery])
+
+  useEffect(() => {
+    if (!fontOpen) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setDisplayCount((prev) =>
+            Math.min(allFilteredFonts.length, prev + LIST_LIMIT),
+          )
+        }
+      },
+      { rootMargin: '200px' },
+    )
+    if (sentinelRef.current) observer.observe(sentinelRef.current)
+    return () => observer.disconnect()
+  }, [fontOpen, allFilteredFonts.length])
+
+
+
+  const displayedFonts = useMemo(() => {
+    return allFilteredFonts.slice(0, displayCount)
+  }, [allFilteredFonts, displayCount])
 
   useLayoutEffect(() => {
     if (!fontOpen) return
@@ -130,7 +153,7 @@ export default function TextFormatToolbar({
       window.removeEventListener('resize', syncPlacement)
       window.removeEventListener('scroll', syncPlacement, true)
     }
-  }, [fontOpen, fontQuery, filteredFonts.length])
+  }, [fontOpen, fontQuery, displayedFonts.length])
 
   return (
     <FloatingToolbarShell
@@ -176,7 +199,7 @@ export default function TextFormatToolbar({
               role="listbox"
               aria-label="Google Fonts"
             >
-              {filteredFonts.map((name) => (
+              {displayedFonts.map((name) => (
                 <li key={name} role="none">
                   <button
                     type="button"
@@ -196,8 +219,16 @@ export default function TextFormatToolbar({
                   </button>
                 </li>
               ))}
+              {displayCount < allFilteredFonts.length && (
+                <div
+                  ref={sentinelRef}
+                  style={{
+                    height: (allFilteredFonts.length - displayCount) * 32,
+                  }}
+                />
+              )}
             </ul>
-            {filteredFonts.length === 0 ? (
+            {allFilteredFonts.length === 0 ? (
               <p className="px-3 py-4 text-center text-xs text-neutral-500">
                 No matches
               </p>
