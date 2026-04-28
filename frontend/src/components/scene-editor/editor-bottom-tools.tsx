@@ -20,7 +20,7 @@ import ShapesPopover, {
 
 function toolbarIconBtn(disabled?: boolean) {
   const base =
-    'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'
+    'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'
   if (disabled) return `${base} pointer-events-none cursor-not-allowed opacity-35`
   return base
 }
@@ -80,12 +80,12 @@ export function EditorBottomTools({
         >
           <div
             ref={shapeToolSplitRef}
-            className="relative flex items-stretch rounded-lg border border-black/[0.06] bg-black/[0.02]"
+            className="relative flex items-stretch rounded-full border border-black/[0.06] bg-black/[0.02]"
           >
             <button
               type="button"
               disabled={!ready}
-              className={`${toolbarIconBtn(!ready)} rounded-l-lg rounded-r-none border-0`}
+              className={`${toolbarIconBtn(!ready)} rounded-l-full rounded-r-none border-0`}
               onClick={() => addShapeFromKind(shapesQuickAddKind === 'generic' ? 'rect' : shapesQuickAddKind)}
               aria-label="Add shape"
               title="Add shape"
@@ -99,13 +99,20 @@ export function EditorBottomTools({
             <button
               type="button"
               disabled={!ready}
-              className={`${toolbarIconBtn(!ready)} rounded-l-none rounded-r-lg border-0 border-l border-black/[0.06]`}
+              className={`${toolbarIconBtn(!ready)} rounded-l-none rounded-r-full border-0 border-l border-black/[0.06]`}
               onClick={() => setShapesPopoverOpen((open) => !open)}
               aria-expanded={shapesPopoverOpen}
               aria-haspopup="menu"
               aria-label="More shapes"
             >
-              <HugeiconsIcon icon={ArrowDown01Icon} size={16} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={ArrowDown01Icon}
+                size={16}
+                strokeWidth={1.75}
+                className={`transition-transform duration-200 ${
+                  shapesPopoverOpen ? "rotate-180" : "rotate-0"
+                }`}
+              />
             </button>
             <ShapesPopover
               open={shapesPopoverOpen}

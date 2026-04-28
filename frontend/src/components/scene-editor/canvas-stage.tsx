@@ -79,6 +79,7 @@ export function CanvasStage() {
   const objects = useEditorStore((state) => state.doc.objects)
   const selectedIds = useEditorStore((state) => state.selectedIds)
   const hoveredId = useEditorStore((state) => state.hoveredId)
+  const isDragging = useEditorStore((state) => state.isDragging)
   const { boardDocs } = useVectorBoardControlsContext()
   const artboardW = artboard.width
   const artboardH = artboard.height
@@ -89,7 +90,6 @@ export function CanvasStage() {
         : null,
     [hoveredId, objects],
   )
-
   return (
     <div className="flex min-h-min w-full flex-1 flex-col items-center justify-center px-4 pb-4 pt-0 sm:px-6 sm:pb-6 sm:pt-1">
       <div className="relative z-0 -mt-4 inline-block sm:-mt-5">
@@ -138,6 +138,7 @@ export function CanvasStage() {
               transform: `scale(${scale})`,
               transformOrigin: 'top left',
               background: bg.type === 'solid' ? bg.color : bg.css,
+              cursor: isDragging ? 'grabbing' : 'grab',
             }}
             onPointerEnter={onArtboardPointerEnter}
             onPointerMove={onArtboardPointerMove}

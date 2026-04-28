@@ -90,6 +90,7 @@ import { EditorSelectionToolbar } from './scene-editor/editor-selection-toolbar'
 import {
   createEditorStore,
   EditorStoreProvider,
+  useEditorStore,
   type EditorStoreApi,
 } from './scene-editor/editor-store'
 import {
@@ -246,6 +247,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
     const selectedIds = useStore(editorStore, (state) => state.selectedIds)
     const setSelectedIds = useStore(editorStore, (state) => state.setSelectedIds)
     const setHoveredId = useStore(editorStore, (state) => state.setHoveredId)
+    const setIsDragging = useStore(editorStore, (state) => state.setIsDragging)
 
     const [ready, setReady] = useState(false)
     const [zoomPercent, setZoomPercent] = useState<number | null>(null)
@@ -294,7 +296,6 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
       pickBackgroundPopoverPanel,
       'center',
     )
-
     useEffect(() => {
       if (!bgPopoverOpen) return
       const onDown = (e: MouseEvent) => {
@@ -1533,6 +1534,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
 
         const onUp = () => {
           dragStateRef.current = null
+          setIsDragging(false)
           setMarqueeRect(null)
           snapGuideXRef.current = null
           snapGuideYRef.current = null
@@ -1547,7 +1549,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
         window.addEventListener('pointerup', onUp)
         window.addEventListener('pointercancel', onUp)
       },
-      [artboardH, artboardW, pointerToScene],
+      [artboardH, artboardW, pointerToScene,setIsDragging],
     )
 
     const onObjectPointerDown = useCallback(
@@ -1590,6 +1592,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
         const snapTargets = doc.objects
           .filter((row) => row.visible && !sourceIds.includes(row.id))
           .map((row) => getObjectRotatedBounds(row))
+          setIsDragging(true)
         startWindowDrag({
           kind: 'move',
           ids,

@@ -1077,3 +1077,13 @@
     padding: 0.25em 0.45em;
   }
 }
+button,
+a,
+input[type="button"],
+input[type="submit"],
+input[type="checkbox"],
+input[type="radio"],
+select,
+label {
+  cursor: pointer;
+}

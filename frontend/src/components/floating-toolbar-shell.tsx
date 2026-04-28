@@ -44,8 +44,8 @@ export function floatingToolbarIconButton(
   opts?: { wide?: boolean },
 ): string {
   const base = opts?.wide
-    ? 'flex h-8 min-w-[2.75rem] shrink-0 items-center justify-center gap-0.5 rounded-lg px-1.5 text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'
-    : 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'
+    ? 'flex h-8 min-w-[2.75rem] shrink-0 items-center justify-center gap-0.5 rounded-full px-1.5 text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'
+    : 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'
   return active ? `${base} bg-black/[0.08] text-neutral-900` : base
 }
 
