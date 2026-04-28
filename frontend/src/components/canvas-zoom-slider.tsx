@@ -1,13 +1,13 @@
-import EditorRangeSlider from './editor-range-slider'
+import EditorRangeSlider from "./editor-range-slider";
 
 type CanvasZoomSliderProps = {
-  value: number
-  min?: number
-  max?: number
-  onChange: (value: number) => void
-  onFitRequest?: () => void
-  disabled?: boolean
-}
+  value: number;
+  min?: number;
+  max?: number;
+  onChange: (value: number) => void;
+  onFitRequest?: () => void;
+  disabled?: boolean;
+};
 
 export default function CanvasZoomSlider({
   value,
@@ -39,13 +39,13 @@ export default function CanvasZoomSlider({
           onClick={onFitRequest}
           className="min-w-[2.75rem] text-left text-sm tabular-nums text-neutral-600 outline-none hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40"
         >
-          {value}%
+          {Math.round(value)}%
         </button>
       ) : (
         <span className="min-w-[2.75rem] text-sm tabular-nums text-neutral-600">
-          {value}%
+          {Math.round(value)}%
         </span>
       )}
     </div>
-  )
+  );
 }
