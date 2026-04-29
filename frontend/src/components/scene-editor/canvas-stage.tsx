@@ -74,9 +74,19 @@ export function CanvasStage() {
     textDraft,
     textEditingId,
   } = state
-  const artboard = useEditorStore((storeState) => storeState.doc.artboard)
-  const bg = useEditorStore((state) => state.doc.bg)
-  const objects = useEditorStore((state) => state.doc.objects)
+  const artboard = useEditorStore((storeState) => {
+    const { doc, activePageId } = storeState
+    const page = doc.pages.find((p) => p.id === activePageId) ?? doc.pages[0]
+    return page.artboard
+  })
+  const bg = useEditorStore((state) => {
+    const page = state.doc.pages.find((p) => p.id === state.activePageId) ?? state.doc.pages[0]
+    return page.bg
+  })
+  const objects = useEditorStore((state) => {
+    const page = state.doc.pages.find((p) => p.id === state.activePageId) ?? state.doc.pages[0]
+    return page.objects
+  })
   const selectedIds = useEditorStore((state) => state.selectedIds)
   const hoveredId = useEditorStore((state) => state.hoveredId)
   const { boardDocs } = useVectorBoardControlsContext()
