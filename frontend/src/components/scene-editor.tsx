@@ -150,6 +150,7 @@ export type SceneEditorHandle = {
   exportImage: (opts?: ExportImageOptions) => void
   saveDocument: () => void
   loadDocument: (file: File) => Promise<void>
+  clearCanvas: () => void
 }
 
 type SceneEditorProps = {
@@ -1290,10 +1291,15 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
       [doc, vectorBoardDocs],
     )
 
+    const clearCanvas = useCallback(() => {
+      setDoc((prev) => ({ ...prev, objects: [] }))
+      setSelectedIds([])
+    }, [setDoc, setSelectedIds])
+
     useImperativeHandle(
       ref,
-      () => ({ exportImage, saveDocument, loadDocument }),
-      [exportImage, saveDocument, loadDocument],
+      () => ({ exportImage, saveDocument, loadDocument, clearCanvas }),
+      [exportImage, saveDocument, loadDocument, clearCanvas],
     )
 
     const onZoomSliderChange = useCallback((pct: number) => {

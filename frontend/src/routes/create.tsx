@@ -14,6 +14,7 @@ import {
   idbMigrateLegacyDocument,
   idbSetDocumentName,
 } from "../lib/avnac-editor-idb";
+import EditorClearCanvas from "#/components/editor-clear-canvas";
 
 type CreateSearch = {
   id?: string;
@@ -183,6 +184,7 @@ function CreatePage() {
           />
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <EditorClearCanvas onClearCanvas={() => editorRef.current?.clearCanvas()} />
           <EditorExportMenu
             disabled={!editorReady}
             onExport={(opts) => editorRef.current?.exportImage(opts)}
