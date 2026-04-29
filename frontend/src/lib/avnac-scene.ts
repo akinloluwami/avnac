@@ -1,4 +1,4 @@
-import type { BgValue } from '../components/background-popover'
+import type { BgValue, GradientStop } from '../components/background-popover'
 import {
   parseShadowColor,
   type ShadowUi,
@@ -9,7 +9,8 @@ import type {
   AvnacShapeMeta,
 } from './avnac-shape-meta'
 
-export const AVNAC_DOC_VERSION = 2 as const
+export const AVNAC_DOC_VERSION = 3 as const
+export const AVNAC_DOC_VERSION_V2 = 2 as const
 export const AVNAC_STORAGE_KEY = 'avnac-editor-document'
 
 export type SceneObjectType =
@@ -142,14 +143,20 @@ export type SceneObject =
   | SceneVectorBoard
   | SceneGroup
 
-export type AvnacDocument = {
-  v: typeof AVNAC_DOC_VERSION
+export type AvnacPage = {
+  id: string
+  name: string
   artboard: { width: number; height: number }
   bg: BgValue
   objects: SceneObject[]
 }
 
-export type AvnacDocumentStorageKind = 'current' | 'legacy' | 'invalid'
+export type AvnacDocument = {
+  v: typeof AVNAC_DOC_VERSION
+  pages: AvnacPage[]
+}
+
+export type AvnacDocumentStorageKind = 'current' | 'v2' | 'legacy' | 'invalid'
 
 const DEFAULT_SHAPE_FILL: BgValue = { type: 'solid', color: '#262626' }
 const DEFAULT_SHAPE_STROKE: BgValue = { type: 'solid', color: 'transparent' }
@@ -237,7 +244,7 @@ export function cloneShadow(
   return { ...shadow }
 }
 
-function isGradientStopArray(raw: unknown): raw is BgValue['stops'] {
+function isGradientStopArray(raw: unknown): raw is GradientStop[] {
   return (
     Array.isArray(raw) &&
     raw.every(
@@ -262,11 +269,12 @@ function parseBgValue(raw: unknown, fallback: BgValue): BgValue {
     typeof obj.angle === 'number' &&
     isGradientStopArray(obj.stops)
   ) {
+    const stops = obj.stops as GradientStop[]
     return {
       type: 'gradient',
       css: obj.css,
       angle: obj.angle,
-      stops: obj.stops.map((stop) => ({ ...stop })),
+      stops: stops.map((stop) => ({ ...stop })),
     }
   }
   return cloneBgValue(fallback)
@@ -346,7 +354,7 @@ function baseObjectFromUnknown(
   }
 }
 
-function parseSceneObject(raw: unknown): SceneObject | null {
+export function parseSceneObject(raw: unknown): SceneObject | null {
   if (!raw || typeof raw !== 'object') return null
   const obj = raw as Record<string, unknown>
   const type =
@@ -354,6 +362,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
   if (type === 'rect') {
     return {
       ...baseObjectFromUnknown(obj, 'rect'),
+      type: 'rect' as const,
       fill: parseBgValue(obj.fill, DEFAULT_SHAPE_FILL),
       stroke: parseBgValue(obj.stroke, DEFAULT_SHAPE_STROKE),
       strokeWidth:
@@ -365,6 +374,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
   if (type === 'ellipse') {
     return {
       ...baseObjectFromUnknown(obj, 'ellipse'),
+      type: 'ellipse' as const,
       fill: parseBgValue(obj.fill, DEFAULT_SHAPE_FILL),
       stroke: parseBgValue(obj.stroke, DEFAULT_SHAPE_STROKE),
       strokeWidth:
@@ -374,6 +384,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
   if (type === 'polygon') {
     return {
       ...baseObjectFromUnknown(obj, 'polygon'),
+      type: 'polygon' as const,
       fill: parseBgValue(obj.fill, DEFAULT_SHAPE_FILL),
       stroke: parseBgValue(obj.stroke, DEFAULT_SHAPE_STROKE),
       strokeWidth:
@@ -387,6 +398,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
   if (type === 'star') {
     return {
       ...baseObjectFromUnknown(obj, 'star'),
+      type: 'star' as const,
       fill: parseBgValue(obj.fill, DEFAULT_SHAPE_FILL),
       stroke: parseBgValue(obj.stroke, DEFAULT_SHAPE_STROKE),
       strokeWidth:
@@ -400,6 +412,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
   if (type === 'line') {
     return {
       ...baseObjectFromUnknown(obj, 'line'),
+      type: 'line' as const,
       stroke: parseBgValue(obj.stroke, DEFAULT_LINE_STROKE),
       strokeWidth:
         typeof obj.strokeWidth === 'number' ? Math.max(1, obj.strokeWidth) : 4,
@@ -413,6 +426,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
   if (type === 'arrow') {
     return {
       ...baseObjectFromUnknown(obj, 'arrow'),
+      type: 'arrow' as const,
       stroke: parseBgValue(obj.stroke, DEFAULT_LINE_STROKE),
       strokeWidth:
         typeof obj.strokeWidth === 'number' ? Math.max(1, obj.strokeWidth) : 4,
@@ -421,7 +435,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
           ? obj.lineStyle
           : 'solid',
       roundedEnds: obj.roundedEnds !== false,
-      pathType: obj.pathType === 'curved' ? 'curved' : 'straight',
+      pathType: obj.pathType === 'curved' ? 'curved' as const : 'straight' as const,
       headSize:
         typeof obj.headSize === 'number' ? Math.max(0.2, obj.headSize) : 1,
       curveBulge:
@@ -435,6 +449,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
   if (type === 'text') {
     return {
       ...baseObjectFromUnknown(obj, 'text'),
+      type: 'text' as const,
       text: typeof obj.text === 'string' ? obj.text : '',
       fill: parseBgValue(obj.fill, DEFAULT_TEXT_FILL),
       stroke: parseBgValue(obj.stroke, DEFAULT_SHAPE_STROKE),
@@ -450,7 +465,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
         typeof obj.lineHeight === 'number' ? obj.lineHeight : 1.22,
       ),
       fontWeight: parseFontWeight(obj.fontWeight),
-      fontStyle: obj.fontStyle === 'italic' ? 'italic' : 'normal',
+      fontStyle: obj.fontStyle === 'italic' ? 'italic' as const : 'normal' as const,
       underline: obj.underline === true,
       textAlign:
         obj.textAlign === 'center' ||
@@ -468,6 +483,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
     const cropRaw = obj.crop as Record<string, unknown> | undefined
     return {
       ...baseObjectFromUnknown(obj, 'image'),
+      type: 'image' as const,
       src: typeof obj.src === 'string' ? obj.src : '',
       naturalWidth,
       naturalHeight,
@@ -490,6 +506,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
   if (type === 'vector-board') {
     return {
       ...baseObjectFromUnknown(obj, 'vector-board'),
+      type: 'vector-board' as const,
       boardId:
         typeof obj.boardId === 'string' && obj.boardId.trim()
           ? obj.boardId
@@ -500,6 +517,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
     const childrenRaw = Array.isArray(obj.children) ? obj.children : []
     return {
       ...baseObjectFromUnknown(obj, 'group'),
+      type: 'group' as const,
       children: childrenRaw
         .map((child) => parseSceneObject(child))
         .filter((child): child is SceneObject => child != null),
@@ -769,18 +787,30 @@ function migrateLegacyObject(raw: unknown): SceneObject | null {
   return null
 }
 
-export function createEmptyAvnacDocument(
+export function createEmptyAvnacPage(
   width: number,
   height: number,
-): AvnacDocument {
+  name = 'Page 1',
+): AvnacPage {
   return {
-    v: AVNAC_DOC_VERSION,
+    id: crypto.randomUUID(),
+    name,
     artboard: {
       width: clampSize(width, 100),
       height: clampSize(height, 100),
     },
     bg: { ...DEFAULT_BG },
     objects: [],
+  }
+}
+
+export function createEmptyAvnacDocument(
+  width: number,
+  height: number,
+): AvnacDocument {
+  return {
+    v: AVNAC_DOC_VERSION,
+    pages: [createEmptyAvnacPage(width, height)],
   }
 }
 
@@ -797,11 +827,48 @@ function migrateLegacyDocument(raw: Record<string, unknown>): AvnacDocument | nu
     : []
   return {
     v: AVNAC_DOC_VERSION,
-    artboard: { width: clampSize(width, 100), height: clampSize(height, 100) },
-    bg: parseBgValue(raw.bg, DEFAULT_BG),
-    objects: objectsRaw
-      .map((obj) => migrateLegacyObject(obj))
-      .filter((obj): obj is SceneObject => obj != null),
+    pages: [
+      {
+        id: crypto.randomUUID(),
+        name: 'Page 1',
+        artboard: { width: clampSize(width, 100), height: clampSize(height, 100) },
+        bg: parseBgValue(raw.bg, DEFAULT_BG),
+        objects: objectsRaw
+          .map((obj) => migrateLegacyObject(obj))
+          .filter((obj): obj is SceneObject => obj != null),
+      },
+    ],
+  }
+}
+
+function migrateV2Document(raw: Record<string, unknown>): AvnacDocument | null {
+  const artboardRaw = raw.artboard as Record<string, unknown> | undefined
+  if (
+    !artboardRaw ||
+    typeof artboardRaw.width !== 'number' ||
+    typeof artboardRaw.height !== 'number'
+  ) {
+    return null
+  }
+  const objects = Array.isArray(raw.objects)
+    ? raw.objects
+        .map((row) => parseSceneObject(row))
+        .filter((row): row is SceneObject => row != null)
+    : []
+  return {
+    v: AVNAC_DOC_VERSION,
+    pages: [
+      {
+        id: crypto.randomUUID(),
+        name: 'Page 1',
+        artboard: {
+          width: clampSize(artboardRaw.width, 100),
+          height: clampSize(artboardRaw.height, 100),
+        },
+        bg: parseBgValue(raw.bg, DEFAULT_BG),
+        objects,
+      },
+    ],
   }
 }
 
@@ -810,9 +877,15 @@ export function getAvnacDocumentStorageKind(
 ): AvnacDocumentStorageKind {
   if (!raw || typeof raw !== 'object') return 'invalid'
   const obj = raw as Record<string, unknown>
-  if (obj.v === AVNAC_DOC_VERSION && Array.isArray(obj.objects)) {
+  // v3: current format with pages array
+  if (obj.v === AVNAC_DOC_VERSION && Array.isArray(obj.pages)) {
     return 'current'
   }
+  // v2: old format with artboard + objects at top level
+  if (obj.v === AVNAC_DOC_VERSION_V2 && Array.isArray(obj.objects)) {
+    return 'v2'
+  }
+  // v1: fabric.js legacy format
   const legacySceneState = obj['fabric']
   if (obj.v === 1 && legacySceneState && typeof legacySceneState === 'object') {
     return 'legacy'
@@ -820,30 +893,46 @@ export function getAvnacDocumentStorageKind(
   return 'invalid'
 }
 
+function parseAvnacPage(raw: unknown): AvnacPage | null {
+  if (!raw || typeof raw !== 'object') return null
+  const obj = raw as Record<string, unknown>
+  const artboard = obj.artboard as Record<string, unknown> | undefined
+  if (
+    !artboard ||
+    typeof artboard.width !== 'number' ||
+    typeof artboard.height !== 'number'
+  ) {
+    return null
+  }
+  return {
+    id: typeof obj.id === 'string' && obj.id.trim() ? obj.id : crypto.randomUUID(),
+    name: typeof obj.name === 'string' && obj.name.trim() ? obj.name : 'Page',
+    artboard: {
+      width: clampSize(artboard.width, 100),
+      height: clampSize(artboard.height, 100),
+    },
+    bg: parseBgValue(obj.bg, DEFAULT_BG),
+    objects: Array.isArray(obj.objects)
+      ? obj.objects
+          .map((row) => parseSceneObject(row))
+          .filter((row): row is SceneObject => row != null)
+      : [],
+  }
+}
+
 export function parseAvnacDocument(raw: unknown): AvnacDocument | null {
   const kind = getAvnacDocumentStorageKind(raw)
   if (kind === 'invalid' || !raw || typeof raw !== 'object') return null
   const obj = raw as Record<string, unknown>
   if (kind === 'current') {
-    const artboard = obj.artboard as Record<string, unknown> | undefined
-    if (
-      !artboard ||
-      typeof artboard.width !== 'number' ||
-      typeof artboard.height !== 'number'
-    ) {
-      return null
-    }
-    return {
-      v: AVNAC_DOC_VERSION,
-      artboard: {
-        width: clampSize(artboard.width, 100),
-        height: clampSize(artboard.height, 100),
-      },
-      bg: parseBgValue(obj.bg, DEFAULT_BG),
-      objects: obj.objects
-        .map((row) => parseSceneObject(row))
-        .filter((row): row is SceneObject => row != null),
-    }
+    const pages = Array.isArray(obj.pages)
+      ? obj.pages.map((p) => parseAvnacPage(p)).filter((p): p is AvnacPage => p != null)
+      : []
+    if (pages.length === 0) return null
+    return { v: AVNAC_DOC_VERSION, pages }
+  }
+  if (kind === 'v2') {
+    return migrateV2Document(obj)
   }
   if (kind === 'legacy') {
     return migrateLegacyDocument(obj)
@@ -891,12 +980,20 @@ export function cloneSceneObject<T extends SceneObject>(obj: T): T {
   }
 }
 
+export function cloneAvnacPage(page: AvnacPage): AvnacPage {
+  return {
+    id: page.id,
+    name: page.name,
+    artboard: { ...page.artboard },
+    bg: cloneBgValue(page.bg),
+    objects: page.objects.map((obj) => cloneSceneObject(obj)),
+  }
+}
+
 export function cloneAvnacDocument(doc: AvnacDocument): AvnacDocument {
   return {
     v: AVNAC_DOC_VERSION,
-    artboard: { ...doc.artboard },
-    bg: cloneBgValue(doc.bg),
-    objects: doc.objects.map((obj) => cloneSceneObject(obj)),
+    pages: doc.pages.map((page) => cloneAvnacPage(page)),
   }
 }
 
@@ -971,7 +1068,9 @@ export function sceneObjectToShapeMeta(obj: SceneObject): AvnacShapeMeta | null 
   }
 }
 
-export function objectSupportsOutlineStroke(obj: SceneObject): boolean {
+type SceneObjectWithStroke = SceneRect | SceneEllipse | ScenePolygon | SceneStar | SceneLine | SceneArrow | SceneText
+
+export function objectSupportsOutlineStroke(obj: SceneObject): obj is SceneObjectWithStroke {
   return (
     obj.type === 'rect' ||
     obj.type === 'ellipse' ||
@@ -983,7 +1082,9 @@ export function objectSupportsOutlineStroke(obj: SceneObject): boolean {
   )
 }
 
-export function objectSupportsFill(obj: SceneObject): boolean {
+type SceneObjectWithFill = SceneRect | SceneEllipse | ScenePolygon | SceneStar | SceneText
+
+export function objectSupportsFill(obj: SceneObject): obj is SceneObjectWithFill {
   return (
     obj.type === 'rect' ||
     obj.type === 'ellipse' ||
