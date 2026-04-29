@@ -26,6 +26,7 @@ type UseSceneDocumentLifecycleArgs = {
   persistId?: string
   persistIdRef: MutableRefObject<string | undefined>
   ready: boolean
+  setActivePageId: (id: string) => void
   setDoc: Dispatch<SetStateAction<AvnacDocument>>
   setReady: Dispatch<SetStateAction<boolean>>
   setSelectedIds: Dispatch<SetStateAction<string[]>>
@@ -50,6 +51,7 @@ export function useSceneDocumentLifecycle({
   persistId,
   persistIdRef,
   ready,
+  setActivePageId,
   setDoc,
   setReady,
   setSelectedIds,
@@ -81,6 +83,7 @@ export function useSceneDocumentLifecycle({
         )
       if (cancelled) return
       setDoc(base)
+      setActivePageId(base.pages[0].id)
       setSelectedIds([])
       setTextEditingId(null)
       historyRef.current = [cloneAvnacDocument(base)]
@@ -100,6 +103,7 @@ export function useSceneDocumentLifecycle({
     initialArtboardHeight,
     initialArtboardWidth,
     persistId,
+    setActivePageId,
     setDoc,
     setReady,
     setSelectedIds,

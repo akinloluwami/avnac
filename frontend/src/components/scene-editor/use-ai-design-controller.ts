@@ -13,7 +13,7 @@ import {
   setObjectFill,
   setObjectStroke,
   setObjectStrokeWidth,
-  type AvnacDocument,
+  type AvnacPage,
   type SceneLine,
   type SceneObject,
   type SceneText,
@@ -44,9 +44,9 @@ type UseAiDesignControllerArgs = {
   addObjects: (objectsToAdd: SceneObject[]) => void
   artboardH: number
   artboardW: number
-  doc: AvnacDocument
+  doc: AvnacPage
   placeImageObject: PlaceImageObject
-  setDoc: Dispatch<SetStateAction<AvnacDocument>>
+  setDoc: Dispatch<SetStateAction<AvnacPage>>
   setSelectedIds: Dispatch<SetStateAction<string[]>>
 }
 

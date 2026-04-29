@@ -4,6 +4,8 @@ function detectEditorUnsupportedOnThisDevice(): boolean {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') {
     return false
   }
+  // Never block in local dev
+  if (import.meta.env.DEV) return false
 
   const nav = navigator as Navigator & {
     userAgentData?: { mobile?: boolean }

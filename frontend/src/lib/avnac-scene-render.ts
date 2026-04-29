@@ -2,6 +2,7 @@ import { bgValueToCss, type BgValue } from '../components/background-popover'
 import { loadGoogleFontFamily } from './load-google-font'
 import type {
   AvnacDocument,
+  AvnacPage,
   SceneArrow,
   SceneLine,
   SceneObject,
@@ -138,7 +139,7 @@ function drawRoundedRectPath(
 ) {
   const r = Math.max(0, Math.min(radius, Math.min(width, height) / 2))
   ctx.beginPath()
-  if ('roundRect' in ctx) {
+  if (typeof (ctx as CanvasRenderingContext2D & { roundRect?: unknown }).roundRect === 'function') {
     ctx.roundRect(x, y, width, height, r)
     return
   }
@@ -275,7 +276,8 @@ export function layoutSceneText(
   }
 }
 
-export async function preloadFontsForDocument(doc: AvnacDocument): Promise<void> {
+export async function preloadFontsForDocument(doc: AvnacDocument | AvnacPage): Promise<void> {
+  const objects = 'pages' in doc ? doc.pages.flatMap((p) => p.objects) : doc.objects
   const fonts = new Set<string>()
   const visit = (obj: SceneObject) => {
     if (obj.type === 'text') fonts.add(obj.fontFamily)
@@ -283,7 +285,7 @@ export async function preloadFontsForDocument(doc: AvnacDocument): Promise<void>
       for (const child of obj.children) visit(child)
     }
   }
-  for (const obj of doc.objects) visit(obj)
+  for (const obj of objects) visit(obj)
   await Promise.all([...fonts].map((font) => loadGoogleFontFamily(font)))
 }
 
@@ -569,24 +571,25 @@ async function drawSceneObject(
 
 export async function renderAvnacDocumentToCanvas(
   ctx: CanvasRenderingContext2D,
-  doc: AvnacDocument,
+  doc: AvnacDocument | AvnacPage,
   vectorBoardDocs: Record<string, VectorBoardDocument>,
   opts?: { transparent?: boolean },
 ): Promise<void> {
-  const { width, height } = doc.artboard
+  const page = 'pages' in doc ? doc.pages[0] : doc
+  const { width, height } = page.artboard
   ctx.clearRect(0, 0, width, height)
   if (!opts?.transparent) {
-    ctx.fillStyle = bgValueToCanvasPaint(ctx, doc.bg, width, height)
+    ctx.fillStyle = bgValueToCanvasPaint(ctx, page.bg, width, height)
     ctx.fillRect(0, 0, width, height)
   }
-  await preloadFontsForDocument(doc)
-  for (const obj of doc.objects) {
+  await preloadFontsForDocument(page)
+  for (const obj of page.objects) {
     await drawSceneObject(ctx, obj, vectorBoardDocs)
   }
 }
 
 export async function renderAvnacDocumentToDataUrl(
-  doc: AvnacDocument,
+  doc: AvnacDocument | AvnacPage,
   vectorBoardDocs: Record<string, VectorBoardDocument>,
   opts?: {
     format?: 'png' | 'jpg' | 'webp'
@@ -596,13 +599,14 @@ export async function renderAvnacDocumentToDataUrl(
 ): Promise<string> {
   const multiplier = Math.max(1, Math.round(opts?.multiplier ?? 1))
   const format = opts?.format ?? 'png'
+  const page = 'pages' in doc ? doc.pages[0] : doc
   const canvas = document.createElement('canvas')
-  canvas.width = Math.max(1, Math.round(doc.artboard.width * multiplier))
-  canvas.height = Math.max(1, Math.round(doc.artboard.height * multiplier))
+  canvas.width = Math.max(1, Math.round(page.artboard.width * multiplier))
+  canvas.height = Math.max(1, Math.round(page.artboard.height * multiplier))
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Could not create export canvas.')
   ctx.setTransform(multiplier, 0, 0, multiplier, 0, 0)
-  await renderAvnacDocumentToCanvas(ctx, doc, vectorBoardDocs, {
+  await renderAvnacDocumentToCanvas(ctx, page, vectorBoardDocs, {
     transparent: opts?.transparent,
   })
   const mimeType =

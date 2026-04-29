@@ -37,13 +37,14 @@ export async function renderAvnacDocumentPreviewDataUrl(
     if (hit) return hit
   }
   const maxCssPx = options?.maxCssPx ?? 400
-  const maxEdge = Math.max(doc.artboard.width, doc.artboard.height)
+  const firstPage = doc.pages[0]
+  const maxEdge = Math.max(firstPage.artboard.width, firstPage.artboard.height)
   const multiplier =
     maxEdge > 0 ? Math.max(1, Math.round(Math.min(3, maxCssPx / maxEdge))) : 1
 
   try {
     const url = await renderAvnacDocumentToDataUrl(
-      doc,
+      firstPage,
       loadVectorBoardDocs(persistId),
       { multiplier, transparent: false },
     )
