@@ -1294,6 +1294,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
     const clearCanvas = useCallback(() => {
       setDoc((prev) => ({ ...prev, objects: [] }))
       setSelectedIds([])
+      setTextEditingId(null)
     }, [setDoc, setSelectedIds])
 
     useImperativeHandle(
