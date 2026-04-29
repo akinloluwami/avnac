@@ -25,8 +25,14 @@ function backgroundTopBtn(disabled?: boolean) {
 
 export function EditorSelectionToolbar() {
   const { actions, refs, state } = useEditorSelectionToolbar()
-  const artboard = useEditorStore((storeState) => storeState.doc.artboard)
-  const bg = useEditorStore((storeState) => storeState.doc.bg)
+  const artboard = useEditorStore((storeState) => {
+    const page = storeState.doc.pages.find((p) => p.id === storeState.activePageId) ?? storeState.doc.pages[0]
+    return page.artboard
+  })
+  const bg = useEditorStore((storeState) => {
+    const page = storeState.doc.pages.find((p) => p.id === storeState.activePageId) ?? storeState.doc.pages[0]
+    return page.bg
+  })
   const {
     applyArrowLineStyle,
     applyArrowPathType,
