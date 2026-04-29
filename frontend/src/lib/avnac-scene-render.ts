@@ -139,7 +139,7 @@ function drawRoundedRectPath(
 ) {
   const r = Math.max(0, Math.min(radius, Math.min(width, height) / 2))
   ctx.beginPath()
-  if ('roundRect' in ctx) {
+  if (typeof (ctx as CanvasRenderingContext2D & { roundRect?: unknown }).roundRect === 'function') {
     ctx.roundRect(x, y, width, height, r)
     return
   }
