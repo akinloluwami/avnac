@@ -22,9 +22,11 @@ function applySetter<T>(next: EditorSetter<T>, current: T) {
 
 export type EditorStoreState = {
   doc: AvnacDocument
+  activePageId: string
   hoveredId: string | null
   selectedIds: string[]
   setDoc: (next: EditorSetter<AvnacDocument>) => void
+  setActivePageId: (id: string) => void
   setHoveredId: (next: EditorSetter<string | null>) => void
   setSelectedIds: (next: EditorSetter<string[]>) => void
 }
@@ -34,9 +36,11 @@ export type EditorStoreApi = StoreApi<EditorStoreState>
 export function createEditorStore(initialDoc: AvnacDocument): EditorStoreApi {
   return createStore<EditorStoreState>((set) => ({
     doc: initialDoc,
+    activePageId: initialDoc.pages[0].id,
     hoveredId: null,
     selectedIds: [],
     setDoc: (next) => set((state) => ({ doc: applySetter(next, state.doc) })),
+    setActivePageId: (id) => set({ activePageId: id }),
     setHoveredId: (next) =>
       set((state) => ({ hoveredId: applySetter(next, state.hoveredId) })),
     setSelectedIds: (next) =>
