@@ -28,6 +28,7 @@ import {
   objectSupportsFill,
   objectSupportsOutlineStroke,
   parseAvnacDocument,
+  parseSceneObject,
   removeTopLevelObjects,
   sceneObjectToShapeMeta,
   setObjectCornerRadius,
@@ -81,6 +82,7 @@ import {
   type CanvasStageContextValue,
 } from './scene-editor/canvas-stage-context'
 import { EditorBottomTools } from './scene-editor/editor-bottom-tools'
+import { EditorPagesPanel } from './scene-editor/editor-pages-panel'
 import {
   EditorContextMenu,
   type EditorContextMenuState,
@@ -243,9 +245,28 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
     const editorStore = editorStoreRef.current
     const doc = useStore(editorStore, (state) => state.doc)
     const setDoc = useStore(editorStore, (state) => state.setDoc)
+    const activePageId = useStore(editorStore, (state) => state.activePageId)
+    const setActivePageId = useStore(editorStore, (state) => state.setActivePageId)
     const selectedIds = useStore(editorStore, (state) => state.selectedIds)
     const setSelectedIds = useStore(editorStore, (state) => state.setSelectedIds)
     const setHoveredId = useStore(editorStore, (state) => state.setHoveredId)
+
+    // Derive the active page — falls back to first page if id not found
+    const activePage = useMemo(
+      () => doc.pages.find((p) => p.id === activePageId) ?? doc.pages[0],
+      [doc.pages, activePageId],
+    )
+
+    // Helper: update any property on the active page
+    const updateActivePage = useCallback(
+      (updater: (page: import('../lib/avnac-scene').AvnacPage) => import('../lib/avnac-scene').AvnacPage) => {
+        setDoc((prev) => ({
+          ...prev,
+          pages: prev.pages.map((p) => p.id === activePageId ? updater(p) : p),
+        }))
+      },
+      [activePageId, setDoc],
+    )
 
     const [ready, setReady] = useState(false)
     const [zoomPercent, setZoomPercent] = useState<number | null>(null)
@@ -313,11 +334,11 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
     }, [bgPopoverOpen])
 
     const scale = (zoomPercent ?? 100) / 100
-    const artboardW = doc.artboard.width
-    const artboardH = doc.artboard.height
+    const artboardW = activePage.artboard.width
+    const artboardH = activePage.artboard.height
     const selectedObjects = useMemo(
-      () => doc.objects.filter((obj) => selectedIds.includes(obj.id)),
-      [doc.objects, selectedIds],
+      () => activePage.objects.filter((obj) => selectedIds.includes(obj.id)),
+      [activePage.objects, selectedIds],
     )
     const selectedSingle = selectedObjects.length === 1 ? selectedObjects[0] : null
     const editingSelectedText =
@@ -369,6 +390,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
       persistId,
       persistIdRef,
       ready,
+      setActivePageId,
       setDoc,
       setReady,
       setSelectedIds,
@@ -509,16 +531,16 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
 
     const nudgeSelection = useCallback((dx: number, dy: number) => {
       if (selectedIds.length === 0) return
-      setDoc((prev) => ({
-        ...prev,
-        objects: prev.objects.map((obj) =>
+      updateActivePage((p) => ({
+        ...p,
+        objects: p.objects.map((obj) =>
           selectedIds.includes(obj.id)
             ? { ...obj, x: obj.x + dx, y: obj.y + dy }
             : obj,
         ),
       }))
       setSelectionRev((n) => n + 1)
-    }, [selectedIds])
+    }, [selectedIds, updateActivePage])
 
     const pushSelectionToTop = useCallback((ids: string[]) => {
       setSelectedIds(ids)
@@ -535,21 +557,21 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
           obj.children.forEach(visit)
         }
       }
-      doc.objects.forEach(visit)
+      activePage.objects.forEach(visit)
       fonts.forEach((fontFamily) => {
         void loadGoogleFontFamily(fontFamily)
       })
-    }, [doc.objects])
+    }, [activePage.objects])
 
     const reorderSelectionLayers = useCallback(
       (kind: LayerReorderKind) => {
         if (selectedIds.length === 0) return
-        setDoc((prev) => {
-          const next = reorderTopLevelObjects(prev.objects, selectedIds, kind)
-          return next === prev.objects ? prev : { ...prev, objects: next }
+        updateActivePage((p) => {
+          const next = reorderTopLevelObjects(p.objects, selectedIds, kind)
+          return next === p.objects ? p : { ...p, objects: next }
         })
       },
-      [selectedIds],
+      [selectedIds, updateActivePage],
     )
 
     const pointerToScene = useCallback((clientX: number, clientY: number) => {
@@ -563,9 +585,9 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
     }, [artboardW, artboardH, scale])
 
     const addObjects = useCallback((objectsToAdd: SceneObject[]) => {
-      setDoc((prev) => ({ ...prev, objects: [...prev.objects, ...objectsToAdd] }))
+      updateActivePage((p) => ({ ...p, objects: [...p.objects, ...objectsToAdd] }))
       pushSelectionToTop(objectsToAdd.map((obj) => obj.id))
-    }, [pushSelectionToTop])
+    }, [pushSelectionToTop, updateActivePage])
 
     const vectorBoardControls = useVectorBoardControls({
       addObjects,
@@ -836,29 +858,29 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
 
     const updateSelectedObjects = useCallback(
       (updater: (obj: SceneObject) => SceneObject) => {
-        setDoc((prev) => ({
-          ...prev,
-          objects: prev.objects.map((obj) =>
+        updateActivePage((p) => ({
+          ...p,
+          objects: p.objects.map((obj) =>
             selectedIds.includes(obj.id) ? updater(obj) : obj,
           ),
         }))
       },
-      [selectedIds],
+      [selectedIds, updateActivePage],
     )
 
     const deleteSelection = useCallback(() => {
       if (selectedIds.length === 0) return
-      setDoc((prev) => ({
-        ...prev,
-        objects: removeTopLevelObjects(prev.objects, selectedIds),
+      updateActivePage((p) => ({
+        ...p,
+        objects: removeTopLevelObjects(p.objects, selectedIds),
       }))
       setSelectedIds([])
       setTextEditingId(null)
-    }, [selectedIds])
+    }, [selectedIds, updateActivePage])
 
     const duplicateElement = useCallback(async () => {
       if (selectedIds.length === 0) return
-      const duplicates = doc.objects
+      const duplicates = activePage.objects
         .filter((obj) => selectedIds.includes(obj.id))
         .map((obj) => {
           const dup = renameWithFreshIds(obj)
@@ -868,17 +890,17 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
           return dup
         })
       addObjects(duplicates)
-    }, [addObjects, doc.objects, selectedIds])
+    }, [addObjects, activePage.objects, selectedIds])
 
     const copyElementToClipboard = useCallback(async () => {
       if (selectedIds.length === 0) return
-      const objects = doc.objects
+      const objects = activePage.objects
         .filter((obj) => selectedIds.includes(obj.id))
         .map((obj) => cloneSceneObject(obj))
       await navigator.clipboard.writeText(
         JSON.stringify({ avnacClip: true, v: 2, objects }),
       )
-    }, [doc.objects, selectedIds])
+    }, [activePage.objects, selectedIds])
 
     const pasteFromClipboard = useCallback(
       async (anchor?: { x: number; y: number }) => {
@@ -897,7 +919,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
         }
         if (parsed?.avnacClip && Array.isArray(parsed.objects)) {
           const objects = parsed.objects
-            .map((row) => parseAvnacDocument({ v: AVNAC_DOC_VERSION, artboard: doc.artboard, bg: doc.bg, objects: [row] })?.objects[0] ?? null)
+            .map((row) => parseSceneObject(row))
             .filter((row): row is SceneObject => row != null)
             .map((obj) => renameWithFreshIds(obj))
           if (objects.length > 0) {
@@ -925,7 +947,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
           await placeImageObject(text.trim(), anchor ? { ...anchor, origin: 'top-left' } : undefined)
         }
       },
-      [addImageFromFiles, addObjects, doc.artboard, doc.bg, placeImageObject],
+      [addImageFromFiles, addObjects, placeImageObject],
     )
 
     const toggleElementLock = useCallback(() => {
@@ -933,31 +955,31 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
     }, [elementToolbarLockedDisplay, updateSelectedObjects])
 
     const groupSelection = useCallback(() => {
-      const picked = doc.objects.filter((obj) => selectedIds.includes(obj.id))
+      const picked = activePage.objects.filter((obj) => selectedIds.includes(obj.id))
       const group = createGroupFromSelection(picked)
       if (!group) return
-      const firstIndex = doc.objects.findIndex((obj) => selectedIds.includes(obj.id))
-      const remaining = doc.objects.filter((obj) => !selectedIds.includes(obj.id))
+      const firstIndex = activePage.objects.findIndex((obj) => selectedIds.includes(obj.id))
+      const remaining = activePage.objects.filter((obj) => !selectedIds.includes(obj.id))
       remaining.splice(firstIndex < 0 ? remaining.length : firstIndex, 0, group)
-      setDoc((prev) => ({ ...prev, objects: remaining }))
+      updateActivePage((p) => ({ ...p, objects: remaining }))
       setSelectedIds([group.id])
-    }, [doc.objects, selectedIds])
+    }, [activePage.objects, selectedIds, updateActivePage])
 
     const ungroupSelection = useCallback(() => {
       if (!selectedSingle || selectedSingle.type !== 'group') return
       const children = ungroupSceneObject(selectedSingle)
-      setDoc((prev) => {
-        const idx = prev.objects.findIndex((obj) => obj.id === selectedSingle.id)
-        const next = prev.objects.filter((obj) => obj.id !== selectedSingle.id)
+      updateActivePage((p) => {
+        const idx = p.objects.findIndex((obj) => obj.id === selectedSingle.id)
+        const next = p.objects.filter((obj) => obj.id !== selectedSingle.id)
         next.splice(idx < 0 ? next.length : idx, 0, ...children)
-        return { ...prev, objects: next }
+        return { ...p, objects: next }
       })
       setSelectedIds(children.map((child) => child.id))
-    }, [selectedSingle])
+    }, [selectedSingle, updateActivePage])
 
     const applyBackgroundPicked = useCallback((bg: BgValue) => {
-      setDoc((prev) => ({ ...prev, bg }))
-    }, [])
+      updateActivePage((p) => ({ ...p, bg }))
+    }, [updateActivePage])
 
     const applyPaintToSelection = useCallback(
       (paint: BgValue) => {
@@ -1180,12 +1202,9 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
     )
 
     const onArtboardResize = useCallback((width: number, height: number) => {
-      setDoc((prev) => ({
-        ...prev,
-        artboard: { width, height },
-      }))
+      updateActivePage((p) => ({ ...p, artboard: { width, height } }))
       if (!zoomUserAdjustedRef.current) window.setTimeout(() => fitZoom(), 0)
-    }, [fitZoom])
+    }, [fitZoom, updateActivePage])
 
     const openImageCropModal = useCallback(() => {
       if (!selectedSingle || selectedSingle.type !== 'image') return
@@ -1204,9 +1223,9 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
       (rect: ImageCropModalApplyPayload) => {
         const targetId = imageCropTargetIdRef.current
         if (!targetId) return
-        setDoc((prev) => ({
-          ...prev,
-          objects: prev.objects.map((obj) =>
+        updateActivePage((p) => ({
+          ...p,
+          objects: p.objects.map((obj) =>
             obj.id === targetId && obj.type === 'image'
               ? {
                   ...obj,
@@ -1222,7 +1241,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
         }))
         setImageCropOpen(false)
       },
-      [],
+      [updateActivePage],
     )
 
     const cancelImageCrop = useCallback(() => {
@@ -1270,7 +1289,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
       (opts?: ExportImageOptions) => {
         void (async () => {
           try {
-            const url = await renderAvnacDocumentToDataUrl(doc, vectorBoardDocs, {
+            const url = await renderAvnacDocumentToDataUrl(activePage, vectorBoardDocs, {
               format: opts?.format ?? 'png',
               multiplier: opts?.multiplier ?? 1,
               transparent: opts?.transparent ?? false,
@@ -1287,7 +1306,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
           }
         })()
       },
-      [doc, vectorBoardDocs],
+      [activePage, vectorBoardDocs],
     )
 
     useImperativeHandle(
@@ -1308,9 +1327,9 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
 
     const commitTextDraft = useCallback(() => {
       if (!textEditingId) return
-      setDoc((prev) => ({
-        ...prev,
-        objects: prev.objects.map((obj) => {
+      updateActivePage((p) => ({
+        ...p,
+        objects: p.objects.map((obj) => {
           if (obj.id !== textEditingId || obj.type !== 'text') return obj
           const next: SceneText = { ...obj, text: textDraft }
           const layout = layoutSceneText(next)
@@ -1319,7 +1338,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
         }),
       }))
       setTextEditingId(null)
-    }, [textDraft, textEditingId])
+    }, [textDraft, textEditingId, updateActivePage])
 
     const startWindowDrag = useCallback(
       (state: DragState) => {
@@ -1387,9 +1406,9 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
               snapGuideYRef.current = null
               setSnapGuides([])
             }
-            setDoc((prev) => ({
-              ...prev,
-              objects: prev.objects.map((obj) => {
+            updateActivePage((p) => ({
+              ...p,
+              objects: p.objects.map((obj) => {
                 const start = drag.initial.get(obj.id)
                 return start ? { ...obj, x: start.x + dx, y: start.y + dy } : obj
               }),
@@ -1405,9 +1424,9 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
             )
             const delta = angle - drag.startAngle
             const nextRotation = drag.initialRotation + delta
-            setDoc((prev) => ({
-              ...prev,
-              objects: prev.objects.map((obj) =>
+            updateActivePage((p) => ({
+              ...p,
+              objects: p.objects.map((obj) =>
                 obj.id === drag.id
                   ? { ...obj, rotation: e.shiftKey ? snapAngle(nextRotation) : nextRotation }
                   : obj,
@@ -1523,9 +1542,9 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
               computeTransformDimensionUi(frameEl, artboardW, artboardH, nextBounds),
             )
           }
-          setDoc((prev) => ({
-            ...prev,
-            objects: prev.objects.map((obj) =>
+          updateActivePage((p) => ({
+            ...p,
+            objects: p.objects.map((obj) =>
               obj.id === drag.id ? nextObject : obj,
             ),
           }))
@@ -1570,7 +1589,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
         const pt = pointerToScene(e.clientX, e.clientY)
         const sourceIds = selectedIds.includes(obj.id) ? selectedIds : [obj.id]
         let ids = sourceIds
-        let movingObjects = doc.objects.filter((row) => ids.includes(row.id))
+        let movingObjects = activePage.objects.filter((row) => ids.includes(row.id))
         if (e.altKey && movingObjects.length > 0) {
           const duplicates = movingObjects.map((row) => {
             const dup = renameWithFreshIds(row)
@@ -1579,7 +1598,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
           })
           ids = duplicates.map((row) => row.id)
           movingObjects = duplicates
-          setDoc((prev) => ({ ...prev, objects: [...prev.objects, ...duplicates] }))
+          updateActivePage((p) => ({ ...p, objects: [...p.objects, ...duplicates] }))
           setSelectedIds(ids)
         }
         const initial = new Map<string, { x: number; y: number }>()
@@ -1587,7 +1606,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
           initial.set(row.id, { x: row.x, y: row.y })
         }
         const initialBounds = getSelectionBounds(movingObjects)
-        const snapTargets = doc.objects
+        const snapTargets = activePage.objects
           .filter((row) => row.visible && !sourceIds.includes(row.id))
           .map((row) => getObjectRotatedBounds(row))
         startWindowDrag({
@@ -1602,11 +1621,12 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
       },
       [
         commitTextDraft,
-        doc.objects,
+        activePage.objects,
         pointerToScene,
         selectedIds,
         startWindowDrag,
         textEditingId,
+        updateActivePage,
       ],
     )
 
@@ -1662,16 +1682,17 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
           startSceneY: pt.y,
           additive,
           initialSelection: additive ? selectedIds : [],
-          objects: doc.objects.filter((obj) => obj.visible),
+          objects: activePage.objects.filter((obj) => obj.visible),
         })
       },
       [
         commitTextDraft,
-        doc.objects,
+        activePage.objects,
         pointerToScene,
         selectedIds,
         startWindowDrag,
         textEditingId,
+        updateActivePage,
       ],
     )
 
@@ -1801,9 +1822,9 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
       addObjects,
       artboardH,
       artboardW,
-      doc,
+      doc: activePage,
       placeImageObject,
-      setDoc,
+      setDoc: (updater) => updateActivePage(typeof updater === 'function' ? updater : () => updater),
       setSelectedIds,
     })
 
@@ -1984,6 +2005,15 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
           onDuplicate={() => void duplicateElement()}
           onPaste={(point) => void pasteFromClipboard(point)}
           onToggleLock={toggleElementLock}
+        />
+
+        <EditorPagesPanel
+          doc={doc}
+          activePageId={activePageId}
+          ready={ready}
+          onSelectPage={setActivePageId}
+          onSetDoc={setDoc}
+          onClearSelection={() => { setSelectedIds([]); setTextEditingId(null) }}
         />
 
         <EditorBottomTools
