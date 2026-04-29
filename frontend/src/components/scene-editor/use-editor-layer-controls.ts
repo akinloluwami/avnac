@@ -5,10 +5,27 @@ import type { EditorLayerRow } from '../editor-layers-panel'
 import { useEditorStore } from './editor-store'
 
 export function useEditorLayerControls() {
-  const objects = useEditorStore((state) => state.doc.objects)
+  const objects = useEditorStore((state) => {
+    const page = state.doc.pages.find((p) => p.id === state.activePageId) ?? state.doc.pages[0]
+    return page.objects
+  })
+  const activePageId = useEditorStore((state) => state.activePageId)
   const selectedIds = useEditorStore((state) => state.selectedIds)
   const setDoc = useEditorStore((state) => state.setDoc)
   const setSelectedIds = useEditorStore((state) => state.setSelectedIds)
+
+  // Helper: update objects only on the active page
+  const updatePageObjects = useCallback(
+    (updater: (objects: SceneObject[]) => SceneObject[]) => {
+      setDoc((prev) => ({
+        ...prev,
+        pages: prev.pages.map((p) =>
+          p.id === activePageId ? { ...p, objects: updater(p.objects) } : p,
+        ),
+      }))
+    },
+    [activePageId, setDoc],
+  )
 
   const layerRows = useMemo<EditorLayerRow[]>(
     () =>
@@ -31,9 +48,9 @@ export function useEditorLayerControls() {
         .reverse()
         .map((id) => byId.get(id))
         .filter((obj): obj is SceneObject => !!obj)
-      setDoc((prev) => ({ ...prev, objects: next }))
+      updatePageObjects(() => next)
     },
-    [objects, setDoc],
+    [objects, updatePageObjects],
   )
 
   const onSelectLayer = useCallback(
@@ -47,54 +64,52 @@ export function useEditorLayerControls() {
 
   const onToggleLayerVisible = useCallback(
     (stackIndex: number) => {
-      setDoc((prev) => ({
-        ...prev,
-        objects: prev.objects.map((obj, index) =>
+      updatePageObjects((objs) =>
+        objs.map((obj, index) =>
           index === stackIndex ? { ...obj, visible: !obj.visible } : obj,
         ),
-      }))
+      )
     },
-    [setDoc],
+    [updatePageObjects],
   )
 
   const onLayerBringForward = useCallback(
     (stackIndex: number) => {
-      setDoc((prev) => {
-        if (stackIndex >= prev.objects.length - 1) return prev
-        const next = [...prev.objects]
+      updatePageObjects((objs) => {
+        if (stackIndex >= objs.length - 1) return objs
+        const next = [...objs]
         const swap = next[stackIndex]
         next[stackIndex] = next[stackIndex + 1]
         next[stackIndex + 1] = swap
-        return { ...prev, objects: next }
+        return next
       })
     },
-    [setDoc],
+    [updatePageObjects],
   )
 
   const onLayerSendBackward = useCallback(
     (stackIndex: number) => {
-      setDoc((prev) => {
-        if (stackIndex <= 0) return prev
-        const next = [...prev.objects]
+      updatePageObjects((objs) => {
+        if (stackIndex <= 0) return objs
+        const next = [...objs]
         const swap = next[stackIndex]
         next[stackIndex] = next[stackIndex - 1]
         next[stackIndex - 1] = swap
-        return { ...prev, objects: next }
+        return next
       })
     },
-    [setDoc],
+    [updatePageObjects],
   )
 
   const onRenameLayer = useCallback(
     (stackIndex: number, name: string) => {
-      setDoc((prev) => ({
-        ...prev,
-        objects: prev.objects.map((obj, index) =>
+      updatePageObjects((objs) =>
+        objs.map((obj, index) =>
           index === stackIndex ? { ...obj, name: name.trim() || undefined } : obj,
         ),
-      }))
+      )
     },
-    [setDoc],
+    [updatePageObjects],
   )
 
   return {
