@@ -120,8 +120,8 @@ export async function idbListDocuments(): Promise<AvnacEditorIdbListItem[]> {
           id: row.id,
           name: row.name?.trim() || 'Untitled',
           updatedAt: row.updatedAt,
-          artboardWidth: row.document.artboard.width,
-          artboardHeight: row.document.artboard.height,
+          artboardWidth: row.document.pages[0]?.artboard.width ?? 800,
+          artboardHeight: row.document.pages[0]?.artboard.height ?? 600,
           isLegacy: row.storageKind === 'legacy',
         }))
         items.sort((a, b) => b.updatedAt - a.updatedAt)
@@ -138,6 +138,9 @@ export async function idbPutDocument(
   document: AvnacDocument,
   opts?: { name?: string },
 ): Promise<void> {
+  const storageKind = getAvnacDocumentStorageKind(document)
+  if (storageKind === 'invalid') throw new Error(`idbPutDocument: invalid document storage kind for id "${id}"`)
+
   const prev = await idbGetEditorRecord(id)
   const name =
     opts && opts.name !== undefined
@@ -153,6 +156,7 @@ export async function idbPutDocument(
         id,
         updatedAt: Date.now(),
         document,
+        storageKind,
         name,
       } satisfies AvnacEditorIdbRecord)
     })
