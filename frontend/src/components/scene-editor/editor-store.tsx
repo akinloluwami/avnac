@@ -24,9 +24,11 @@ export type EditorStoreState = {
   doc: AvnacDocument
   hoveredId: string | null
   selectedIds: string[]
+  isDragging: boolean
   setDoc: (next: EditorSetter<AvnacDocument>) => void
   setHoveredId: (next: EditorSetter<string | null>) => void
   setSelectedIds: (next: EditorSetter<string[]>) => void
+  setIsDragging: (next: EditorSetter<boolean>) => void
 }
 
 export type EditorStoreApi = StoreApi<EditorStoreState>
@@ -36,11 +38,14 @@ export function createEditorStore(initialDoc: AvnacDocument): EditorStoreApi {
     doc: initialDoc,
     hoveredId: null,
     selectedIds: [],
+    isDragging: false,
     setDoc: (next) => set((state) => ({ doc: applySetter(next, state.doc) })),
     setHoveredId: (next) =>
       set((state) => ({ hoveredId: applySetter(next, state.hoveredId) })),
     setSelectedIds: (next) =>
       set((state) => ({ selectedIds: applySetter(next, state.selectedIds) })),
+    setIsDragging: (next) =>
+      set((state) => ({ isDragging: applySetter(next, state.isDragging) })),
   }))
 }
 

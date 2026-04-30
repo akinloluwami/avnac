@@ -104,9 +104,10 @@ function LayerRowLabelControl({
 
 function layerRowClass(selected: boolean) {
   return [
-    'flex items-center gap-0.5 rounded-lg py-0.5',
-    selected ? 'bg-[var(--accent)]/20' : 'hover:bg-black/[0.04]',
-  ].join(' ')
+    "flex items-center gap-0.5 py-0.5",
+    selected ? "bg-[var(--accent)]/20" : "hover:bg-black/[0.04]",
+    "last:rounded-b-2xl rounded-lg",
+  ].join(" ");
 }
 
 function LayerReorderRow({

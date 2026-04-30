@@ -159,7 +159,7 @@ export default function ShapeOptionsToolbar({
   if (meta.kind === 'ellipse') {
     return (
       <FloatingToolbarShell role="toolbar" aria-label="Shape options">
-        <div className="flex items-center py-1 pl-2 pr-3">
+        <div className="flex items-center py-1 pl-2 pr-3 round">
           <PaintPopoverControl
             compact
             value={paintValue}

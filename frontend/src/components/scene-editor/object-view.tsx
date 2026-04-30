@@ -310,12 +310,20 @@ export function SceneObjectView({
 
   if (obj.type === 'rect') {
     const inset = strokeWidth > 0 ? strokeWidth / 2 : 0
+    const isLocked = obj.locked;
+    const cursorStyle = isLocked
+  ? 'not-allowed'
+  : 'grab';
     return (
       <div
-        style={style}
+        style={{
+    ...style,
+    cursor: cursorStyle,
+  }}
         onPointerDown={(e) => onObjectPointerDown(e, obj)}
         {...hoverProps}
         title={obj.locked ? 'Locked shape' : undefined}
+
       >
         <svg width={obj.width} height={obj.height} style={shapeSvgStyle}>
           <defs>
