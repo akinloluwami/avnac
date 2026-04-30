@@ -1,10 +1,11 @@
 import { StarIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { usePostHog } from "posthog-js/react";
 import { useEditorUnsupportedOnThisDevice } from "../hooks/use-editor-device-support";
 import { ARTBOARD_PRESETS } from "../data/artboard-presets";
+import { useFocusTrap } from "../hooks/use-focus-trap";
 
 const CANVAS_MIN = 100;
 const CANVAS_MAX = 16000;
@@ -22,7 +23,7 @@ export default function NewCanvasDialog({
   const posthog = usePostHog();
   const editorUnsupported = useEditorUnsupportedOnThisDevice();
   const titleId = useId();
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef = useFocusTrap(open); 
   const [mode, setMode] = useState<"presets" | "custom">("presets");
   const [customW, setCustomW] = useState("1920");
   const [customH, setCustomH] = useState("1080");
