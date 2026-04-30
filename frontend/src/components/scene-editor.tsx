@@ -243,6 +243,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
     const editorStore = editorStoreRef.current
     const doc = useStore(editorStore, (state) => state.doc)
     const setDoc = useStore(editorStore, (state) => state.setDoc)
+    const hoveredId = useStore(editorStore, (state) => state.hoveredId)
     const selectedIds = useStore(editorStore, (state) => state.selectedIds)
     const setSelectedIds = useStore(editorStore, (state) => state.setSelectedIds)
     const setHoveredId = useStore(editorStore, (state) => state.setHoveredId)
@@ -508,17 +509,29 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(
       selectedSingle?.type === 'group' && !selectedSingle.locked
 
     const nudgeSelection = useCallback((dx: number, dy: number) => {
-      if (selectedIds.length === 0) return
+      const targetIds =
+        selectedIds.length > 0
+          ? selectedIds
+          : hoveredId
+            ? [hoveredId]
+            : []
+      if (targetIds.length === 0) return
+
+      let movedAny = false
       setDoc((prev) => ({
         ...prev,
-        objects: prev.objects.map((obj) =>
-          selectedIds.includes(obj.id)
-            ? { ...obj, x: obj.x + dx, y: obj.y + dy }
-            : obj,
-        ),
+        objects: prev.objects.map((obj) => {
+          if (!targetIds.includes(obj.id) || obj.locked) return obj
+          movedAny = true
+          return { ...obj, x: obj.x + dx, y: obj.y + dy }
+        }),
       }))
+      if (!movedAny) return
+      if (selectedIds.length === 0 && hoveredId) {
+        setSelectedIds([hoveredId])
+      }
       setSelectionRev((n) => n + 1)
-    }, [selectedIds])
+    }, [hoveredId, selectedIds, setDoc, setSelectedIds])
 
     const pushSelectionToTop = useCallback((ids: string[]) => {
       setSelectedIds(ids)
