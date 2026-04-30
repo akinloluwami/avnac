@@ -1,7 +1,7 @@
 /**
  * Stable runtime surface that the Tambo agent uses to manipulate the main
- * Fabric canvas. Built inside `FabricEditor` where it can close over the
- * canvas refs; consumers receive it as a React ref (null until editor is
+ * design scene. Built inside `SceneEditor` where it can close over the
+ * editor state; consumers receive it as a React ref (null until editor is
  * mounted) so they can defensively no-op when missing.
  */
 

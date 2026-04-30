@@ -1,6 +1,6 @@
 import { AiMagicIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 import NewCanvasDialog from "../components/new-canvas-dialog";
@@ -456,6 +456,12 @@ function Landing() {
               >
                 {primaryCtaLabel}
               </button>
+              <Link
+                to="/studio"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-black/14 bg-white/85 px-8 py-3.5 text-base font-medium text-(--text) no-underline backdrop-blur-sm hover:border-black/22 hover:bg-white sm:min-h-14 sm:px-10 sm:py-4 sm:text-[1.0625rem]"
+              >
+                Avnac Studio
+              </Link>
               <a
                 href="https://github.com/akinloluwami/avnac"
                 target="_blank"

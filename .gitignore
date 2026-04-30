@@ -4,3 +4,4 @@ build
 dist
 .tanstack
 .vscode
+.npmrc

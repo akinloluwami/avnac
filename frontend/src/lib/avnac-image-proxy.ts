@@ -1,10 +1,4 @@
-import type { FabricImage } from 'fabric'
 import { getPublicApiBase } from './public-api-base'
-
-type CanvasLike = {
-  getObjects: () => unknown[]
-  requestRenderAll: () => void
-}
 
 function parseImageUrl(raw: string): URL | null {
   if (typeof window === 'undefined') return null
@@ -34,47 +28,26 @@ export function getExportSafeImageUrl(raw: string): string {
   return `${getPublicApiBase()}/media/proxy?url=${encodeURIComponent(parsed.toString())}`
 }
 
-export function getFabricImageLoadOptions(url: string): {
-  crossOrigin?: 'anonymous'
-} {
-  const parsed = parseImageUrl(url)
-  if (!parsed) return {}
-  if (parsed.protocol === 'data:' || parsed.protocol === 'blob:') return {}
-  return { crossOrigin: 'anonymous' }
-}
-
-export async function loadExportSafeFabricImage(
-  mod: typeof import('fabric'),
+export async function loadImageMetadata(
   rawUrl: string,
-): Promise<FabricImage> {
-  const safeUrl = getExportSafeImageUrl(rawUrl)
-  return mod.FabricImage.fromURL(safeUrl, getFabricImageLoadOptions(safeUrl))
-}
-
-export async function normalizeFabricImageForExport(
-  img: FabricImage,
-): Promise<boolean> {
-  const rawUrl = img.getSrc()
-  if (!rawUrl) return false
-  const safeUrl = getExportSafeImageUrl(rawUrl)
-  if (!safeUrl || safeUrl === rawUrl) return false
-  await img.setSrc(safeUrl, getFabricImageLoadOptions(safeUrl))
-  img.set('dirty', true)
-  img.setCoords()
-  return true
-}
-
-export async function normalizeCanvasImagesForExport(
-  canvas: CanvasLike,
-  mod: typeof import('fabric'),
-): Promise<boolean> {
-  if (!mod.FabricImage) return false
-  const tasks: Array<Promise<boolean>> = []
-  for (const obj of canvas.getObjects()) {
-    if (!(obj instanceof mod.FabricImage)) continue
-    tasks.push(normalizeFabricImageForExport(obj))
+): Promise<{
+  src: string
+  naturalWidth: number
+  naturalHeight: number
+}> {
+  const src = getExportSafeImageUrl(rawUrl)
+  const img = new Image()
+  if (!src.startsWith('data:') && !src.startsWith('blob:')) {
+    img.crossOrigin = 'anonymous'
   }
-  const changed = (await Promise.all(tasks)).some(Boolean)
-  if (changed) canvas.requestRenderAll()
-  return changed
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve()
+    img.onerror = () => reject(new Error(`Could not load image: ${rawUrl}`))
+    img.src = src
+  })
+  return {
+    src,
+    naturalWidth: Math.max(1, img.naturalWidth || img.width || 1),
+    naturalHeight: Math.max(1, img.naturalHeight || img.height || 1),
+  }
 }

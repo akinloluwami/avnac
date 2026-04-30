@@ -1,5 +1,3 @@
-import type { FabricObject } from 'fabric'
-
 export type AvnacShapeKind =
   | 'rect'
   | 'ellipse'
@@ -17,35 +15,34 @@ export type AvnacShapeMeta = {
   polygonSides?: number
   starPoints?: number
   arrowHead?: number
-  /** Scene-space tail → tip; kept in sync when editing arrow endpoints. */
   arrowEndpoints?: { x1: number; y1: number; x2: number; y2: number }
   arrowStrokeWidth?: number
   arrowLineStyle?: ArrowLineStyle
   arrowRoundedEnds?: boolean
   arrowPathType?: ArrowPathType
-  /** Quadratic control-point Y in group-local coords; only for `curved`. */
   arrowCurveBulge?: number
-  /** Position of the Q control-point along the shaft (0-1); only for `curved`. Default 0.5. */
   arrowCurveT?: number
 }
 
+type MaybeShapeMetaCarrier = {
+  avnacShape?: AvnacShapeMeta | null
+}
+
 export function getAvnacShapeMeta(
-  obj: FabricObject | undefined | null,
+  obj: MaybeShapeMetaCarrier | undefined | null,
 ): AvnacShapeMeta | null {
   if (!obj) return null
-  const m = (obj as FabricObject & { avnacShape?: AvnacShapeMeta }).avnacShape
-  return m && typeof m === 'object' && 'kind' in m ? m : null
+  const meta = obj.avnacShape
+  return meta && typeof meta === 'object' && 'kind' in meta ? meta : null
 }
 
 export function setAvnacShapeMeta(
-  obj: FabricObject,
+  obj: MaybeShapeMetaCarrier,
   meta: AvnacShapeMeta | null,
 ): void {
-  ;(obj as FabricObject & { avnacShape?: AvnacShapeMeta | null }).avnacShape =
-    meta
+  obj.avnacShape = meta
 }
 
-/** Stroke line/arrow groups: arrow, or line drawn as a headless arrow group (not legacy `fabric.Line`). */
 export function isAvnacStrokeLineLike(
   meta: AvnacShapeMeta | null | undefined,
 ): boolean {
@@ -58,7 +55,6 @@ export function isAvnacStrokeLineLike(
   )
 }
 
-/** `layoutArrowGroup` head fraction: lines are always headless; arrows use `arrowHead`. */
 export function avnacStrokeLineHeadFrac(meta: AvnacShapeMeta): number {
   return meta.kind === 'line' ? 0 : (meta.arrowHead ?? 1)
 }

@@ -17,6 +17,8 @@ export default function CanvasZoomSlider({
   onFitRequest,
   disabled,
 }: CanvasZoomSliderProps) {
+  const displayValue = Math.round(value)
+
   return (
     <div
       className="flex items-center gap-3 rounded-xl bg-[var(--surface-subtle)] px-3 py-2 sm:bg-white/90 sm:shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
@@ -26,7 +28,7 @@ export default function CanvasZoomSlider({
         min={min}
         max={max}
         step={1}
-        value={value}
+        value={displayValue}
         disabled={disabled}
         onChange={onChange}
         aria-label="Canvas zoom"
@@ -39,11 +41,11 @@ export default function CanvasZoomSlider({
           onClick={onFitRequest}
           className="min-w-[2.75rem] text-left text-sm tabular-nums text-neutral-600 outline-none hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40"
         >
-          {value}%
+          {displayValue}%
         </button>
       ) : (
         <span className="min-w-[2.75rem] text-sm tabular-nums text-neutral-600">
-          {value}%
+          {displayValue}%
         </span>
       )}
     </div>

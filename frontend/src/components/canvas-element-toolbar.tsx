@@ -29,7 +29,6 @@ import {
   type MutableRefObject,
   type RefObject,
 } from 'react'
-import { flushSync } from 'react-dom'
 import {
   measureHorizontalFlyoutInContainer,
   useContainedHorizontalPopoverPlacement,
@@ -190,7 +189,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
       prevAnchorRef.current = cur
 
       if (anchorMoved) {
-        flushSync(() => setViewportNudge({ x: 0, y: 0 }))
+        setViewportNudge({ x: 0, y: 0 })
       }
 
       const rect = el.getBoundingClientRect()

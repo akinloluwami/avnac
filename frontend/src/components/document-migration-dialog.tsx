@@ -1,0 +1,105 @@
+import { useEffect, useId, useRef } from 'react'
+
+type DocumentMigrationDialogProps = {
+  open: boolean
+  title: string
+  message: string
+  confirmLabel?: string
+  cancelLabel?: string
+  busy?: boolean
+  onConfirm: () => void
+  onClose: () => void
+}
+
+export default function DocumentMigrationDialog({
+  open,
+  title,
+  message,
+  confirmLabel = 'Convert file',
+  cancelLabel = 'Cancel',
+  busy = false,
+  onConfirm,
+  onClose,
+}: DocumentMigrationDialogProps) {
+  const titleId = useId()
+  const descId = useId()
+  const confirmRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const t = window.setTimeout(() => confirmRef.current?.focus(), 0)
+    return () => window.clearTimeout(t)
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !busy) {
+        e.preventDefault()
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [busy, onClose, open])
+
+  if (!open) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-[280] flex items-center justify-center p-4 sm:p-6"
+      role="presentation"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget && !busy) onClose()
+      }}
+    >
+      <div
+        className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
+        aria-hidden
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descId}
+        className="relative z-[1] w-full max-w-md rounded-2xl border border-[var(--line)] bg-[var(--surface)]/95 p-6 backdrop-blur-md sm:p-8"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+          Legacy File
+        </div>
+        <h2
+          id={titleId}
+          className="display-title m-0 text-xl font-medium tracking-[-0.02em] text-[var(--text)] sm:text-2xl"
+        >
+          {title}
+        </h2>
+        <p
+          id={descId}
+          className="mt-3 text-[15px] leading-relaxed text-[var(--text-muted)]"
+        >
+          {message}
+        </p>
+        <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2">
+          <button
+            type="button"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-black/[0.14] bg-white px-6 py-2.5 text-[15px] font-medium text-[var(--text)] transition-colors hover:bg-black/[0.04] disabled:cursor-default disabled:opacity-60 sm:w-auto"
+            onClick={onClose}
+            disabled={busy}
+          >
+            {cancelLabel}
+          </button>
+          <button
+            ref={confirmRef}
+            type="button"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-full border-0 bg-[var(--text)] px-6 py-2.5 text-[15px] font-medium text-white transition-colors hover:bg-[#262626] disabled:cursor-default disabled:opacity-60 sm:w-auto"
+            onClick={onConfirm}
+            disabled={busy}
+          >
+            {busy ? 'Converting…' : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

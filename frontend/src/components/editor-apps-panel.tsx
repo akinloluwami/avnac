@@ -10,12 +10,11 @@ import {
   editorSidebarPanelLeftClass,
   editorSidebarPanelTopClass,
 } from '../lib/editor-sidebar-panel-layout'
-import type { AiDesignController } from '../lib/avnac-ai-controller'
+import { useAiController } from './scene-editor/ai-controller-context'
 
 type Props = {
   open: boolean
   onClose: () => void
-  controller: AiDesignController
 }
 
 type AppScreen = 'menu' | 'qr-code'
@@ -44,7 +43,8 @@ function toQrDataUrl(
   })
 }
 
-export default function EditorAppsPanel({ open, onClose, controller }: Props) {
+export default function EditorAppsPanel({ open, onClose }: Props) {
+  const controller = useAiController()
   const [screen, setScreen] = useState<AppScreen>('menu')
   const [qrUrl, setQrUrl] = useState('')
   const [qrPreview, setQrPreview] = useState<string | null>(null)

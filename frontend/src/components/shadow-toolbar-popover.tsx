@@ -1,7 +1,7 @@
 import { HugeiconsIcon } from '@hugeicons/react'
 import { BackgroundIcon } from '@hugeicons/core-free-icons'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { FabricShadowUi } from '../lib/avnac-fabric-shadow'
+import type { ShadowUi } from '../lib/avnac-shadow'
 import { useViewportAwarePopoverPlacement } from '../hooks/use-viewport-aware-popover'
 import EditorRangeSlider from './editor-range-slider'
 import {
@@ -14,9 +14,9 @@ const BLUR_MAX = 50
 const OFFSET_MAX = 40
 
 type Props = {
-  value: FabricShadowUi
+  value: ShadowUi
   shadowActive: boolean
-  onChange: (next: FabricShadowUi) => void
+  onChange: (next: ShadowUi) => void
 }
 
 export default function ShadowToolbarPopover({

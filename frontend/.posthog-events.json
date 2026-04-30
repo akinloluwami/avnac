@@ -30,11 +30,6 @@
     "file": "src/routes/files.tsx"
   },
   {
-    "event": "png_exported",
-    "description": "User downloads a PNG export of the canvas",
-    "file": "src/components/editor-export-menu.tsx"
-  },
-  {
     "event": "ai_prompt_submitted",
     "description": "User submits a prompt to the Magic AI panel",
     "file": "src/components/editor-ai-panel.tsx"
@@ -48,5 +43,40 @@
     "event": "files_bulk_downloaded",
     "description": "User downloads multiple selected files at once",
     "file": "src/routes/files.tsx"
+  },
+  {
+    "event": "file_imported",
+    "description": "User imports a JSON design file into the files page",
+    "file": "src/routes/files.tsx"
+  },
+  {
+    "event": "image_exported",
+    "description": "User downloads an image export of the canvas as PNG, JPG, or WebP",
+    "file": "src/components/editor-export-menu.tsx"
+  },
+  {
+    "event": "legacy_conversion_prompt_opened",
+    "description": "A legacy-file conversion prompt is shown from the files page or editor route",
+    "file": "src/routes/files.tsx, src/routes/create.tsx"
+  },
+  {
+    "event": "legacy_conversion_started",
+    "description": "User confirms conversion of one or more legacy files",
+    "file": "src/routes/files.tsx, src/routes/create.tsx"
+  },
+  {
+    "event": "legacy_conversion_completed",
+    "description": "One or more legacy files are successfully converted to the new editor format",
+    "file": "src/routes/files.tsx, src/routes/create.tsx"
+  },
+  {
+    "event": "legacy_conversion_failed",
+    "description": "A legacy-file conversion attempt fails",
+    "file": "src/routes/files.tsx, src/routes/create.tsx"
+  },
+  {
+    "event": "legacy_conversion_cancelled",
+    "description": "User dismisses the legacy-file conversion prompt without converting",
+    "file": "src/routes/files.tsx, src/routes/create.tsx"
   }
 ]

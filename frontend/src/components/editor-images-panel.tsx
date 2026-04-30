@@ -5,7 +5,7 @@ import {
   editorSidebarPanelLeftClass,
   editorSidebarPanelTopClass,
 } from '../lib/editor-sidebar-panel-layout'
-import type { AiDesignController } from '../lib/avnac-ai-controller'
+import { useAiController } from './scene-editor/ai-controller-context'
 import type { UnsplashPhoto } from '../lib/unsplash-api'
 import {
   fetchUnsplashPopular,
@@ -18,7 +18,6 @@ import {
 type Props = {
   open: boolean
   onClose: () => void
-  controller: AiDesignController
 }
 
 const DEBOUNCE_MS = 380
@@ -34,7 +33,8 @@ function unsplashReferralLink(absoluteUrl: string): string {
   }
 }
 
-export default function EditorImagesPanel({ open, onClose, controller }: Props) {
+export default function EditorImagesPanel({ open, onClose }: Props) {
+  const controller = useAiController()
   const [input, setInput] = useState('')
   const [committed, setCommitted] = useState({ q: '', page: 1 })
   const [photos, setPhotos] = useState<UnsplashPhoto[]>([])

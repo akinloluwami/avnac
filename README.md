@@ -1,51 +1,120 @@
 # Avnac
 
-Avnac is an open browser-based canvas for layouts, posters, and graphics.
+Avnac is a browser-first design editor for posters, layouts, social graphics, and other canvas-based compositions.
 
-It is built around a fast local workflow: open a file, design directly on the canvas, let the browser autosave your work, then export a PNG when you are ready.
 
-## What It Does
+## Current Product State
 
-- Create canvases from presets or custom dimensions
-- Add and edit text, shapes, lines, arrows, and images
-- Organize work with layers, selection tools, alignment controls, crop, blur, corner radius, and shadows
-- Use vector boards for nested editable drawing areas
-- Generate QR codes inside the editor
-- Save files locally in the browser with a files view for reopening, duplicating, deleting, and JSON download
-- Export PNGs with scale and transparency options
-- Use the Magic panel for prompt-based edits
+Avnac today is strongest around:
 
-## Stack
+- Fast browser-local editing
+- A custom scene editor with direct manipulation controls
+- Files saved in IndexedDB with a dedicated `/files` view
+- JSON import/export
+- Legacy file migration into the current editor format
+- Image export as `PNG`, `JPG`, and `WebP`
+- Prompt-driven editing through the Magic panel
 
-- Frontend: React, Vite, TypeScript, Tailwind CSS, TanStack Router
-- Canvas/rendering: Fabric.js
-- AI UI/runtime: `@tambo-ai/react`
-- Analytics: PostHog
-- Optional proxy/API layer: Elysia
+Things that are true right now:
 
-## Project Layout
+- The main editing experience lives in the frontend
+- The app is desktop-first; mobile editing is intentionally blocked
+- File persistence is primarily browser-local today
+- The backend exists, but it is optional for many day-to-day editor tasks
+
+## Editor Capabilities
+
+The current editor supports:
+
+- Custom-size or preset canvases
+- Text, rectangles, ellipses, polygons, stars, lines, arrows, images, and vector boards
+- Selection, multi-select, marquee select, group/ungroup, reorder, and alignment
+- Resize, rotate, crop, corner radius, blur, opacity, shadows, and background editing
+- Snapping and transform overlays
+- Nested vector-board drawing areas
+- QR code generation
+- JSON file import from the files page
+- Legacy-file conversion prompts before opening older documents
+
+## Architecture Overview
+
+### Frontend
+
+The frontend is a React + Vite + TypeScript application with TanStack Router and Tailwind CSS.
+
+Key architectural points:
+
+- The editor no longer depends on an external canvas editing runtime for scene manipulation
+- Scene data is modeled in `frontend/src/lib/avnac-scene.ts`
+- Rendering/export logic lives in `frontend/src/lib/avnac-scene-render.ts`
+- Low-level geometry, snapping, object transforms, file placement, and related logic live under `frontend/src/scene-engine/primitives`
+- The scene editor UI has been split into smaller modules under `frontend/src/components/scene-editor`
+- Shared editor state now uses a small Zustand-backed store in `frontend/src/components/scene-editor/editor-store.tsx`
+
+Important frontend routes:
+
+- `/` landing page
+- `/files` local files manager
+- `/create` editor
+
+### Backend
+
+The backend is an Elysia + TypeScript service. It is not required for all local editing workflows, but it is useful for:
+
+- media proxying for export-safe remote images
+- Unsplash search/download flows
+- document and auth-related server routes that exist in the repo
+
+Current backend route areas:
+
+- `backend/src/routes/media.ts`
+- `backend/src/routes/unsplash.ts`
+- `backend/src/routes/documents.ts`
+
+## Repository Layout
 
 ```text
-frontend/   React app, editor UI, local file storage, export flow
-backend/    Optional API used mainly for image and Unsplash proxy routes
+frontend/
+  src/
+    routes/                   App routes like landing, files, and editor
+    components/scene-editor/  Main editor UI modules, panels, overlays, hooks, store
+    scene-engine/primitives/  Geometry, transforms, snapping, object/file helpers
+    lib/                      Scene model, render/export, storage, previews, utilities
+    __tests__/                Frontend unit/regression tests
+
+backend/
+  src/
+    routes/                   Media, Unsplash, and document endpoints
+    plugins/                  Backend plugins such as auth wiring
+    db/                       Database setup and schema
 ```
 
-## How Persistence Works
+## Persistence and File Handling
 
-Avnac currently treats the browser as the primary workspace.
+Avnac is currently local-first.
 
-- Documents autosave into IndexedDB
-- The `/files` page lists saved browser files
-- Opening a file returns you to the editor with the same document id
-- JSON download is available for local export of the document payload
+- Documents autosave in the browser
+- The files page reads from IndexedDB
+- The editor opens documents by id via `/create?id=...`
+- JSON import/export is supported from the files workflow
+- Older saved files are detected and can be migrated from the UI before editing
 
-If you are working on editor UX, canvas behavior, local files, or export, the frontend is the main place to look.
+Legacy migration behavior currently includes:
+
+- a migrate-all prompt on the files page when old files are present
+- a conversion modal when a user clicks an old file
+- a blocking conversion overlay if a user opens or refreshes an old editor URL directly
+
+## Analytics
+
+Frontend analytics use PostHog.
+
+- Root provider setup lives in `frontend/src/routes/__root.tsx`
+- The tracked event catalog is documented in `frontend/.posthog-events.json`
 
 ## Local Development
 
-### Frontend Only
-
-If you only want the editor, local files, and PNG export for existing local assets, running the frontend is enough.
+### Frontend
 
 ```bash
 cd frontend
@@ -53,83 +122,78 @@ npm install
 npm run dev
 ```
 
-The app runs on `http://localhost:3300`.
+Runs on `http://localhost:3300`.
 
-### Frontend + Proxy Backend
+Optional Hugeicons Pro setup:
 
-Run the backend when you want:
+- The frontend works without a Hugeicons Pro license. By default, contributors will install only the free icon packages and the app will fall back to free sidebar icons.
+- If you have a Hugeicons Pro license, set `HUGEICONS_NPM_TOKEN` before running `npm install` in `frontend/`. The optional package will install and Vite will automatically switch the sidebar to the pro icon set.
+- Do not expose this token with a `VITE_` prefix. It is only needed at install/build time.
+- In production or CI, builds can still succeed without the token. They will simply use the free fallback icons instead of the pro ones.
 
-- Unsplash search and download tracking
-- Remote image proxying for export-safe third-party images
-- Local dev to mirror the production `/api` routing setup
-
-Frontend:
+Example local setup for licensed installs:
 
 ```bash
 cd frontend
+export HUGEICONS_NPM_TOKEN=your_token_here
 npm install
-npm run dev
 ```
 
-Backend:
-
-```bash
-cd backend
-bun install
-cp .env.example .env
-bun run dev
-```
-
-The backend runs on `http://localhost:3001`.
-
-## Proxy Notes
-
-The backend is intentionally small in the day-to-day frontend workflow. Its most important job right now is proxying external resources so the editor can safely use them in-browser.
-
-- `/unsplash/*` handles Unsplash discovery and download tracking
-- `/media/proxy` fetches remote images through the app so exported canvases do not fail from cross-origin image tainting
-
-In local development, the frontend dev server proxies `/api/*` to `http://localhost:3001`, so the browser can keep using same-origin `/api` calls.
-
-In production, Vercel mounts the backend at `/api`.
-
-## Backend Env
-
-If you run the proxy backend locally, start from `backend/.env.example`.
-
-The only variable you usually need to think about for editor features is `UNSPLASH_ACCESS_KEY`, and only if you want the Unsplash-powered image flow.
-
-## Common Scripts
-
-Frontend:
+Useful frontend scripts:
 
 ```bash
 cd frontend
 npm run dev
 npm run build
 npm run preview
+npm test
 ```
 
-Backend:
+### Backend
 
 ```bash
 cd backend
-bun run dev
-bun run check
+npm install
+cp .env.example .env
+npm run dev
 ```
 
-## Current Focus Areas
+Runs on `http://localhost:3001`.
 
-The repo is strongest today around:
+Useful backend scripts:
 
-- Browser-first design editing
-- Local file persistence
-- PNG export
-- Prompt-based canvas editing
+```bash
+cd backend
+npm run dev
+npm run check
+```
 
-The backend document/auth layer exists, but the main product experience is still centered on the frontend editor and browser-local files.
+## Backend Notes
 
-## Notes
+The backend matters most when you are working on remote media, Unsplash flows, or server-backed document/auth behavior.
 
-- If you change backend proxy behavior, restart the backend server before testing from the frontend
-- If you are debugging export issues involving external images, make sure the proxy backend is running
+In local development, the frontend can still be the primary focus if you are working on:
+
+- scene editing
+- selection and transform behavior
+- local files
+- legacy migration UX
+- export behavior
+
+## Testing
+
+Frontend regression tests live in `frontend/src/__tests__`.
+
+Right now they cover core areas such as:
+
+- scene parsing and migration detection
+- snapping behavior
+- image/object resize behavior
+- vector-board render behavior
+- file placement helpers
+
+## Practical Notes
+
+- If you change media proxy behavior, restart the backend before testing export flows that depend on remote images
+- If you are debugging editor behavior, the frontend is the main source of truth
+- If you are debugging old-file compatibility, start with `frontend/src/lib/avnac-scene.ts` and the files/create routes

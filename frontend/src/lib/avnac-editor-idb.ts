@@ -1,4 +1,10 @@
-import type { AvnacDocumentV1 } from './avnac-document'
+import {
+  cloneAvnacDocument,
+  getAvnacDocumentStorageKind,
+  parseAvnacDocument,
+  type AvnacDocumentStorageKind,
+  type AvnacDocument,
+} from './avnac-document'
 import type { VectorBoardDocument } from './avnac-vector-board-document'
 import {
   clearAvnacVectorBoardStorage,
@@ -15,9 +21,34 @@ const STORE = 'documents'
 export type AvnacEditorIdbRecord = {
   id: string
   updatedAt: number
-  document: AvnacDocumentV1
+  document: AvnacDocument
+  storageKind: Exclude<AvnacDocumentStorageKind, 'invalid'>
   /** User-visible file name (optional on legacy rows). */
   name?: string
+}
+
+type StoredAvnacEditorIdbRecord = {
+  id: string
+  updatedAt: number
+  document: unknown
+  name?: string
+}
+
+function normalizeEditorRecord(
+  row: StoredAvnacEditorIdbRecord | null | undefined,
+): AvnacEditorIdbRecord | null {
+  if (!row || typeof row.id !== 'string') return null
+  const storageKind = getAvnacDocumentStorageKind(row.document)
+  if (storageKind === 'invalid') return null
+  const document = parseAvnacDocument(row.document)
+  if (!document) return null
+  return {
+    id: row.id,
+    updatedAt: Number.isFinite(row.updatedAt) ? row.updatedAt : Date.now(),
+    document,
+    storageKind,
+    name: typeof row.name === 'string' ? row.name : undefined,
+  }
 }
 
 function openDb(): Promise<IDBDatabase> {
@@ -45,7 +76,11 @@ export async function idbGetEditorRecord(
       const r = tx.objectStore(STORE).get(id)
       r.onerror = () => reject(r.error ?? new Error('idb get failed'))
       r.onsuccess = () => {
-        resolve((r.result as AvnacEditorIdbRecord | undefined) ?? null)
+        resolve(
+          normalizeEditorRecord(
+            (r.result as StoredAvnacEditorIdbRecord | undefined) ?? null,
+          ),
+        )
       }
     })
   } finally {
@@ -55,7 +90,7 @@ export async function idbGetEditorRecord(
 
 export async function idbGetDocument(
   id: string,
-): Promise<AvnacDocumentV1 | null> {
+): Promise<AvnacDocument | null> {
   const row = await idbGetEditorRecord(id)
   return row?.document ?? null
 }
@@ -66,6 +101,7 @@ export type AvnacEditorIdbListItem = {
   updatedAt: number
   artboardWidth: number
   artboardHeight: number
+  isLegacy: boolean
 }
 
 export async function idbListDocuments(): Promise<AvnacEditorIdbListItem[]> {
@@ -77,13 +113,16 @@ export async function idbListDocuments(): Promise<AvnacEditorIdbListItem[]> {
       const r = tx.objectStore(STORE).getAll()
       r.onerror = () => reject(r.error ?? new Error('idb getAll failed'))
       r.onsuccess = () => {
-        const rows = r.result as AvnacEditorIdbRecord[]
+        const rows = (r.result as StoredAvnacEditorIdbRecord[])
+          .map((row) => normalizeEditorRecord(row))
+          .filter((row): row is AvnacEditorIdbRecord => row != null)
         const items: AvnacEditorIdbListItem[] = rows.map((row) => ({
           id: row.id,
           name: row.name?.trim() || 'Untitled',
           updatedAt: row.updatedAt,
           artboardWidth: row.document.artboard.width,
           artboardHeight: row.document.artboard.height,
+          isLegacy: row.storageKind === 'legacy',
         }))
         items.sort((a, b) => b.updatedAt - a.updatedAt)
         resolve(items)
@@ -96,7 +135,7 @@ export async function idbListDocuments(): Promise<AvnacEditorIdbListItem[]> {
 
 export async function idbPutDocument(
   id: string,
-  document: AvnacDocumentV1,
+  document: AvnacDocument,
   opts?: { name?: string },
 ): Promise<void> {
   const prev = await idbGetEditorRecord(id)
@@ -152,10 +191,7 @@ export async function idbDuplicateDocument(sourceId: string): Promise<string | n
   const newId = crypto.randomUUID()
   const baseName = row.name?.trim() || 'Untitled'
   const name = `${baseName} copy`
-  const docClone: AvnacDocumentV1 =
-    typeof structuredClone === 'function'
-      ? structuredClone(row.document)
-      : (JSON.parse(JSON.stringify(row.document)) as AvnacDocumentV1)
+  const docClone = cloneAvnacDocument(row.document)
   await idbPutDocument(newId, docClone, { name })
 
   const boards = loadVectorBoards(sourceId)
@@ -170,4 +206,14 @@ export async function idbDuplicateDocument(sourceId: string): Promise<string | n
     )
   }
   return newId
+}
+
+export async function idbMigrateLegacyDocument(
+  id: string,
+): Promise<boolean> {
+  const row = await idbGetEditorRecord(id)
+  if (!row) return false
+  if (row.storageKind !== 'legacy') return true
+  await idbPutDocument(id, row.document, { name: row.name })
+  return true
 }

@@ -8,12 +8,15 @@ export const Route = createRootRoute({
 });
 
 function RootLayout() {
+  const posthogHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST;
+  const posthogApiHost = import.meta.env.DEV ? "/ingest" : posthogHost;
+
   return (
     <PostHogProvider
       apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN!}
       options={{
-        api_host: "/ingest",
-        ui_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+        api_host: posthogApiHost,
+        ui_host: posthogHost,
         defaults: "2026-01-30",
         capture_exceptions: true,
         debug: import.meta.env.DEV,

@@ -7,7 +7,6 @@ import {
   MoreVerticalSquare01Icon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
-import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 import {
@@ -24,6 +23,10 @@ type FileGridCardProps = {
   selected: boolean;
   onToggleSelect: (id: string) => void;
   onRequestDelete: (id: string) => void;
+  onRequestOpen: (
+    row: AvnacEditorIdbListItem,
+    source: "thumbnail" | "title" | "menu",
+  ) => void;
 };
 
 export default function FileGridCard({
@@ -33,6 +36,7 @@ export default function FileGridCard({
   selected,
   onToggleSelect,
   onRequestDelete,
+  onRequestOpen,
 }: FileGridCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -57,6 +61,10 @@ export default function FileGridCard({
 
   const openInNewTab = () => {
     setMenuOpen(false);
+    if (row.isLegacy) {
+      onRequestOpen(row, "menu");
+      return;
+    }
     posthog.capture("file_opened", { file_id: row.id, method: "new_tab" });
     const u = new URL("/create", window.location.origin);
     u.searchParams.set("id", row.id);
@@ -120,7 +128,7 @@ export default function FileGridCard({
     "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] font-medium text-[var(--text)] transition-colors hover:bg-black/[0.04]";
 
   const openEditorClass =
-    "block no-underline text-inherit transition-colors hover:text-inherit focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text)]";
+    "block w-full border-0 bg-transparent p-0 text-left text-inherit transition-colors hover:text-inherit focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text)]";
 
   return (
     <li className="min-w-0">
@@ -158,16 +166,10 @@ export default function FileGridCard({
               </span>
             </label>
           </div>
-          <Link
-            to="/create"
-            search={{ id: row.id }}
+          <button
+            type="button"
             className={openEditorClass}
-            onClick={() =>
-              posthog.capture("file_opened", {
-                file_id: row.id,
-                method: "thumbnail",
-              })
-            }
+            onClick={() => onRequestOpen(row, "thumbnail")}
           >
             <div
               className={[
@@ -182,8 +184,13 @@ export default function FileGridCard({
                 updatedAt={row.updatedAt}
                 className="absolute inset-0"
               />
+              {row.isLegacy ? (
+                <div className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
+                  Legacy
+                </div>
+              ) : null}
             </div>
-          </Link>
+          </button>
           <div className="absolute right-4 top-4 z-10">
             <button
               type="button"
@@ -217,7 +224,7 @@ export default function FileGridCard({
                     strokeWidth={1.65}
                     className="shrink-0 text-[var(--text-muted)]"
                   />
-                  Open in new tab
+                  {row.isLegacy ? "Convert file" : "Open in new tab"}
                 </button>
                 <button
                   type="button"
@@ -265,13 +272,10 @@ export default function FileGridCard({
             ) : null}
           </div>
         </div>
-        <Link
-          to="/create"
-          search={{ id: row.id }}
+        <button
+          type="button"
           className={`${openEditorClass} flex min-h-0 flex-1 flex-col gap-2 border-t border-black/[0.05] px-4 pb-4 pt-3`}
-          onClick={() =>
-            posthog.capture("file_opened", { file_id: row.id, method: "title" })
-          }
+          onClick={() => onRequestOpen(row, "title")}
         >
           <div className="truncate text-[15px] font-medium leading-snug tracking-[-0.01em] text-[var(--text)]">
             {row.name}
@@ -285,7 +289,7 @@ export default function FileGridCard({
           >
             {formatUpdatedAt(row.updatedAt)}
           </time>
-        </Link>
+        </button>
       </div>
     </li>
   );

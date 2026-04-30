@@ -18,6 +18,7 @@ export const FloatingToolbarShell = forwardRef<HTMLDivElement, ShellProps>(
     return (
       <div
         ref={ref}
+        data-avnac-chrome
         role={role}
         aria-label={ariaLabel}
         className={[shellClass, className].filter(Boolean).join(' ')}

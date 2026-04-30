@@ -71,7 +71,7 @@ export function samplePenAnchorsToPolyline(
   return out
 }
 
-export function penAnchorsToFabricCommands(
+export function penAnchorsToPathCommands(
   anchors: VectorPenAnchor[],
   scale: number,
   closed = false,

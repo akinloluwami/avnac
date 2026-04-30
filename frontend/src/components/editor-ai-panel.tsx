@@ -33,11 +33,11 @@ import {
 import type { AiDesignController } from "../lib/avnac-ai-controller";
 import { buildAvnacTamboTools } from "../lib/avnac-ai-tambo-tools";
 import { pickMagicQuickPrompts } from "../lib/avnac-magic-quick-prompts";
+import { useAiController } from "./scene-editor/ai-controller-context";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  controller: AiDesignController;
 };
 
 const USER_KEY_STORAGE = "avnac-ai-user-key";
@@ -58,7 +58,8 @@ function getStableUserKey(): string {
   }
 }
 
-export default function EditorAiPanel({ open, onClose, controller }: Props) {
+export default function EditorAiPanel({ open, onClose }: Props) {
+  const controller = useAiController();
   const controllerRef = useRef<AiDesignController | null>(controller);
   useEffect(() => {
     controllerRef.current = controller;
