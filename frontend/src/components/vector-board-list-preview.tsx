@@ -8,11 +8,7 @@ type Props = {
   className?: string
 }
 
-export default function VectorBoardListPreview({
-  doc,
-  size = 56,
-  className = '',
-}: Props) {
+export default function VectorBoardListPreview({ doc, size = 56, className = '' }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
 
   useLayoutEffect(() => {
@@ -34,9 +30,7 @@ export default function VectorBoardListPreview({
   return (
     <canvas
       ref={ref}
-      className={['pointer-events-none block max-h-full max-w-full', className].join(
-        ' ',
-      )}
+      className={['pointer-events-none block max-h-full max-w-full', className].join(' ')}
       aria-hidden
     />
   )

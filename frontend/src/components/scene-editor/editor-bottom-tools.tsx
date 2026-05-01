@@ -1,15 +1,11 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ArrowDown01Icon,
   HelpCircleIcon,
   Image01Icon,
   TextFontIcon,
 } from '@hugeicons/core-free-icons'
-import type {
-  Dispatch,
-  RefObject,
-  SetStateAction,
-} from 'react'
+import { HugeiconsIcon } from '@hugeicons/react'
+import type { Dispatch, RefObject, SetStateAction } from 'react'
 
 import CanvasZoomSlider from '../canvas-zoom-slider'
 import ShapesPopover, {
@@ -21,6 +17,14 @@ import ShapesPopover, {
 function toolbarIconBtn(disabled?: boolean) {
   const base =
     'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'
+  if (disabled) return `${base} pointer-events-none cursor-not-allowed opacity-35`
+  return base
+}
+
+function toolbarSplitBtn(disabled?: boolean, opts?: { wide?: boolean }) {
+  const base = opts?.wide
+    ? 'flex h-8 min-w-[2.5rem] shrink-0 items-center justify-center rounded-full px-2 text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'
+    : 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'
   if (disabled) return `${base} pointer-events-none cursor-not-allowed opacity-35`
   return base
 }
@@ -74,19 +78,21 @@ export function EditorBottomTools({
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-2 pt-24">
         <div
-          className="pointer-events-auto flex items-center gap-1 rounded-full border border-black/[0.08] bg-white/85 px-2 py-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.08),0_0_0_1px_rgba(255,255,255,0.8)_inset] backdrop-blur-xl"
+          className="pointer-events-auto flex items-center gap-1 rounded-full border border-black/[0.08] bg-white/85 px-1.5 py-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.08),0_0_0_1px_rgba(255,255,255,0.8)_inset] backdrop-blur-xl"
           role="toolbar"
           aria-label="Editor tools"
         >
           <div
             ref={shapeToolSplitRef}
-            className="relative flex items-stretch rounded-lg border border-black/[0.06] bg-black/[0.02]"
+            className="relative flex items-center gap-0.5 rounded-full border border-black/[0.06] bg-black/[0.02] p-0.5"
           >
             <button
               type="button"
               disabled={!ready}
-              className={`${toolbarIconBtn(!ready)} rounded-l-lg rounded-r-none border-0`}
-              onClick={() => addShapeFromKind(shapesQuickAddKind === 'generic' ? 'rect' : shapesQuickAddKind)}
+              className={toolbarSplitBtn(!ready, { wide: true })}
+              onClick={() =>
+                addShapeFromKind(shapesQuickAddKind === 'generic' ? 'rect' : shapesQuickAddKind)
+              }
               aria-label="Add shape"
               title="Add shape"
             >
@@ -99,8 +105,8 @@ export function EditorBottomTools({
             <button
               type="button"
               disabled={!ready}
-              className={`${toolbarIconBtn(!ready)} rounded-l-none rounded-r-lg border-0 border-l border-black/[0.06]`}
-              onClick={() => setShapesPopoverOpen((open) => !open)}
+              className={toolbarSplitBtn(!ready)}
+              onClick={() => setShapesPopoverOpen(open => !open)}
               aria-expanded={shapesPopoverOpen}
               aria-haspopup="menu"
               aria-label="More shapes"
@@ -112,7 +118,7 @@ export function EditorBottomTools({
               disabled={!ready}
               anchorRef={shapeToolSplitRef}
               onClose={() => setShapesPopoverOpen(false)}
-              onPick={(kind) => {
+              onPick={kind => {
                 setShapesQuickAddKind(kind)
                 addShapeFromKind(kind)
                 setShapesPopoverOpen(false)

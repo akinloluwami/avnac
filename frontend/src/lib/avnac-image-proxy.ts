@@ -28,9 +28,7 @@ export function getExportSafeImageUrl(raw: string): string {
   return `${getPublicApiBase()}/media/proxy?url=${encodeURIComponent(parsed.toString())}`
 }
 
-export async function loadImageMetadata(
-  rawUrl: string,
-): Promise<{
+export async function loadImageMetadata(rawUrl: string): Promise<{
   src: string
   naturalWidth: number
   naturalHeight: number

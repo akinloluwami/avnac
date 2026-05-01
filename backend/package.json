@@ -7,6 +7,10 @@
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "check": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "format:check": "biome check --linter-enabled=false --assist-enabled=false .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },
@@ -24,6 +28,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
     "@types/node": "^22.10.2",
     "drizzle-kit": "^0.31.10",
     "typescript": "^5.7.3"

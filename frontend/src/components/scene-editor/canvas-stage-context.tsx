@@ -1,21 +1,14 @@
 import {
   createContext,
-  useContext,
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type PointerEvent as ReactPointerEvent,
   type RefObject,
+  useContext,
 } from 'react'
 
-import type {
-  SceneObject,
-  SceneText,
-} from '../../lib/avnac-scene'
+import type { SceneImage, SceneObject, SceneText } from '../../lib/avnac-scene'
+import type { MarqueeRect, ResizeHandleId, SceneSnapGuide } from '../../scene-engine/primitives'
 import type { CanvasAlignKind } from '../canvas-element-toolbar'
-import type {
-  MarqueeRect,
-  ResizeHandleId,
-  SceneSnapGuide,
-} from '../../scene-engine/primitives'
 
 type ElementToolbarLayout = {
   left: number
@@ -25,21 +18,22 @@ type ElementToolbarLayout = {
 
 export type CanvasStageContextValue = {
   actions: {
+    activatePage: (pageId: string) => void
+    addPage: (afterPageId?: string) => void
     alignElementToArtboard: (kind: CanvasAlignKind) => void
     alignSelectedElements: (kind: CanvasAlignKind) => void
     commitTextDraft: () => void
     copyElementToClipboard: () => void
     deleteSelection: () => void
+    deletePage: (pageId?: string) => void
+    duplicatePage: (sourcePageId?: string) => void
     duplicateElement: () => void
     groupSelection: () => void
     onArtboardPointerEnter: () => void
     onArtboardPointerLeave: () => void
     onArtboardPointerMove: () => void
     onObjectHoverChange: (id: string, hovering: boolean) => void
-    onObjectPointerDown: (
-      e: ReactPointerEvent<HTMLDivElement>,
-      obj: SceneObject,
-    ) => void
+    onObjectPointerDown: (e: ReactPointerEvent<HTMLDivElement>, obj: SceneObject) => void
     onRotateHandlePointerDown: (e: ReactPointerEvent<HTMLButtonElement>) => void
     onSelectionHandlePointerDown: (
       e: ReactPointerEvent<HTMLButtonElement>,
@@ -61,6 +55,7 @@ export type CanvasStageContextValue = {
   state: {
     backgroundActive: boolean
     backgroundHovered: boolean
+    deletingPageIds: string[]
     editingSelectedText: boolean
     elementToolbarAlignAlready: Record<CanvasAlignKind, boolean> | null
     elementToolbarCanAlignElements: boolean
@@ -70,6 +65,10 @@ export type CanvasStageContextValue = {
     elementToolbarLockedDisplay: boolean
     hasObjectSelected: boolean
     marqueeRect: MarqueeRect | null
+    imageRemovalEffect: {
+      object: SceneImage
+      phase: 'running' | 'success'
+    } | null
     ready: boolean
     scale: number
     selectedObjects: SceneObject[]
@@ -90,11 +89,7 @@ export function CanvasStageProvider({
   children: ReactNode
   value: CanvasStageContextValue
 }) {
-  return (
-    <CanvasStageContext.Provider value={value}>
-      {children}
-    </CanvasStageContext.Provider>
-  )
+  return <CanvasStageContext.Provider value={value}>{children}</CanvasStageContext.Provider>
 }
 
 export function useCanvasStageContext() {

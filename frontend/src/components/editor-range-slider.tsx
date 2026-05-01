@@ -73,7 +73,7 @@ export default function EditorRangeSlider({
         aria-valuemin={ariaValuemin}
         aria-valuemax={ariaValuemax}
         aria-valuenow={ariaValuenow}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={e => onChange(Number(e.target.value))}
         className={editorRangeInputClassName}
       />
     </div>

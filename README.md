@@ -124,6 +124,21 @@ npm run dev
 
 Runs on `http://localhost:3300`.
 
+Optional Hugeicons Pro setup:
+
+- The frontend works without a Hugeicons Pro license. By default, contributors will install only the free icon packages and the app will fall back to free sidebar icons.
+- If you have a Hugeicons Pro license, set `HUGEICONS_NPM_TOKEN` before running `npm install` in `frontend/`. The optional package will install and Vite will automatically switch the sidebar to the pro icon set.
+- Do not expose this token with a `VITE_` prefix. It is only needed at install/build time.
+- In production or CI, builds can still succeed without the token. They will simply use the free fallback icons instead of the pro ones.
+
+Example local setup for licensed installs:
+
+```bash
+cd frontend
+export HUGEICONS_NPM_TOKEN=your_token_here
+npm install
+```
+
 Useful frontend scripts:
 
 ```bash

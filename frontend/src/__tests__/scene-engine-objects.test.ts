@@ -31,10 +31,7 @@ function makeImage(overrides: Partial<SceneImage> = {}): SceneImage {
 }
 
 function expectImageScaleToMatch(image: SceneImage) {
-  expect(image.width / image.crop.width).toBeCloseTo(
-    image.height / image.crop.height,
-    5,
-  )
+  expect(image.width / image.crop.width).toBeCloseTo(image.height / image.crop.height, 5)
 }
 
 describe('resizeObjectWithBox image transforms', () => {

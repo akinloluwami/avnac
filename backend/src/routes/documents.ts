@@ -1,19 +1,19 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
-import { Elysia } from "elysia";
-import { auth } from "../auth";
-import { db } from "../db";
-import { document } from "../db/schema";
-import { HttpError } from "../lib/http";
-import { documentPayloadSchema } from "../lib/editor-schema";
+import { and, desc, eq, isNull } from 'drizzle-orm'
+import { Elysia } from 'elysia'
+import { auth } from '../auth'
+import { db } from '../db'
+import { document } from '../db/schema'
+import { documentPayloadSchema } from '../lib/editor-schema'
+import { HttpError } from '../lib/http'
 
-export const documentsRoutes = new Elysia({ prefix: "/documents" })
-  .get("/", async ({ request, set }) => {
+export const documentsRoutes = new Elysia({ prefix: '/documents' })
+  .get('/', async ({ request, set }) => {
     const authSession = await auth.api.getSession({
       headers: request.headers,
-    });
+    })
 
     if (!authSession) {
-      throw new HttpError(401, "Authentication required");
+      throw new HttpError(401, 'Authentication required')
     }
 
     const rows = await db
@@ -24,21 +24,21 @@ export const documentsRoutes = new Elysia({ prefix: "/documents" })
       })
       .from(document)
       .where(eq(document.ownerUserId, authSession.user.id))
-      .orderBy(desc(document.updatedAt));
+      .orderBy(desc(document.updatedAt))
 
-    set.status = 200;
-    return { data: rows };
+    set.status = 200
+    return { data: rows }
   })
-  .get("/:id", async ({ params, set }) => {
+  .get('/:id', async ({ params, set }) => {
     const row = await db.query.document.findFirst({
       where: eq(document.id, params.id),
-    });
+    })
 
     if (!row) {
-      throw new HttpError(404, "Document not found");
+      throw new HttpError(404, 'Document not found')
     }
 
-    set.status = 200;
+    set.status = 200
     return {
       data: {
         id: row.id,
@@ -49,30 +49,24 @@ export const documentsRoutes = new Elysia({ prefix: "/documents" })
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       },
-    };
+    }
   })
-  .put("/:id", async ({ request, body, params, set }) => {
+  .put('/:id', async ({ request, body, params, set }) => {
     const authSession = await auth.api.getSession({
       headers: request.headers,
-    });
+    })
 
-    const payload = documentPayloadSchema.parse(body);
+    const payload = documentPayloadSchema.parse(body)
     const existing = await db.query.document.findFirst({
       where: eq(document.id, params.id),
-    });
+    })
 
-    if (
-      existing?.ownerUserId &&
-      existing.ownerUserId !== authSession?.user.id
-    ) {
-      throw new HttpError(
-        403,
-        "This document belongs to another authenticated user",
-      );
+    if (existing?.ownerUserId && existing.ownerUserId !== authSession?.user.id) {
+      throw new HttpError(403, 'This document belongs to another authenticated user')
     }
 
-    const now = new Date();
-    const nextOwnerUserId = existing?.ownerUserId ?? authSession?.user.id ?? null;
+    const now = new Date()
+    const nextOwnerUserId = existing?.ownerUserId ?? authSession?.user.id ?? null
 
     if (!existing) {
       const [created] = await db
@@ -86,10 +80,10 @@ export const documentsRoutes = new Elysia({ prefix: "/documents" })
           createdAt: now,
           updatedAt: now,
         })
-        .returning();
+        .returning()
 
-      set.status = 201;
-      return { data: created };
+      set.status = 201
+      return { data: created }
     }
 
     const [updated] = await db
@@ -102,30 +96,30 @@ export const documentsRoutes = new Elysia({ prefix: "/documents" })
         updatedAt: now,
       })
       .where(eq(document.id, params.id))
-      .returning();
+      .returning()
 
-    set.status = 200;
-    return { data: updated };
+    set.status = 200
+    return { data: updated }
   })
-  .post("/:id/claim", async ({ request, params, set }) => {
+  .post('/:id/claim', async ({ request, params, set }) => {
     const authSession = await auth.api.getSession({
       headers: request.headers,
-    });
+    })
 
     if (!authSession) {
-      throw new HttpError(401, "Authentication required");
+      throw new HttpError(401, 'Authentication required')
     }
 
     const row = await db.query.document.findFirst({
       where: eq(document.id, params.id),
-    });
+    })
 
     if (!row) {
-      throw new HttpError(404, "Document not found");
+      throw new HttpError(404, 'Document not found')
     }
 
     if (row.ownerUserId && row.ownerUserId !== authSession.user.id) {
-      throw new HttpError(403, "Document already belongs to another user");
+      throw new HttpError(403, 'Document already belongs to another user')
     }
 
     const [updated] = await db
@@ -142,8 +136,8 @@ export const documentsRoutes = new Elysia({ prefix: "/documents" })
             : isNull(document.ownerUserId),
         ),
       )
-      .returning();
+      .returning()
 
-    set.status = 200;
-    return { data: updated };
-  });
+    set.status = 200
+    return { data: updated }
+  })

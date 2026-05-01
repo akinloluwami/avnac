@@ -1,6 +1,3 @@
-import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
-import { useCallback, useRef, type RefObject } from 'react'
-import { useViewportAwarePopoverPlacement } from '../hooks/use-viewport-aware-popover'
 import {
   ArrowUpRight01Icon,
   CircleIcon,
@@ -10,14 +7,11 @@ import {
   SquareIcon,
   StarIcon,
 } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
+import { type RefObject, useCallback, useRef } from 'react'
+import { useViewportAwarePopoverPlacement } from '../hooks/use-viewport-aware-popover'
 
-export type PopoverShapeKind =
-  | 'rect'
-  | 'ellipse'
-  | 'polygon'
-  | 'star'
-  | 'line'
-  | 'arrow'
+export type PopoverShapeKind = 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'arrow'
 
 export type ShapesQuickAddKind = PopoverShapeKind | 'generic'
 
@@ -53,13 +47,7 @@ type Props = {
   onPick: (kind: PopoverShapeKind) => void
 }
 
-export default function ShapesPopover({
-  open,
-  disabled,
-  anchorRef,
-  onClose,
-  onPick,
-}: Props) {
+export default function ShapesPopover({ open, disabled, anchorRef, onClose, onPick }: Props) {
   const panelRef = useRef<HTMLDivElement>(null)
   const pickPanel = useCallback(() => panelRef.current, [])
   const { openUpward, shiftX } = useViewportAwarePopoverPlacement(

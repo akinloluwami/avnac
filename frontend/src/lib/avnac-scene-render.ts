@@ -1,20 +1,14 @@
-import { bgValueToCss, type BgValue } from '../components/background-popover'
-import { loadGoogleFontFamily } from './load-google-font'
-import type {
-  AvnacDocument,
-  SceneArrow,
-  SceneLine,
-  SceneObject,
-  SceneText,
-} from './avnac-document'
-import { shadowColorString } from './avnac-shadow'
+import { type BgValue, bgValueToCss } from '../components/background-popover'
+import type { AvnacDocument, SceneArrow, SceneLine, SceneObject, SceneText } from './avnac-document'
 import { getExportSafeImageUrl } from './avnac-image-proxy'
-import { samplePenAnchorsToPolyline } from './avnac-vector-pen-bezier'
+import { shadowColorString } from './avnac-shadow'
 import {
   flattenVisibleStrokes,
   type VectorBoardDocument,
   type VectorBoardStroke,
 } from './avnac-vector-board-document'
+import { samplePenAnchorsToPolyline } from './avnac-vector-pen-bezier'
+import { loadGoogleFontFamily } from './load-google-font'
 
 const imageElementCache = new Map<string, Promise<HTMLImageElement>>()
 let measureCanvas: HTMLCanvasElement | null = null
@@ -43,8 +37,8 @@ function makeLinearGradient(
   const dy = -Math.cos(rad)
   const cx = width / 2
   const cy = height / 2
-  const tx = dx !== 0 ? (width / 2) / Math.abs(dx) : Number.POSITIVE_INFINITY
-  const ty = dy !== 0 ? (height / 2) / Math.abs(dy) : Number.POSITIVE_INFINITY
+  const tx = dx !== 0 ? width / 2 / Math.abs(dx) : Number.POSITIVE_INFINITY
+  const ty = dy !== 0 ? height / 2 / Math.abs(dy) : Number.POSITIVE_INFINITY
   const halfLen = Math.min(tx, ty)
   const gradient = ctx.createLinearGradient(
     cx - dx * halfLen,
@@ -113,10 +107,7 @@ function applyShadow(ctx: CanvasRenderingContext2D, obj: SceneObject) {
   ctx.shadowOffsetY = obj.shadow.offsetY
 }
 
-function applyDash(
-  ctx: CanvasRenderingContext2D,
-  obj: SceneLine | SceneArrow,
-) {
+function applyDash(ctx: CanvasRenderingContext2D, obj: SceneLine | SceneArrow) {
   if (obj.lineStyle === 'dashed') {
     ctx.setLineDash([obj.strokeWidth * 3, obj.strokeWidth * 2])
     return
@@ -156,30 +147,18 @@ function drawRoundedRectPath(
 
 function fillAndStrokeShape(
   ctx: CanvasRenderingContext2D,
-  obj: Extract<
-    SceneObject,
-    { fill: BgValue; stroke: BgValue; strokeWidth: number }
-  >,
+  obj: Extract<SceneObject, { fill: BgValue; stroke: BgValue; strokeWidth: number }>,
 ) {
   ctx.fillStyle = bgValueToCanvasPaint(ctx, obj.fill, obj.width, obj.height)
   ctx.fill()
   if (obj.strokeWidth > 0) {
-    ctx.strokeStyle = bgValueToCanvasPaint(
-      ctx,
-      obj.stroke,
-      obj.width,
-      obj.height,
-    )
+    ctx.strokeStyle = bgValueToCanvasPaint(ctx, obj.stroke, obj.width, obj.height)
     ctx.lineWidth = obj.strokeWidth
     ctx.stroke()
   }
 }
 
-function polygonPoints(
-  sides: number,
-  width: number,
-  height: number,
-): [number, number][] {
+function polygonPoints(sides: number, width: number, height: number): [number, number][] {
   const pts: [number, number][] = []
   const count = Math.max(3, sides)
   const rx = width / 2
@@ -191,11 +170,7 @@ function polygonPoints(
   return pts
 }
 
-function starPoints(
-  points: number,
-  width: number,
-  height: number,
-): [number, number][] {
+function starPoints(points: number, width: number, height: number): [number, number][] {
   const out: [number, number][] = []
   const count = Math.max(4, points)
   const rx = width / 2
@@ -209,11 +184,7 @@ function starPoints(
   return out
 }
 
-function drawPointPath(
-  ctx: CanvasRenderingContext2D,
-  pts: [number, number][],
-  close = true,
-) {
+function drawPointPath(ctx: CanvasRenderingContext2D, pts: [number, number][], close = true) {
   if (pts.length === 0) return
   ctx.beginPath()
   ctx.moveTo(pts[0][0], pts[0][1])
@@ -226,6 +197,29 @@ function drawPointPath(
 function setTextFont(ctx: CanvasRenderingContext2D, obj: SceneText) {
   const weight = typeof obj.fontWeight === 'number' ? obj.fontWeight : obj.fontWeight
   ctx.font = `${obj.fontStyle} ${weight} ${obj.fontSize}px "${obj.fontFamily}", sans-serif`
+}
+
+function cssLineBoxBaselineOffset(
+  ctx: CanvasRenderingContext2D,
+  obj: SceneText,
+  lineHeight: number,
+): number {
+  const metrics = ctx.measureText('Mg') as TextMetrics & {
+    fontBoundingBoxAscent?: number
+    fontBoundingBoxDescent?: number
+  }
+  const ascent =
+    typeof metrics.fontBoundingBoxAscent === 'number' &&
+    Number.isFinite(metrics.fontBoundingBoxAscent)
+      ? metrics.fontBoundingBoxAscent
+      : metrics.actualBoundingBoxAscent || obj.fontSize * 0.8
+  const descent =
+    typeof metrics.fontBoundingBoxDescent === 'number' &&
+    Number.isFinite(metrics.fontBoundingBoxDescent)
+      ? metrics.fontBoundingBoxDescent
+      : metrics.actualBoundingBoxDescent || obj.fontSize * 0.2
+  const fontBox = Math.max(1, ascent + descent)
+  return (lineHeight - fontBox) / 2 + ascent
 }
 
 export function layoutSceneText(
@@ -284,47 +278,41 @@ export async function preloadFontsForDocument(doc: AvnacDocument): Promise<void>
     }
   }
   for (const obj of doc.objects) visit(obj)
-  await Promise.all([...fonts].map((font) => loadGoogleFontFamily(font)))
+  await Promise.all([...fonts].map(font => loadGoogleFontFamily(font)))
 }
 
 function drawTextObject(ctx: CanvasRenderingContext2D, obj: SceneText) {
   const text = layoutSceneText(obj, ctx)
   setTextFont(ctx, obj)
-  ctx.textBaseline = 'top'
+  ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = bgValueToCanvasPaint(ctx, obj.fill, obj.width, obj.height)
   ctx.strokeStyle = bgValueToCanvasPaint(ctx, obj.stroke, obj.width, obj.height)
   ctx.lineWidth = obj.strokeWidth
   const textAlign = obj.textAlign === 'justify' ? 'left' : obj.textAlign
   ctx.textAlign = textAlign
-  const anchorX =
-    textAlign === 'center' ? obj.width / 2 : textAlign === 'right' ? obj.width : 0
+  const anchorX = textAlign === 'center' ? obj.width / 2 : textAlign === 'right' ? obj.width : 0
+  const baselineOffset = cssLineBoxBaselineOffset(ctx, obj, text.lineHeight)
   for (let i = 0; i < text.lines.length; i += 1) {
     const line = text.lines[i] ?? ''
     const y = i * text.lineHeight
-    if (obj.strokeWidth > 0) ctx.strokeText(line, anchorX, y)
-    ctx.fillText(line, anchorX, y)
+    const baselineY = y + baselineOffset
+    if (obj.strokeWidth > 0) ctx.strokeText(line, anchorX, baselineY)
+    ctx.fillText(line, anchorX, baselineY)
     if (obj.underline && line.length > 0) {
       const metrics = ctx.measureText(line)
-      const width =
-        metrics.actualBoundingBoxRight +
-        metrics.actualBoundingBoxLeft
+      const width = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
       const startX =
         textAlign === 'center'
           ? anchorX - width / 2
           : textAlign === 'right'
             ? anchorX - width
             : anchorX
-      const underlineY = y + obj.fontSize * 1.08
+      const underlineY = baselineY + obj.fontSize * 0.12
       ctx.beginPath()
       ctx.moveTo(startX, underlineY)
       ctx.lineTo(startX + width, underlineY)
       ctx.lineWidth = Math.max(1, obj.fontSize * 0.06)
-      ctx.strokeStyle = bgValueToCanvasPaint(
-        ctx,
-        obj.fill,
-        obj.width,
-        obj.height,
-      )
+      ctx.strokeStyle = bgValueToCanvasPaint(ctx, obj.fill, obj.width, obj.height)
       ctx.stroke()
     }
   }
@@ -484,15 +472,7 @@ async function drawSceneObject(
       break
     case 'ellipse':
       ctx.beginPath()
-      ctx.ellipse(
-        obj.width / 2,
-        obj.height / 2,
-        obj.width / 2,
-        obj.height / 2,
-        0,
-        0,
-        Math.PI * 2,
-      )
+      ctx.ellipse(obj.width / 2, obj.height / 2, obj.width / 2, obj.height / 2, 0, 0, Math.PI * 2)
       fillAndStrokeShape(ctx, obj)
       break
     case 'polygon':
@@ -605,11 +585,6 @@ export async function renderAvnacDocumentToDataUrl(
   await renderAvnacDocumentToCanvas(ctx, doc, vectorBoardDocs, {
     transparent: opts?.transparent,
   })
-  const mimeType =
-    format === 'jpg'
-      ? 'image/jpeg'
-      : format === 'webp'
-        ? 'image/webp'
-        : 'image/png'
+  const mimeType = format === 'jpg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png'
   return canvas.toDataURL(mimeType)
 }

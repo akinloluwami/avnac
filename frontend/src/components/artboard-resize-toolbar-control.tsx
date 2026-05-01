@@ -1,18 +1,18 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
-  AspectRatioIcon,
   ArrowRight01Icon,
+  AspectRatioIcon,
   Link01Icon,
   Unlink01Icon,
 } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import {
+  type RefObject,
   useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
-  type RefObject,
 } from 'react'
 import { ARTBOARD_PRESETS } from '../data/artboard-presets'
 import {
@@ -60,9 +60,7 @@ export default function ArtboardResizeToolbarControl({
     return width / height
   }, [width, height])
 
-  const currentPreset =
-    ARTBOARD_PRESETS.find((p) => p.width === width && p.height === height) ??
-    null
+  const currentPreset = ARTBOARD_PRESETS.find(p => p.width === width && p.height === height) ?? null
 
   useEffect(() => {
     setSizeDraftW(String(width))
@@ -86,10 +84,7 @@ export default function ArtboardResizeToolbarControl({
       const viewport = viewportRef.current
       const panel = presetFlyoutRef.current
       if (!viewport || !panel) return
-      const { shiftX: sx, shiftY: sy } = measureHorizontalFlyoutInContainer(
-        viewport,
-        panel,
-      )
+      const { shiftX: sx, shiftY: sy } = measureHorizontalFlyoutInContainer(viewport, panel)
       setPresetFlyoutShift({ x: sx, y: sy })
     }
     sync()
@@ -180,7 +175,7 @@ export default function ArtboardResizeToolbarControl({
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => {
-          if (!isDisabled) setOpen((o) => !o)
+          if (!isDisabled) setOpen(o => !o)
         }}
       >
         <HugeiconsIcon icon={AspectRatioIcon} size={18} strokeWidth={1.75} />
@@ -200,9 +195,7 @@ export default function ArtboardResizeToolbarControl({
             transform: `translateX(calc(-50% + ${shiftX}px))`,
           }}
         >
-          <p className="mb-2 text-[13px] font-medium text-neutral-800">
-            Artboard size
-          </p>
+          <p className="mb-2 text-[13px] font-medium text-neutral-800">Artboard size</p>
           <div className="relative -mx-3 mb-3 w-auto shrink-0">
             <div className="relative w-full shrink-0">
               <button
@@ -211,7 +204,7 @@ export default function ArtboardResizeToolbarControl({
                 aria-label="Artboard preset"
                 aria-expanded={presetOpen}
                 aria-haspopup="menu"
-                onClick={() => setPresetOpen((value) => !value)}
+                onClick={() => setPresetOpen(value => !value)}
               >
                 <span className="min-w-0 truncate">
                   {currentPreset?.label ?? 'Custom dimensions'}
@@ -255,7 +248,7 @@ export default function ArtboardResizeToolbarControl({
                       </span>
                     ) : null}
                   </button>
-                  {ARTBOARD_PRESETS.map((preset) => {
+                  {ARTBOARD_PRESETS.map(preset => {
                     const active = currentPreset?.id === preset.id
                     return (
                       <button
@@ -285,9 +278,7 @@ export default function ArtboardResizeToolbarControl({
               ) : null}
             </div>
           </div>
-          <div className="mb-2 text-[12px] font-medium text-neutral-700">
-            Custom size
-          </div>
+          <div className="mb-2 text-[12px] font-medium text-neutral-700">Custom size</div>
           <div className="grid grid-cols-[1fr_auto_1fr_auto] items-end gap-2">
             <label className="block text-[12px] font-medium text-neutral-700">
               Width
@@ -298,7 +289,7 @@ export default function ArtboardResizeToolbarControl({
                 ariaLabel="Artboard width"
                 onDraftChange={setSizeDraftW}
                 onCommit={applyWidthDraft}
-                onScrub={(value) => {
+                onScrub={value => {
                   const nextWidth = clampValue(value)
                   const nextHeight = linked
                     ? clampValue(nextWidth / aspectRatio)
@@ -307,9 +298,7 @@ export default function ArtboardResizeToolbarControl({
                 }}
               />
             </label>
-            <div className="flex h-9 items-center justify-center pb-[2px] text-neutral-300">
-              ×
-            </div>
+            <div className="flex h-9 items-center justify-center pb-[2px] text-neutral-300">×</div>
             <label className="block text-[12px] font-medium text-neutral-700">
               Height
               <DimensionInput
@@ -319,7 +308,7 @@ export default function ArtboardResizeToolbarControl({
                 ariaLabel="Artboard height"
                 onDraftChange={setSizeDraftH}
                 onCommit={applyHeightDraft}
-                onScrub={(value) => {
+                onScrub={value => {
                   const nextHeight = clampValue(value)
                   const nextWidth = linked
                     ? clampValue(nextHeight * aspectRatio)
@@ -336,12 +325,10 @@ export default function ArtboardResizeToolbarControl({
                   ? 'border-black/15 bg-black/[0.05] text-neutral-900'
                   : 'border-black/10 bg-white text-neutral-600 hover:border-black/15',
               ].join(' ')}
-              aria-label={
-                linked ? 'Unlink dimensions' : 'Link dimensions'
-              }
+              aria-label={linked ? 'Unlink dimensions' : 'Link dimensions'}
               aria-pressed={linked}
               title={linked ? 'Unlink dimensions' : 'Link dimensions'}
-              onClick={() => setLinked((value) => !value)}
+              onClick={() => setLinked(value => !value)}
             >
               <HugeiconsIcon
                 icon={linked ? Link01Icon : Unlink01Icon}
@@ -401,12 +388,12 @@ function DimensionInput({
       type="text"
       inputMode="numeric"
       value={value}
-      onChange={(e) => onDraftChange(e.target.value)}
+      onChange={e => onDraftChange(e.target.value)}
       onBlur={() => {
         setEditing(false)
         onCommit(value)
       }}
-      onKeyDown={(e) => {
+      onKeyDown={e => {
         if (e.key === 'Enter') {
           e.preventDefault()
           setEditing(false)
@@ -429,7 +416,7 @@ function DimensionInput({
       aria-label={`${ariaLabel} — drag horizontally to change, double-click to type`}
       title="Drag to change size · Shift for faster steps · Double-click to type"
       className="mt-1 flex h-9 w-full cursor-ew-resize select-none items-center justify-center rounded-lg border border-black/10 bg-white px-2 font-mono text-[13px] tabular-nums text-neutral-900 touch-none transition-colors hover:border-black/18"
-      onPointerDown={(e) => {
+      onPointerDown={e => {
         if (editing || e.button !== 0) return
         e.preventDefault()
         dragRef.current = {
@@ -439,7 +426,7 @@ function DimensionInput({
           active: false,
         }
       }}
-      onPointerMove={(e) => {
+      onPointerMove={e => {
         const drag = dragRef.current
         if (!drag || e.pointerId !== drag.pointerId) return
         const dx = e.clientX - drag.startX
@@ -451,7 +438,7 @@ function DimensionInput({
         const sensitivity = e.shiftKey ? 4 : 1
         onScrub(drag.startValue + dx * sensitivity)
       }}
-      onPointerUp={(e) => {
+      onPointerUp={e => {
         const drag = dragRef.current
         if (!drag || e.pointerId !== drag.pointerId) return
         if (drag.active) {
@@ -463,12 +450,12 @@ function DimensionInput({
         }
         dragRef.current = null
       }}
-      onPointerCancel={(e) => {
+      onPointerCancel={e => {
         const drag = dragRef.current
         if (!drag || e.pointerId !== drag.pointerId) return
         dragRef.current = null
       }}
-      onDoubleClick={(e) => {
+      onDoubleClick={e => {
         e.preventDefault()
         setEditing(true)
       }}

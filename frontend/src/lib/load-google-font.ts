@@ -11,7 +11,7 @@ function linkId(familyKey: string) {
 }
 
 function waitForStylesheetLink(link: HTMLLinkElement): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     try {
       if (link.sheet) {
         resolve()
@@ -63,9 +63,7 @@ export function ensureGoogleFontFamilyReady(family: string): Promise<void> {
     if (link) await waitForStylesheetLink(link)
     try {
       await Promise.all(
-        ['400', '500', '600', '700'].map((w) =>
-          document.fonts.load(`${w} 40px "${key}"`),
-        ),
+        ['400', '500', '600', '700'].map(w => document.fonts.load(`${w} 40px "${key}"`)),
       )
     } catch {
       /* ignore */
@@ -79,14 +77,8 @@ export function ensureGoogleFontFamilyReady(family: string): Promise<void> {
   return task
 }
 
-export async function ensureGoogleFontsForFamilies(
-  families: Iterable<string>,
-): Promise<void> {
-  const keys = [
-    ...new Set(
-      [...families].map(normalizeFontFamilyKey).filter((k) => k.length > 0),
-    ),
-  ]
+export async function ensureGoogleFontsForFamilies(families: Iterable<string>): Promise<void> {
+  const keys = [...new Set([...families].map(normalizeFontFamilyKey).filter(k => k.length > 0))]
   await Promise.all(keys.map(ensureGoogleFontFamilyReady))
 }
 

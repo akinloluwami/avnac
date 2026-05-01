@@ -1,32 +1,24 @@
-import {
-  useMemo,
-  type Dispatch,
-  type SetStateAction,
-} from 'react'
-
-import {
-  getObjectFill,
-  getObjectStroke,
-  objectDisplayName,
-  objectSupportsFill,
-  objectSupportsOutlineStroke,
-  setObjectFill,
-  setObjectStroke,
-  setObjectStrokeWidth,
-  type AvnacDocument,
-  type SceneLine,
-  type SceneObject,
-  type SceneText,
-} from '../../lib/avnac-scene'
+import { type Dispatch, type SetStateAction, useMemo } from 'react'
 import type {
   AiDesignController,
   AiObjectKind,
   AiObjectSummary,
 } from '../../lib/avnac-ai-controller'
 import {
-  layoutSceneText,
-  sceneTextLineHeight,
-} from '../../lib/avnac-scene-render'
+  type AvnacDocument,
+  getObjectFill,
+  getObjectStroke,
+  objectDisplayName,
+  objectSupportsFill,
+  objectSupportsOutlineStroke,
+  type SceneLine,
+  type SceneObject,
+  type SceneText,
+  setObjectFill,
+  setObjectStroke,
+  setObjectStrokeWidth,
+} from '../../lib/avnac-scene'
+import { layoutSceneText, sceneTextLineHeight } from '../../lib/avnac-scene-render'
 import { angleFromPoints } from '../../scene-engine/primitives'
 
 type PlaceImageObject = (
@@ -58,7 +50,7 @@ function leftFromSpec(
   width: number,
 ) {
   return spec.origin === 'top-left'
-    ? spec.x ?? fallbackCenter
+    ? (spec.x ?? fallbackCenter)
     : (spec.x ?? fallbackCenter) - width / 2
 }
 
@@ -68,7 +60,7 @@ function topFromSpec(
   height: number,
 ) {
   return spec.origin === 'top-left'
-    ? spec.y ?? fallbackCenter
+    ? (spec.y ?? fallbackCenter)
     : (spec.y ?? fallbackCenter) - height / 2
 }
 
@@ -88,7 +80,7 @@ export function useAiDesignController({
         height: doc.artboard.height,
         background: doc.bg.type === 'solid' ? doc.bg.color : doc.bg.css,
         objectCount: doc.objects.length,
-        objects: doc.objects.map<AiObjectSummary>((obj) => ({
+        objects: doc.objects.map<AiObjectSummary>(obj => ({
           id: obj.id,
           kind:
             obj.type === 'vector-board'
@@ -107,15 +99,13 @@ export function useAiDesignController({
             return fill?.type === 'solid' ? fill.color : null
           })(),
           stroke: (() => {
-            const stroke = objectSupportsOutlineStroke(obj)
-              ? getObjectStroke(obj)
-              : null
+            const stroke = objectSupportsOutlineStroke(obj) ? getObjectStroke(obj) : null
             return stroke?.type === 'solid' ? stroke.color : null
           })(),
           text: obj.type === 'text' ? obj.text : null,
         })),
       }),
-      addRectangle: (spec) => {
+      addRectangle: spec => {
         const obj: SceneObject = {
           id: crypto.randomUUID(),
           type: 'rect',
@@ -137,7 +127,7 @@ export function useAiDesignController({
         addObjects([obj])
         return { id: obj.id }
       },
-      addEllipse: (spec) => {
+      addEllipse: spec => {
         const obj: SceneObject = {
           id: crypto.randomUUID(),
           type: 'ellipse',
@@ -158,7 +148,7 @@ export function useAiDesignController({
         addObjects([obj])
         return { id: obj.id }
       },
-      addText: (spec) => {
+      addText: spec => {
         const width = spec.width ?? 320
         const fontSize = spec.fontSize ?? 64
         const obj: SceneText = {
@@ -186,14 +176,11 @@ export function useAiDesignController({
           underline: false,
           textAlign: spec.textAlign ?? 'left',
         }
-        obj.height = Math.max(
-          layoutSceneText(obj).height,
-          obj.fontSize * sceneTextLineHeight(obj),
-        )
+        obj.height = Math.max(layoutSceneText(obj).height, obj.fontSize * sceneTextLineHeight(obj))
         addObjects([obj])
         return { id: obj.id }
       },
-      addLine: (spec) => {
+      addLine: spec => {
         const width = Math.max(1, Math.hypot(spec.x2 - spec.x1, spec.y2 - spec.y1))
         const height = Math.max(24, (spec.strokeWidth ?? 4) * 3)
         const centerX = (spec.x1 + spec.x2) / 2
@@ -219,7 +206,7 @@ export function useAiDesignController({
         addObjects([obj])
         return { id: obj.id }
       },
-      addImageFromUrl: async (spec) => {
+      addImageFromUrl: async spec => {
         const id = await placeImageObject(spec.url, {
           x: spec.x,
           y: spec.y,
@@ -231,9 +218,9 @@ export function useAiDesignController({
       },
       updateObject: (id, patch) => {
         let changed = false
-        setDoc((prev) => ({
+        setDoc(prev => ({
           ...prev,
-          objects: prev.objects.map((obj) => {
+          objects: prev.objects.map(obj => {
             if (obj.id !== id) return obj
             changed = true
             let next: SceneObject = { ...obj }
@@ -242,8 +229,7 @@ export function useAiDesignController({
             if (patch.width !== undefined) next.width = patch.width
             if (patch.height !== undefined) next.height = patch.height
             if (patch.angle !== undefined) next.rotation = patch.angle
-            if (patch.opacity !== undefined)
-              next.opacity = Math.max(0, Math.min(1, patch.opacity))
+            if (patch.opacity !== undefined) next.opacity = Math.max(0, Math.min(1, patch.opacity))
             if (patch.fill !== undefined)
               next = setObjectFill(next, { type: 'solid', color: patch.fill })
             if (patch.stroke !== undefined)
@@ -263,37 +249,28 @@ export function useAiDesignController({
         }))
         return changed
       },
-      deleteObject: (id) => {
-        const exists = doc.objects.some((obj) => obj.id === id)
+      deleteObject: id => {
+        const exists = doc.objects.some(obj => obj.id === id)
         if (!exists) return false
-        setDoc((prev) => ({
+        setDoc(prev => ({
           ...prev,
-          objects: prev.objects.filter((obj) => obj.id !== id),
+          objects: prev.objects.filter(obj => obj.id !== id),
         }))
         return true
       },
-      selectObjects: (ids) => {
-        const valid = ids.filter((id) => doc.objects.some((obj) => obj.id === id))
+      selectObjects: ids => {
+        const valid = ids.filter(id => doc.objects.some(obj => obj.id === id))
         setSelectedIds(valid)
         return valid.length
       },
-      setBackgroundColor: (color) =>
-        setDoc((prev) => ({ ...prev, bg: { type: 'solid', color } })),
+      setBackgroundColor: color => setDoc(prev => ({ ...prev, bg: { type: 'solid', color } })),
       clearCanvas: () => {
         const count = doc.objects.length
-        setDoc((prev) => ({ ...prev, objects: [] }))
+        setDoc(prev => ({ ...prev, objects: [] }))
         setSelectedIds([])
         return count
       },
     }),
-    [
-      addObjects,
-      artboardH,
-      artboardW,
-      doc,
-      placeImageObject,
-      setDoc,
-      setSelectedIds,
-    ],
+    [addObjects, artboardH, artboardW, doc, placeImageObject, setDoc, setSelectedIds],
   )
 }

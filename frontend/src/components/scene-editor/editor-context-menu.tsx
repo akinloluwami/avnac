@@ -1,12 +1,13 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
   Copy01Icon,
   Delete02Icon,
   FilePasteIcon,
+  LayerAddIcon,
   Layers02Icon,
   SquareLock01Icon,
   SquareUnlock01Icon,
 } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 
 export type EditorContextMenuState = {
   x: number
@@ -14,6 +15,8 @@ export type EditorContextMenuState = {
   sceneX: number
   sceneY: number
   hasSelection: boolean
+  pageId: string | null
+  showPageActions: boolean
   locked: boolean
 }
 
@@ -21,19 +24,27 @@ const contextMenuButtonClass =
   'flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-medium text-neutral-800 outline-none hover:bg-black/[0.05] focus:bg-black/[0.05]'
 
 export function EditorContextMenu({
+  onAddPage,
+  canDeletePage,
   contextMenu,
   onClose,
   onCopy,
   onDelete,
+  onDeletePage,
   onDuplicate,
+  onDuplicatePage,
   onPaste,
   onToggleLock,
 }: {
+  onAddPage: (afterPageId?: string) => void
+  canDeletePage: boolean
   contextMenu: EditorContextMenuState | null
   onClose: () => void
   onCopy: () => void
   onDelete: () => void
+  onDeletePage: (pageId?: string) => void
   onDuplicate: () => void
+  onDuplicatePage: (sourcePageId?: string) => void
   onPaste: (point: { x: number; y: number }) => void
   onToggleLock: () => void
 }) {
@@ -105,6 +116,48 @@ export function EditorContextMenu({
         <HugeiconsIcon icon={FilePasteIcon} size={18} strokeWidth={1.75} />
         Paste
       </button>
+      {contextMenu.showPageActions ? (
+        <>
+          <button
+            type="button"
+            role="menuitem"
+            className={contextMenuButtonClass}
+            onClick={() => {
+              onDuplicatePage(contextMenu.pageId ?? undefined)
+              onClose()
+            }}
+          >
+            <HugeiconsIcon icon={Copy01Icon} size={18} strokeWidth={1.75} />
+            Duplicate page
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className={contextMenuButtonClass}
+            onClick={() => {
+              onAddPage(contextMenu.pageId ?? undefined)
+              onClose()
+            }}
+          >
+            <HugeiconsIcon icon={LayerAddIcon} size={18} strokeWidth={1.75} />
+            Add new page
+          </button>
+          {canDeletePage ? (
+            <button
+              type="button"
+              role="menuitem"
+              className={contextMenuButtonClass}
+              onClick={() => {
+                onDeletePage(contextMenu.pageId ?? undefined)
+                onClose()
+              }}
+            >
+              <HugeiconsIcon icon={Delete02Icon} size={18} strokeWidth={1.75} />
+              Delete page
+            </button>
+          ) : null}
+        </>
+      ) : null}
       {contextMenu.hasSelection ? (
         <>
           <div className="my-1 h-px bg-black/[0.06]" aria-hidden />

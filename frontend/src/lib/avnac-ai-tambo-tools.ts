@@ -4,9 +4,10 @@
  * All tools are built lazily from a `MutableRefObject<AiDesignController | null>`
  * so they survive panel remounts and always talk to the live canvas.
  */
-import { z } from 'zod'
-import type { MutableRefObject } from 'react'
+
 import type { TamboTool } from '@tambo-ai/react'
+import type { MutableRefObject } from 'react'
+import { z } from 'zod'
 import type { AiDesignController } from './avnac-ai-controller'
 import type { UnsplashPhoto } from './unsplash-api'
 import {
@@ -22,18 +23,14 @@ const placementSchema = z
     y: z.number().describe('Y in artboard pixels.').optional(),
     origin: z
       .enum(['top-left', 'center'])
-      .describe(
-        'Whether x/y refers to the object\'s top-left corner (default) or geometric center.',
-      )
+      .describe("Whether x/y refers to the object's top-left corner (default) or geometric center.")
       .optional(),
   })
   .describe('Placement of the object on the artboard.')
 
 const colorSchema = z
   .string()
-  .describe(
-    'CSS color in hex (#rrggbb / #rrggbbaa), rgb(), rgba(), hsl(), or a named color.',
-  )
+  .describe('CSS color in hex (#rrggbb / #rrggbbaa), rgb(), rgba(), hsl(), or a named color.')
 
 const okResultSchema = z.object({
   ok: z.boolean(),
@@ -144,10 +141,7 @@ const unsplashSearchOutputSchema = z.object({
 export function buildAvnacTamboTools(
   controllerRef: MutableRefObject<AiDesignController | null>,
 ): TamboTool[] {
-  const withCtl = <T, F>(
-    fn: (ctl: AiDesignController) => T,
-    fallback: F,
-  ): T | F => {
+  const withCtl = <T, F>(fn: (ctl: AiDesignController) => T, fallback: F): T | F => {
     const ctl = controllerRef.current
     if (!ctl) return fallback
     return fn(ctl)
@@ -159,10 +153,9 @@ export function buildAvnacTamboTools(
       'Return the current artboard dimensions, background, and a summary of every object on the canvas. Use this to orient yourself before making edits or to answer questions about the current design.',
     tool: async () => {
       return withCtl(
-        (ctl) => {
+        ctl => {
           const info = ctl.getCanvas()
-          if (!info)
-            return { ok: false as const, note: 'Canvas not ready.', canvas: null }
+          if (!info) return { ok: false as const, note: 'Canvas not ready.', canvas: null }
           return { ok: true as const, canvas: info }
         },
         { ok: false as const, note: 'Canvas not ready.', canvas: null },
@@ -202,11 +195,7 @@ export function buildAvnacTamboTools(
     name: 'search_unsplash',
     description:
       'Search Unsplash for stock photos (Avnac backend must have UNSPLASH_ACCESS_KEY). Returns candidates with image_url, download_location, width, height — pick one best match, then call add_unsplash_photo with those fields. If query is omitted or empty, returns popular photos.',
-    tool: async (args: {
-      query?: string
-      page?: number
-      per_page?: number
-    }) => {
+    tool: async (args: { query?: string; page?: number; per_page?: number }) => {
       const page = args.page ?? 1
       const perPage = Math.min(15, Math.max(1, args.per_page ?? 8))
       const q = args.query?.trim() ?? ''
@@ -231,15 +220,8 @@ export function buildAvnacTamboTools(
       query: z
         .string()
         .optional()
-        .describe(
-          'Keywords (e.g. "workspace laptop"). Leave empty for popular/trending.',
-        ),
-      page: z
-        .number()
-        .int()
-        .min(1)
-        .optional()
-        .describe('Result page, default 1.'),
+        .describe('Keywords (e.g. "workspace laptop"). Leave empty for popular/trending.'),
+      page: z.number().int().min(1).optional().describe('Result page, default 1.'),
       per_page: z
         .number()
         .int()
@@ -271,10 +253,7 @@ export function buildAvnacTamboTools(
       const ctl = controllerRef.current
       if (!ctl) return fail('Canvas not ready.')
       const hasCustomSize =
-        args.width != null &&
-        args.height != null &&
-        args.width > 0 &&
-        args.height > 0
+        args.width != null && args.height != null && args.width > 0 && args.height > 0
       const sized = hasCustomSize
         ? { width: args.width!, height: args.height! }
         : scaleUnsplashToPlaceBox(args.natural_width, args.natural_height)
@@ -347,7 +326,7 @@ export function buildAvnacTamboTools(
       rotation?: number
       opacity?: number
     }): Promise<OkResult> => {
-      return withCtl((ctl) => {
+      return withCtl(ctl => {
         const r = ctl.addRectangle(args)
         return r ? { ok: true, id: r.id } : fail('Canvas not ready.')
       }, fail('Canvas not ready.'))
@@ -381,7 +360,7 @@ export function buildAvnacTamboTools(
       rotation?: number
       opacity?: number
     }): Promise<OkResult> => {
-      return withCtl((ctl) => {
+      return withCtl(ctl => {
         const r = ctl.addEllipse(args)
         return r ? { ok: true, id: r.id } : fail('Canvas not ready.')
       }, fail('Canvas not ready.'))
@@ -417,7 +396,7 @@ export function buildAvnacTamboTools(
       rotation?: number
       opacity?: number
     }): Promise<OkResult> => {
-      return withCtl((ctl) => {
+      return withCtl(ctl => {
         const r = ctl.addText(args)
         return r ? { ok: true, id: r.id } : fail('Canvas not ready.')
       }, fail('Canvas not ready.'))
@@ -426,9 +405,7 @@ export function buildAvnacTamboTools(
       text: z.string(),
       fontSize: z.number().positive().optional(),
       fontFamily: z.string().optional(),
-      fontWeight: z
-        .union([z.number(), z.literal('normal'), z.literal('bold')])
-        .optional(),
+      fontWeight: z.union([z.number(), z.literal('normal'), z.literal('bold')]).optional(),
       fontStyle: z.enum(['normal', 'italic']).optional(),
       fill: colorSchema.optional(),
       textAlign: z.enum(['left', 'center', 'right', 'justify']).optional(),
@@ -456,7 +433,7 @@ export function buildAvnacTamboTools(
       strokeWidth?: number
       opacity?: number
     }): Promise<OkResult> => {
-      return withCtl((ctl) => {
+      return withCtl(ctl => {
         const r = ctl.addLine(args)
         return r ? { ok: true, id: r.id } : fail('Canvas not ready.')
       }, fail('Canvas not ready.'))
@@ -522,12 +499,10 @@ export function buildAvnacTamboTools(
       text?: string
       fontSize?: number
     }): Promise<OkResult> => {
-      return withCtl((ctl) => {
+      return withCtl(ctl => {
         const { id, ...patch } = args
         const ok = ctl.updateObject(id, patch)
-        return ok
-          ? { ok: true, id }
-          : { ok: false, id, note: 'Object not found.' }
+        return ok ? { ok: true, id } : { ok: false, id, note: 'Object not found.' }
       }, fail('Canvas not ready.'))
     },
     inputSchema: z.object({
@@ -553,7 +528,7 @@ export function buildAvnacTamboTools(
     name: 'delete_object',
     description: 'Remove an object from the canvas by its id.',
     tool: async (args: { id: string }): Promise<OkResult> => {
-      return withCtl((ctl) => {
+      return withCtl(ctl => {
         const ok = ctl.deleteObject(args.id)
         return ok
           ? { ok: true, id: args.id }
@@ -569,7 +544,7 @@ export function buildAvnacTamboTools(
     description: 'Set the artboard background to a solid color.',
     tool: async (args: { color: string }) => {
       return withCtl(
-        (ctl) => {
+        ctl => {
           ctl.setBackgroundColor(args.color)
           return { ok: true as const }
         },
@@ -585,10 +560,10 @@ export function buildAvnacTamboTools(
     description:
       'Remove every object from the artboard. Use sparingly and confirm the intent in your message before calling.',
     tool: async () => {
-      return withCtl(
-        (ctl) => ({ ok: true as const, count: ctl.clearCanvas() }),
-        { ok: false as const, count: 0 },
-      )
+      return withCtl(ctl => ({ ok: true as const, count: ctl.clearCanvas() }), {
+        ok: false as const,
+        count: 0,
+      })
     },
     inputSchema: z.object({}),
     outputSchema: countResultSchema,
@@ -597,12 +572,12 @@ export function buildAvnacTamboTools(
   const selectObjects: TamboTool = {
     name: 'select_objects',
     description:
-      'Select one or more objects by id so the user can see them highlighted after the agent\'s edits.',
+      "Select one or more objects by id so the user can see them highlighted after the agent's edits.",
     tool: async (args: { ids: string[] }) => {
-      return withCtl(
-        (ctl) => ({ ok: true as const, count: ctl.selectObjects(args.ids) }),
-        { ok: false as const, count: 0 },
-      )
+      return withCtl(ctl => ({ ok: true as const, count: ctl.selectObjects(args.ids) }), {
+        ok: false as const,
+        count: 0,
+      })
     },
     inputSchema: z.object({ ids: z.array(z.string()) }),
     outputSchema: countResultSchema,

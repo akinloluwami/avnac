@@ -9,7 +9,11 @@
     "dev": "vite dev --port 3300",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "format:check": "biome check --linter-enabled=false --assist-enabled=false ."
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^1.0.16",
@@ -18,6 +22,8 @@
     "@tambo-ai/react": "^1.2.6",
     "@tanstack/react-router": "^1.168.10",
     "@tanstack/router-plugin": "^1.167.22",
+    "fflate": "^0.4.8",
+    "jspdf": "^4.2.1",
     "motion": "^12.38.0",
     "posthog-js": "^1.369.3",
     "qrcode": "^1.5.4",
@@ -29,7 +35,11 @@
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
   },
+  "optionalDependencies": {
+    "@hugeicons-pro/core-solid-rounded": "^4.1.0"
+  },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/devtools-vite": "latest",
     "@testing-library/dom": "^10.4.1",

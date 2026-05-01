@@ -1,112 +1,110 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Home05Icon } from "@hugeicons/core-free-icons";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { usePostHog } from "posthog-js/react";
-import EditorExportMenu from "../components/editor-export-menu";
-import DocumentMigrationDialog from "../components/document-migration-dialog";
-import SceneEditor, {
-  type SceneEditorHandle,
-} from "../components/scene-editor";
-import { useEditorUnsupportedOnThisDevice } from "../hooks/use-editor-device-support";
+import { Home05Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { usePostHog } from 'posthog-js/react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import DocumentMigrationDialog from '../components/document-migration-dialog'
+import EditorExportMenu from '../components/editor-export-menu'
+import SceneEditor, { type SceneEditorHandle } from '../components/scene-editor'
+import { useEditorUnsupportedOnThisDevice } from '../hooks/use-editor-device-support'
 import {
   idbGetEditorRecord,
   idbMigrateLegacyDocument,
   idbSetDocumentName,
 } from "../lib/avnac-editor-idb";
 import EditorClearCanvas from "#/components/editor-clear-canvas";
+} from '../lib/avnac-editor-idb'
 
 type CreateSearch = {
-  id?: string;
-  w?: number;
-  h?: number;
-};
-
-function parseSearchDimension(v: unknown): number | undefined {
-  const n =
-    typeof v === "number" ? v : typeof v === "string" ? Number(v) : Number.NaN;
-  if (!Number.isFinite(n)) return undefined;
-  return Math.min(16000, Math.max(100, Math.round(n)));
+  id?: string
+  w?: number
+  h?: number
 }
 
-export const Route = createFileRoute("/create")({
+function parseSearchDimension(v: unknown): number | undefined {
+  const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : Number.NaN
+  if (!Number.isFinite(n)) return undefined
+  return Math.min(16000, Math.max(100, Math.round(n)))
+}
+
+export const Route = createFileRoute('/create')({
   validateSearch: (raw: Record<string, unknown>): CreateSearch => {
-    const id = raw.id;
+    const id = raw.id
     return {
-      id: typeof id === "string" && id.length > 0 ? id : undefined,
+      id: typeof id === 'string' && id.length > 0 ? id : undefined,
       w: parseSearchDimension(raw.w),
       h: parseSearchDimension(raw.h),
-    };
+    }
   },
   component: CreatePage,
-});
+})
 
 function CreatePage() {
-  const editorRef = useRef<SceneEditorHandle>(null);
-  const [editorReady, setEditorReady] = useState(false);
-  const [documentTitle, setDocumentTitle] = useState("Untitled");
-  const [documentStorageKind, setDocumentStorageKind] = useState<
-    "loading" | "current" | "legacy"
-  >("loading");
-  const [migrationBusy, setMigrationBusy] = useState(false);
-  const search = Route.useSearch();
-  const id = search.id;
-  const initialW = search.w;
-  const initialH = search.h;
-  const navigate = Route.useNavigate();
-  const posthog = usePostHog();
-  const editorUnsupported = useEditorUnsupportedOnThisDevice();
+  const editorRef = useRef<SceneEditorHandle>(null)
+  const [editorReady, setEditorReady] = useState(false)
+  const [documentTitle, setDocumentTitle] = useState('Untitled')
+  const [documentStorageKind, setDocumentStorageKind] = useState<'loading' | 'current' | 'legacy'>(
+    'loading',
+  )
+  const [migrationBusy, setMigrationBusy] = useState(false)
+  const search = Route.useSearch()
+  const id = search.id
+  const initialW = search.w
+  const initialH = search.h
+  const navigate = Route.useNavigate()
+  const posthog = usePostHog()
+  const editorUnsupported = useEditorUnsupportedOnThisDevice()
 
   useLayoutEffect(() => {
-    if (editorUnsupported) return;
-    if (id) return;
+    if (editorUnsupported) return
+    if (id) return
     void navigate({
-      to: "/create",
+      to: '/create',
       search: {
         id: crypto.randomUUID(),
         w: initialW,
         h: initialH,
       },
       replace: true,
-    });
-  }, [editorUnsupported, id, initialW, initialH, navigate]);
+    })
+  }, [editorUnsupported, id, initialW, initialH, navigate])
 
   useEffect(() => {
-    if (!id) return;
-    let cancelled = false;
-    setDocumentStorageKind("loading");
-    void idbGetEditorRecord(id).then((row) => {
-      if (cancelled) return;
-      setDocumentTitle(row?.name?.trim() || "Untitled");
-      setDocumentStorageKind(row?.storageKind === "legacy" ? "legacy" : "current");
-    });
+    if (!id) return
+    let cancelled = false
+    setDocumentStorageKind('loading')
+    void idbGetEditorRecord(id).then(row => {
+      if (cancelled) return
+      setDocumentTitle(row?.name?.trim() || 'Untitled')
+      setDocumentStorageKind(row?.storageKind === 'legacy' ? 'legacy' : 'current')
+    })
     return () => {
-      cancelled = true;
-    };
-  }, [id]);
+      cancelled = true
+    }
+  }, [id])
 
   const commitDocumentTitle = () => {
-    const t = documentTitle.trim() || "Untitled";
-    setDocumentTitle(t);
+    const t = documentTitle.trim() || 'Untitled'
+    setDocumentTitle(t)
     if (id) {
-      void idbSetDocumentName(id, t);
-      posthog.capture("document_renamed", { file_id: id, new_name: t });
+      void idbSetDocumentName(id, t)
+      posthog.capture('document_renamed', { file_id: id, new_name: t })
     }
-  };
+  }
 
-  const legacyBlocked = documentStorageKind === "legacy";
-  const loadingDocument = documentStorageKind === "loading";
+  const legacyBlocked = documentStorageKind === 'legacy'
+  const loadingDocument = documentStorageKind === 'loading'
 
   useEffect(() => {
-    if (!legacyBlocked || !id) return;
-    posthog.capture("legacy_conversion_prompt_opened", {
-      surface: "create_page",
-      trigger_source: "direct_open",
+    if (!legacyBlocked || !id) return
+    posthog.capture('legacy_conversion_prompt_opened', {
+      surface: 'create_page',
+      trigger_source: 'direct_open',
       file_count: 1,
       file_ids: [id],
       open_after_conversion: false,
-    });
-  }, [id, legacyBlocked, posthog]);
+    })
+  }, [id, legacyBlocked, posthog])
 
   if (editorUnsupported) {
     return (
@@ -122,8 +120,8 @@ function CreatePage() {
               The editor is not available on mobile.
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-[var(--text-muted)] sm:text-lg">
-              Open Avnac on a desktop or laptop to create and edit files. You can
-              still return to your files from here.
+              Open Avnac on a desktop or laptop to create and edit files. You can still return to
+              your files from here.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
@@ -142,11 +140,11 @@ function CreatePage() {
           </div>
         </div>
       </main>
-    );
+    )
   }
 
   if (!id) {
-    return null;
+    return null
   }
 
   return (
@@ -158,12 +156,7 @@ function CreatePage() {
           aria-label="All files"
           title="All files"
         >
-          <HugeiconsIcon
-            icon={Home05Icon}
-            size={18}
-            strokeWidth={1.65}
-            className="shrink-0"
-          />
+          <HugeiconsIcon icon={Home05Icon} size={18} strokeWidth={1.65} className="shrink-0" />
         </Link>
         <div className="min-w-0 flex-1">
           <label htmlFor="avnac-doc-title" className="sr-only">
@@ -173,10 +166,10 @@ function CreatePage() {
             id="avnac-doc-title"
             type="text"
             value={documentTitle}
-            onChange={(e) => setDocumentTitle(e.target.value)}
+            onChange={e => setDocumentTitle(e.target.value)}
             onBlur={commitDocumentTitle}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            onKeyDown={e => {
+              if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
             }}
             className="m-0 w-full min-w-0 truncate border-0 bg-transparent text-sm font-medium leading-snug text-[var(--text)] outline-none focus:ring-0"
             autoComplete="off"
@@ -187,7 +180,7 @@ function CreatePage() {
           <EditorClearCanvas onClearCanvas={() => editorRef.current?.clearCanvas()} />
           <EditorExportMenu
             disabled={!editorReady}
-            onExport={(opts) => editorRef.current?.exportImage(opts)}
+            onExport={opts => editorRef.current?.exportImage(opts)}
           />
         </div>
       </header>
@@ -195,7 +188,7 @@ function CreatePage() {
         {loadingDocument || legacyBlocked ? (
           <div className="flex min-h-0 flex-1 items-center justify-center rounded-[2rem] border border-[var(--line)] bg-white/60 backdrop-blur-md">
             <p className="text-sm font-medium text-[var(--text-muted)]">
-              {legacyBlocked ? "Legacy file detected" : "Loading file…"}
+              {legacyBlocked ? 'Legacy file detected' : 'Loading file…'}
             </p>
           </div>
         ) : (
@@ -217,54 +210,54 @@ function CreatePage() {
         cancelLabel="Back to files"
         busy={migrationBusy}
         onClose={() => {
-          if (migrationBusy) return;
-          posthog.capture("legacy_conversion_cancelled", {
-            surface: "create_page",
-            trigger_source: "direct_open",
+          if (migrationBusy) return
+          posthog.capture('legacy_conversion_cancelled', {
+            surface: 'create_page',
+            trigger_source: 'direct_open',
             file_count: 1,
             file_ids: [id],
             open_after_conversion: false,
-          });
-          void navigate({ to: "/files" });
+          })
+          void navigate({ to: '/files' })
         }}
         onConfirm={() => {
-          if (migrationBusy) return;
-          posthog.capture("legacy_conversion_started", {
-            surface: "create_page",
-            trigger_source: "direct_open",
+          if (migrationBusy) return
+          posthog.capture('legacy_conversion_started', {
+            surface: 'create_page',
+            trigger_source: 'direct_open',
             file_count: 1,
             file_ids: [id],
             open_after_conversion: false,
-          });
-          setMigrationBusy(true);
+          })
+          setMigrationBusy(true)
           void (async () => {
             try {
-              await idbMigrateLegacyDocument(id);
-              posthog.capture("legacy_conversion_completed", {
-                surface: "create_page",
-                trigger_source: "direct_open",
+              await idbMigrateLegacyDocument(id)
+              posthog.capture('legacy_conversion_completed', {
+                surface: 'create_page',
+                trigger_source: 'direct_open',
                 file_count: 1,
                 file_ids: [id],
                 open_after_conversion: false,
                 opened_file_id: id,
-              });
-              setDocumentStorageKind("current");
+              })
+              setDocumentStorageKind('current')
             } catch (err) {
-              posthog.capture("legacy_conversion_failed", {
-                surface: "create_page",
-                trigger_source: "direct_open",
+              posthog.capture('legacy_conversion_failed', {
+                surface: 'create_page',
+                trigger_source: 'direct_open',
                 file_count: 1,
                 file_ids: [id],
                 open_after_conversion: false,
-              });
-              posthog.captureException(err);
-              console.error("[avnac] legacy migration failed", err);
+              })
+              posthog.captureException(err)
+              console.error('[avnac] legacy migration failed', err)
             } finally {
-              setMigrationBusy(false);
+              setMigrationBusy(false)
             }
-          })();
+          })()
         }}
       />
     </div>
-  );
+  )
 }

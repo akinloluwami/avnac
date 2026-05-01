@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { type CSSProperties, useEffect, useRef, useState } from 'react'
 import EditorRangeSlider from './editor-range-slider'
 import { floatingToolbarPopoverClass } from './floating-toolbar-shell'
 
@@ -12,10 +12,9 @@ export type GradientStop = { color: string; offset: number }
 export function isTransparentCssColor(value: string): boolean {
   const s = value.trim().toLowerCase()
   if (s === 'transparent' || s === 'none') return true
-  const m =
-    /^rgba?\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)\s*(?:,\s*([0-9.]+)\s*)?\)$/.exec(
-      s,
-    )
+  const m = /^rgba?\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)\s*(?:,\s*([0-9.]+)\s*)?\)$/.exec(
+    s,
+  )
   if (m && m[4] !== undefined) {
     const a = parseFloat(m[4])
     return Number.isFinite(a) && a === 0
@@ -144,7 +143,7 @@ const PRESET_GRADIENTS: { stops: GradientStop[]; angle: number }[] = [
 ]
 
 function gradientCss(stops: GradientStop[], angle: number): string {
-  const s = stops.map((s) => `${s.color} ${Math.round(s.offset * 100)}%`).join(', ')
+  const s = stops.map(s => `${s.color} ${Math.round(s.offset * 100)}%`).join(', ')
   return `linear-gradient(${angle}deg, ${s})`
 }
 
@@ -170,9 +169,7 @@ export function bgValueToSwatch(v: BgValue): CSSProperties {
   if (v.type === 'solid' && isTransparentCssColor(v.color)) {
     return TRANSPARENT_SWATCH_STYLE
   }
-  return v.type === 'solid'
-    ? { backgroundColor: v.color }
-    : { backgroundImage: v.css }
+  return v.type === 'solid' ? { backgroundColor: v.color } : { backgroundImage: v.css }
 }
 
 type Tab = 'solid' | 'gradient'
@@ -182,26 +179,19 @@ type Props = {
   onChange: (v: BgValue) => void
 }
 
-export default function BackgroundPopover({
-  value,
-  onChange,
-}: Props) {
+export default function BackgroundPopover({ value, onChange }: Props) {
   const [tab, setTab] = useState<Tab>(value.type === 'gradient' ? 'gradient' : 'solid')
   const customColorRef = useRef<HTMLInputElement>(null)
   const gradColor1Ref = useRef<HTMLInputElement>(null)
   const gradColor2Ref = useRef<HTMLInputElement>(null)
 
-  const [customColor, setCustomColor] = useState(
-    value.type === 'solid' ? value.color : '#ffffff',
-  )
-  const [gradAngle, setGradAngle] = useState(
-    value.type === 'gradient' ? value.angle : 135,
-  )
+  const [customColor, setCustomColor] = useState(value.type === 'solid' ? value.color : '#ffffff')
+  const [gradAngle, setGradAngle] = useState(value.type === 'gradient' ? value.angle : 135)
   const [gradStop1, setGradStop1] = useState(
-    value.type === 'gradient' ? value.stops[0]?.color ?? '#667eea' : '#667eea',
+    value.type === 'gradient' ? (value.stops[0]?.color ?? '#667eea') : '#667eea',
   )
   const [gradStop2, setGradStop2] = useState(
-    value.type === 'gradient' ? value.stops[1]?.color ?? '#764ba2' : '#764ba2',
+    value.type === 'gradient' ? (value.stops[1]?.color ?? '#764ba2') : '#764ba2',
   )
   const [angleDraft, setAngleDraft] = useState(
     String(value.type === 'gradient' ? value.angle : 135),
@@ -232,11 +222,7 @@ export default function BackgroundPopover({
     onChange({ type: 'gradient', css, stops, angle: a })
   }
 
-  function applyCustomGradient(
-    s1: string,
-    s2: string,
-    a: number,
-  ) {
+  function applyCustomGradient(s1: string, s2: string, a: number) {
     const stops: GradientStop[] = [
       { color: s1, offset: 0 },
       { color: s2, offset: 1 },
@@ -246,9 +232,7 @@ export default function BackgroundPopover({
 
   const tabBtnCls = (active: boolean) =>
     `flex-1 rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors ${
-      active
-        ? 'bg-neutral-900 text-white shadow-sm'
-        : 'text-neutral-500 hover:text-neutral-700'
+      active ? 'bg-neutral-900 text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700'
     }`
 
   return (
@@ -279,13 +263,12 @@ export default function BackgroundPopover({
       {tab === 'solid' ? (
         <div>
           <div className="mb-2.5 grid grid-cols-6 gap-2 justify-items-center">
-            {PRESET_SOLIDS.map((hex) => (
+            {PRESET_SOLIDS.map(hex => (
               <button
                 key={hex}
                 type="button"
                 className={`h-12 w-12 shrink-0 rounded-full border transition-shadow ${
-                  value.type === 'solid' &&
-                  solidPaintColorsEquivalent(value.color, hex)
+                  value.type === 'solid' && solidPaintColorsEquivalent(value.color, hex)
                     ? 'border-neutral-900 ring-2 ring-neutral-900/20'
                     : 'border-black/10 hover:border-black/25'
                 }`}
@@ -309,9 +292,7 @@ export default function BackgroundPopover({
                 isTransparentCssColor(customColor)
                   ? TRANSPARENT_SWATCH_STYLE
                   : {
-                      backgroundColor: HEX6.test(customColor)
-                        ? customColor
-                        : '#ffffff',
+                      backgroundColor: HEX6.test(customColor) ? customColor : '#ffffff',
                     }
               }
               onClick={() => customColorRef.current?.click()}
@@ -321,14 +302,14 @@ export default function BackgroundPopover({
               ref={customColorRef}
               type="color"
               value={HEX6.test(customColor) ? customColor : '#ffffff'}
-              onChange={(e) => applySolid(e.target.value)}
+              onChange={e => applySolid(e.target.value)}
               className="sr-only"
               tabIndex={-1}
             />
             <input
               type="text"
               value={customColor}
-              onChange={(e) => {
+              onChange={e => {
                 const v = e.target.value
                 setCustomColor(v)
                 if (HEX6.test(v)) applySolid(v)
@@ -348,9 +329,7 @@ export default function BackgroundPopover({
                 value.type === 'gradient' &&
                 value.stops.length === g.stops.length &&
                 value.stops.every(
-                  (s, j) =>
-                    s.color === g.stops[j].color &&
-                    s.offset === g.stops[j].offset,
+                  (s, j) => s.color === g.stops[j].color && s.offset === g.stops[j].offset,
                 ) &&
                 value.angle === g.angle
               return (
@@ -393,7 +372,7 @@ export default function BackgroundPopover({
                   ref={gradColor1Ref}
                   type="color"
                   value={HEX6.test(gradStop1) ? gradStop1 : '#667eea'}
-                  onChange={(e) => {
+                  onChange={e => {
                     setGradStop1(e.target.value)
                     applyCustomGradient(e.target.value, gradStop2, gradAngle)
                   }}
@@ -405,7 +384,7 @@ export default function BackgroundPopover({
                   id="bg-grad-start"
                   type="text"
                   value={gradStop1}
-                  onChange={(e) => {
+                  onChange={e => {
                     const v = e.target.value
                     setGradStop1(v)
                     const hex = parseHexInput(v)
@@ -418,9 +397,7 @@ export default function BackgroundPopover({
                       applyCustomGradient(hex, gradStop2, gradAngle)
                     } else {
                       const fallback =
-                        value.type === 'gradient'
-                          ? (value.stops[0]?.color ?? '#667eea')
-                          : '#667eea'
+                        value.type === 'gradient' ? (value.stops[0]?.color ?? '#667eea') : '#667eea'
                       setGradStop1(fallback)
                       applyCustomGradient(fallback, gradStop2, gradAngle)
                     }
@@ -449,7 +426,7 @@ export default function BackgroundPopover({
                   ref={gradColor2Ref}
                   type="color"
                   value={HEX6.test(gradStop2) ? gradStop2 : '#764ba2'}
-                  onChange={(e) => {
+                  onChange={e => {
                     setGradStop2(e.target.value)
                     applyCustomGradient(gradStop1, e.target.value, gradAngle)
                   }}
@@ -461,7 +438,7 @@ export default function BackgroundPopover({
                   id="bg-grad-end"
                   type="text"
                   value={gradStop2}
-                  onChange={(e) => {
+                  onChange={e => {
                     const v = e.target.value
                     setGradStop2(v)
                     const hex = parseHexInput(v)
@@ -474,9 +451,7 @@ export default function BackgroundPopover({
                       applyCustomGradient(gradStop1, hex, gradAngle)
                     } else {
                       const fallback =
-                        value.type === 'gradient'
-                          ? (value.stops[1]?.color ?? '#764ba2')
-                          : '#764ba2'
+                        value.type === 'gradient' ? (value.stops[1]?.color ?? '#764ba2') : '#764ba2'
                       setGradStop2(fallback)
                       applyCustomGradient(gradStop1, fallback, gradAngle)
                     }
@@ -488,17 +463,14 @@ export default function BackgroundPopover({
                 />
               </div>
               <div className="grid grid-cols-[3.25rem_minmax(0,1fr)_4.5rem] items-center gap-2">
-                <label
-                  htmlFor="bg-grad-angle"
-                  className="text-[12px] font-medium text-neutral-600"
-                >
+                <label htmlFor="bg-grad-angle" className="text-[12px] font-medium text-neutral-600">
                   Angle
                 </label>
                 <EditorRangeSlider
                   min={0}
                   max={360}
                   value={gradAngle}
-                  onChange={(n) => {
+                  onChange={n => {
                     const a = clampAngle(n)
                     setGradAngle(a)
                     setAngleDraft(String(a))
@@ -513,7 +485,7 @@ export default function BackgroundPopover({
                     type="text"
                     inputMode="numeric"
                     value={angleDraft}
-                    onChange={(e) => {
+                    onChange={e => {
                       const t = e.target.value
                       setAngleDraft(t)
                       if (t === '' || t === '-') return
@@ -526,9 +498,7 @@ export default function BackgroundPopover({
                     }}
                     onBlur={() => {
                       const n = Number(angleDraft)
-                      const a = Number.isFinite(n)
-                        ? clampAngle(n)
-                        : gradAngle
+                      const a = Number.isFinite(n) ? clampAngle(n) : gradAngle
                       setGradAngle(a)
                       setAngleDraft(String(a))
                       applyCustomGradient(gradStop1, gradStop2, a)

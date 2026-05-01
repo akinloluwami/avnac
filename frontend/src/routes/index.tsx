@@ -1,316 +1,298 @@
-import { AiMagicIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { usePostHog } from "posthog-js/react";
-import NewCanvasDialog from "../components/new-canvas-dialog";
-import { idbListDocuments } from "../lib/avnac-editor-idb";
+import { AiMagicIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { usePostHog } from 'posthog-js/react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import NewCanvasDialog from '../components/new-canvas-dialog'
+import { idbListDocuments } from '../lib/avnac-editor-idb'
 
-export const Route = createFileRoute("/")({ component: Landing });
+export const Route = createFileRoute('/')({ component: Landing })
 
 type Sticker = {
-  id: string;
-  src: string;
-  label: string;
-  rotation: number;
-  size: string;
+  id: string
+  src: string
+  label: string
+  rotation: number
+  size: string
   desktop: {
-    x: number;
-    y: number;
-  };
+    x: number
+    y: number
+  }
   mobile: {
-    x: number;
-    y: number;
-  };
-};
+    x: number
+    y: number
+  }
+}
 
 const initialStickers: Sticker[] = [
   {
-    id: "sunflower",
-    src: "/stickers/sunflower-badge.webp",
-    label: "Sunflower sticker",
+    id: 'sunflower',
+    src: '/stickers/sunflower-badge.webp',
+    label: 'Sunflower sticker',
     rotation: 6,
-    size: "clamp(5.6rem, 10.8vw, 8.8rem)",
+    size: 'clamp(5.6rem, 10.8vw, 8.8rem)',
     desktop: { x: 74, y: 12 },
     mobile: { x: 37, y: 15 },
   },
   {
-    id: "star",
-    src: "/stickers/shooting-star-badge.webp",
-    label: "Shooting star sticker",
+    id: 'star',
+    src: '/stickers/shooting-star-badge.webp',
+    label: 'Shooting star sticker',
     rotation: -7,
-    size: "clamp(4.4rem, 8.8vw, 7.4rem)",
+    size: 'clamp(4.4rem, 8.8vw, 7.4rem)',
     desktop: { x: 9, y: 12 },
     mobile: { x: 7, y: 16 },
   },
   {
-    id: "pineapple",
-    src: "/stickers/pineapple.webp",
-    label: "Pineapple sticker",
+    id: 'pineapple',
+    src: '/stickers/pineapple.webp',
+    label: 'Pineapple sticker',
     rotation: 7,
-    size: "clamp(5.4rem, 11.2vw, 9.1rem)",
+    size: 'clamp(5.4rem, 11.2vw, 9.1rem)',
     desktop: { x: 77, y: 70 },
     mobile: { x: 68, y: 74 },
   },
   {
-    id: "donut",
-    src: "/stickers/donut.webp",
-    label: "Donut sticker",
+    id: 'donut',
+    src: '/stickers/donut.webp',
+    label: 'Donut sticker',
     rotation: -8,
-    size: "clamp(4.9rem, 9.6vw, 8rem)",
+    size: 'clamp(4.9rem, 9.6vw, 8rem)',
     desktop: { x: 16, y: 73 },
     mobile: { x: 8, y: 76 },
   },
   {
-    id: "lollipop",
-    src: "/stickers/lollipop.webp",
-    label: "Lollipop sticker",
+    id: 'lollipop',
+    src: '/stickers/lollipop.webp',
+    label: 'Lollipop sticker',
     rotation: 12,
-    size: "clamp(4.1rem, 8vw, 6.5rem)",
+    size: 'clamp(4.1rem, 8vw, 6.5rem)',
     desktop: { x: 80, y: 45 },
     mobile: { x: 72, y: 15 },
   },
   {
-    id: "leaf",
-    src: "/stickers/leaf.webp",
-    label: "Leaf sticker",
+    id: 'leaf',
+    src: '/stickers/leaf.webp',
+    label: 'Leaf sticker',
     rotation: -11,
-    size: "clamp(4rem, 7.8vw, 6.2rem)",
+    size: 'clamp(4rem, 7.8vw, 6.2rem)',
     desktop: { x: 11, y: 47 },
     mobile: { x: 40, y: 77 },
   },
-];
+]
 
 const capabilityCards = [
   {
-    eyebrow: "Start fast",
-    title: "Open a canvas and begin immediately.",
-    body:
-      "Avnac opens straight into the work. Presets and custom sizes make it easy to set up posters, graphics, and layout studies.",
+    eyebrow: 'Start fast',
+    title: 'Open a canvas and begin immediately.',
+    body: 'Avnac opens straight into the work. Presets and custom sizes make it easy to set up posters, graphics, and layout studies.',
   },
   {
-    eyebrow: "Compose visually",
-    title: "Work with the pieces you actually use.",
-    body:
-      "Text, shapes, images, vector boards, and layer controls are already part of the editor.",
+    eyebrow: 'Compose visually',
+    title: 'Work with the pieces you actually use.',
+    body: 'Text, shapes, images, vector boards, and layer controls are already part of the editor.',
   },
   {
-    eyebrow: "Keep going",
-    title: "Stay in the browser and export when ready.",
-    body:
-      "Files autosave in this browser, reopen from the files view, and export to PNG with scale and transparency options.",
+    eyebrow: 'Keep going',
+    title: 'Stay in the browser and export when ready.',
+    body: 'Files autosave in this browser, reopen from the files view, and export to PNG with scale and transparency options.',
   },
-] as const;
+] as const
 
 const workflowSteps = [
   {
-    step: "01",
-    title: "Create the canvas",
-    body:
-      "Pick a preset or set your own dimensions.",
+    step: '01',
+    title: 'Create the canvas',
+    body: 'Pick a preset or set your own dimensions.',
   },
   {
-    step: "02",
-    title: "Build with the editor tools",
-    body:
-      "Add text, shapes, images, QR codes, and vector boards, then organize with layers and styling controls.",
+    step: '02',
+    title: 'Build with the editor tools',
+    body: 'Add text, shapes, images, QR codes, and vector boards, then organize with layers and styling controls.',
   },
   {
-    step: "03",
-    title: "Keep working and export",
-    body:
-      "Your work autosaves in this browser, and you can export a PNG when it is ready to leave the canvas.",
+    step: '03',
+    title: 'Keep working and export',
+    body: 'Your work autosaves in this browser, and you can export a PNG when it is ready to leave the canvas.',
   },
-] as const;
+] as const
 
 const aiHighlights = [
   {
-    eyebrow: "Prompt-based",
-    title: "Describe a layout or a single edit.",
-    body:
-      "Magic can respond to full design prompts or smaller changes inside the current composition.",
+    eyebrow: 'Prompt-based',
+    title: 'Describe a layout or a single edit.',
+    body: 'Magic can respond to full design prompts or smaller changes inside the current composition.',
   },
   {
-    eyebrow: "Canvas-aware",
-    title: "It can read the artboard before acting.",
-    body:
-      "The AI tools can inspect canvas size, background, and existing objects before making changes.",
+    eyebrow: 'Canvas-aware',
+    title: 'It can read the artboard before acting.',
+    body: 'The AI tools can inspect canvas size, background, and existing objects before making changes.',
   },
   {
-    eyebrow: "Image-aware",
-    title: "It can place images from prompts too.",
-    body:
-      "Magic can search Unsplash, choose a match, and place imagery directly on the artboard.",
+    eyebrow: 'Image-aware',
+    title: 'It can place images from prompts too.',
+    body: 'Magic can search Unsplash, choose a match, and place imagery directly on the artboard.',
   },
-] as const;
+] as const
 
 type DragState = {
-  mode: "drag" | "rotate";
-  id: string;
-  pointerId: number;
-  startClientX: number;
-  startClientY: number;
-  startLeft: number;
-  startTop: number;
-  startRotation: number;
-  centerX: number;
-  centerY: number;
-  startPointerAngle: number;
-  width: number;
-  height: number;
-};
+  mode: 'drag' | 'rotate'
+  id: string
+  pointerId: number
+  startClientX: number
+  startClientY: number
+  startLeft: number
+  startTop: number
+  startRotation: number
+  centerX: number
+  centerY: number
+  startPointerAngle: number
+  width: number
+  height: number
+}
 
 function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
+  return Math.min(Math.max(value, min), max)
 }
 
 function radiansToDegrees(value: number) {
-  return (value * 180) / Math.PI;
+  return (value * 180) / Math.PI
 }
 
 function useCompactHeroStickerLayout() {
   const [compact, setCompact] = useState(() =>
-    typeof window !== "undefined"
-      ? window.matchMedia("(max-width: 640px)").matches
-      : false,
-  );
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false,
+  )
 
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 640px)");
-    const update = () => setCompact(media.matches);
-    update();
-    media.addEventListener?.("change", update);
-    return () => media.removeEventListener?.("change", update);
-  }, []);
+    const media = window.matchMedia('(max-width: 640px)')
+    const update = () => setCompact(media.matches)
+    update()
+    media.addEventListener?.('change', update)
+    return () => media.removeEventListener?.('change', update)
+  }, [])
 
-  return compact;
+  return compact
 }
 
 function Landing() {
-  const navigate = Route.useNavigate();
-  const [newCanvasOpen, setNewCanvasOpen] = useState(false);
-  const [savedFileCount, setSavedFileCount] = useState<number | null>(null);
-  const [stickers, setStickers] = useState(initialStickers);
-  const [activeStickerId, setActiveStickerId] = useState<string | null>(null);
-  const posthog = usePostHog();
-  const stickerLayerRef = useRef<HTMLDivElement | null>(null);
-  const dragStateRef = useRef<DragState | null>(null);
-  const compactHeroStickerLayout = useCompactHeroStickerLayout();
+  const navigate = Route.useNavigate()
+  const [newCanvasOpen, setNewCanvasOpen] = useState(false)
+  const [savedFileCount, setSavedFileCount] = useState<number | null>(null)
+  const [stickers, setStickers] = useState(initialStickers)
+  const [activeStickerId, setActiveStickerId] = useState<string | null>(null)
+  const posthog = usePostHog()
+  const stickerLayerRef = useRef<HTMLDivElement | null>(null)
+  const dragStateRef = useRef<DragState | null>(null)
+  const compactHeroStickerLayout = useCompactHeroStickerLayout()
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
     void idbListDocuments()
-      .then((docs) => {
-        if (!cancelled) setSavedFileCount(docs.length);
+      .then(docs => {
+        if (!cancelled) setSavedFileCount(docs.length)
       })
       .catch(() => {
-        if (!cancelled) setSavedFileCount(null);
-      });
+        if (!cancelled) setSavedFileCount(null)
+      })
     return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const updateStickerPosition = useCallback((
-    stickerId: string,
-    clientX: number,
-    clientY: number,
-  ) => {
-    const layer = stickerLayerRef.current;
-    const dragState = dragStateRef.current;
-    if (!layer || !dragState || dragState.id !== stickerId) {
-      return;
+      cancelled = true
     }
+  }, [])
 
-    if (dragState.mode === "rotate") {
-      const pointerAngle = Math.atan2(
-        clientY - dragState.centerY,
-        clientX - dragState.centerX,
-      );
-      const rotation =
-        dragState.startRotation +
-        radiansToDegrees(pointerAngle - dragState.startPointerAngle);
+  const updateStickerPosition = useCallback(
+    (stickerId: string, clientX: number, clientY: number) => {
+      const layer = stickerLayerRef.current
+      const dragState = dragStateRef.current
+      if (!layer || !dragState || dragState.id !== stickerId) {
+        return
+      }
 
-      setStickers((current) =>
-        current.map((sticker) =>
-          sticker.id === stickerId ? { ...sticker, rotation } : sticker,
+      if (dragState.mode === 'rotate') {
+        const pointerAngle = Math.atan2(clientY - dragState.centerY, clientX - dragState.centerX)
+        const rotation =
+          dragState.startRotation + radiansToDegrees(pointerAngle - dragState.startPointerAngle)
+
+        setStickers(current =>
+          current.map(sticker => (sticker.id === stickerId ? { ...sticker, rotation } : sticker)),
+        )
+        return
+      }
+
+      const layerRect = layer.getBoundingClientRect()
+      const positionKey = compactHeroStickerLayout ? 'mobile' : 'desktop'
+      const nextLeft = clamp(
+        dragState.startLeft + (clientX - dragState.startClientX),
+        0,
+        Math.max(layerRect.width - dragState.width, 0),
+      )
+      const nextTop = clamp(
+        dragState.startTop + (clientY - dragState.startClientY),
+        0,
+        Math.max(layerRect.height - dragState.height, 0),
+      )
+
+      setStickers(current =>
+        current.map(sticker =>
+          sticker.id === stickerId
+            ? {
+                ...sticker,
+                [positionKey]: {
+                  x: (nextLeft / Math.max(layerRect.width, 1)) * 100,
+                  y: (nextTop / Math.max(layerRect.height, 1)) * 100,
+                },
+              }
+            : sticker,
         ),
-      );
-      return;
-    }
-
-    const layerRect = layer.getBoundingClientRect();
-    const positionKey = compactHeroStickerLayout ? "mobile" : "desktop";
-    const nextLeft = clamp(
-      dragState.startLeft + (clientX - dragState.startClientX),
-      0,
-      Math.max(layerRect.width - dragState.width, 0),
-    );
-    const nextTop = clamp(
-      dragState.startTop + (clientY - dragState.startClientY),
-      0,
-      Math.max(layerRect.height - dragState.height, 0),
-    );
-
-    setStickers((current) =>
-      current.map((sticker) =>
-        sticker.id === stickerId
-          ? {
-              ...sticker,
-              [positionKey]: {
-                x: (nextLeft / Math.max(layerRect.width, 1)) * 100,
-                y: (nextTop / Math.max(layerRect.height, 1)) * 100,
-              },
-            }
-          : sticker,
-      ),
-    );
-  }, [compactHeroStickerLayout]);
+      )
+    },
+    [compactHeroStickerLayout],
+  )
 
   const endDrag = (pointerId: number, target: EventTarget | null) => {
     if (dragStateRef.current?.pointerId !== pointerId) {
-      return;
+      return
     }
 
     if (target instanceof HTMLElement && target.hasPointerCapture(pointerId)) {
-      target.releasePointerCapture(pointerId);
+      target.releasePointerCapture(pointerId)
     }
 
-    dragStateRef.current = null;
-    setActiveStickerId(null);
-  };
+    dragStateRef.current = null
+    setActiveStickerId(null)
+  }
 
   const openEditor = useCallback(() => {
     void (async () => {
       try {
-        const docs = await idbListDocuments();
-        setSavedFileCount(docs.length);
-        const destination = docs.length > 0 ? "/files" : "/create";
-        posthog.capture("editor_opened", {
-          source: "landing_hero",
+        const docs = await idbListDocuments()
+        setSavedFileCount(docs.length)
+        const destination = docs.length > 0 ? '/files' : '/create'
+        posthog.capture('editor_opened', {
+          source: 'landing_hero',
           destination,
           existing_file_count: docs.length,
-        });
+        })
         if (docs.length > 0) {
-          await navigate({ to: "/files" });
-          return;
+          await navigate({ to: '/files' })
+          return
         }
       } catch (err) {
-        posthog.captureException(err);
+        posthog.captureException(err)
       }
-      setNewCanvasOpen(true);
-    })();
-  }, [navigate, posthog]);
+      setNewCanvasOpen(true)
+    })()
+  }, [navigate, posthog])
 
-  const hasSavedFiles = (savedFileCount ?? 0) > 0;
-  const primaryCtaLabel = hasSavedFiles ? "Open files" : "Open editor";
+  const hasSavedFiles = (savedFileCount ?? 0) > 0
+  const primaryCtaLabel = hasSavedFiles ? 'Open files' : 'Open editor'
   const heroBody = hasSavedFiles
-    ? "You already have saved work in this browser. Open your files and keep editing."
-    : "Avnac is an open canvas for layouts, posters, and graphics.";
-  const ctaKicker = hasSavedFiles ? "Back to work" : "Ready to make something";
+    ? 'You already have saved work in this browser. Open your files and keep editing.'
+    : 'Avnac is an open canvas for layouts, posters, and graphics.'
+  const ctaKicker = hasSavedFiles ? 'Back to work' : 'Ready to make something'
   const ctaTitle = hasSavedFiles
-    ? "Open your files and keep going."
-    : "Open a canvas and make something.";
+    ? 'Open your files and keep going.'
+    : 'Open a canvas and make something.'
 
   return (
     <main className="landing-page">
@@ -319,16 +301,14 @@ function Landing() {
         <div className="hero-bg-orb hero-bg-orb-b" aria-hidden="true" />
         <div className="hero-grid" aria-hidden="true" />
         <div ref={stickerLayerRef} className="hero-sticker-layer" aria-hidden="true">
-          {stickers.map((sticker) => (
+          {stickers.map(sticker =>
             (() => {
-              const pos = compactHeroStickerLayout
-                ? sticker.mobile
-                : sticker.desktop;
+              const pos = compactHeroStickerLayout ? sticker.mobile : sticker.desktop
 
               return (
                 <div
                   key={sticker.id}
-                  className={`hero-sticker-frame ${activeStickerId === sticker.id ? "is-active" : ""}`}
+                  className={`hero-sticker-frame ${activeStickerId === sticker.id ? 'is-active' : ''}`}
                   style={{
                     left: `${pos.x}%`,
                     top: `${pos.y}%`,
@@ -336,20 +316,18 @@ function Landing() {
                     transform: `rotate(${sticker.rotation}deg)`,
                     zIndex: activeStickerId === sticker.id ? 3 : 1,
                   }}
-                  onPointerDown={(e) => {
-                    const layer = stickerLayerRef.current;
+                  onPointerDown={e => {
+                    const layer = stickerLayerRef.current
                     if (!layer) {
-                      return;
+                      return
                     }
 
-                    const layerRect = layer.getBoundingClientRect();
-                    const stickerLeft =
-                      (pos.x / 100) * Math.max(layerRect.width, 1);
-                    const stickerTop =
-                      (pos.y / 100) * Math.max(layerRect.height, 1);
+                    const layerRect = layer.getBoundingClientRect()
+                    const stickerLeft = (pos.x / 100) * Math.max(layerRect.width, 1)
+                    const stickerTop = (pos.y / 100) * Math.max(layerRect.height, 1)
 
                     dragStateRef.current = {
-                      mode: "drag",
+                      mode: 'drag',
                       id: sticker.id,
                       pointerId: e.pointerId,
                       startClientX: e.clientX,
@@ -366,37 +344,37 @@ function Landing() {
                       startPointerAngle: 0,
                       width: e.currentTarget.offsetWidth,
                       height: e.currentTarget.offsetHeight,
-                    };
-                    setActiveStickerId(sticker.id);
-                    e.currentTarget.setPointerCapture(e.pointerId);
+                    }
+                    setActiveStickerId(sticker.id)
+                    e.currentTarget.setPointerCapture(e.pointerId)
                   }}
-                  onPointerMove={(e) => {
-                    updateStickerPosition(sticker.id, e.clientX, e.clientY);
+                  onPointerMove={e => {
+                    updateStickerPosition(sticker.id, e.clientX, e.clientY)
                   }}
-                  onPointerUp={(e) => {
-                    endDrag(e.pointerId, e.target);
+                  onPointerUp={e => {
+                    endDrag(e.pointerId, e.target)
                   }}
-                  onPointerCancel={(e) => {
-                    endDrag(e.pointerId, e.target);
+                  onPointerCancel={e => {
+                    endDrag(e.pointerId, e.target)
                   }}
                 >
                   <span className="hero-sticker-selection" />
                   <span className="hero-sticker-handle hero-sticker-handle-nw" />
                   <span
                     className="hero-sticker-rotation-arm"
-                    onPointerDown={(e) => {
-                      e.stopPropagation();
-                      const frame = e.currentTarget.parentElement;
+                    onPointerDown={e => {
+                      e.stopPropagation()
+                      const frame = e.currentTarget.parentElement
                       if (!frame) {
-                        return;
+                        return
                       }
 
-                      const frameRect = frame.getBoundingClientRect();
-                      const centerX = frameRect.left + frameRect.width / 2;
-                      const centerY = frameRect.top + frameRect.height / 2;
+                      const frameRect = frame.getBoundingClientRect()
+                      const centerX = frameRect.left + frameRect.width / 2
+                      const centerY = frameRect.top + frameRect.height / 2
 
                       dragStateRef.current = {
-                        mode: "rotate",
+                        mode: 'rotate',
                         id: sticker.id,
                         pointerId: e.pointerId,
                         startClientX: e.clientX,
@@ -406,15 +384,12 @@ function Landing() {
                         startRotation: sticker.rotation,
                         centerX,
                         centerY,
-                        startPointerAngle: Math.atan2(
-                          e.clientY - centerY,
-                          e.clientX - centerX,
-                        ),
+                        startPointerAngle: Math.atan2(e.clientY - centerY, e.clientX - centerX),
                         width: frameRect.width,
                         height: frameRect.height,
-                      };
-                      setActiveStickerId(sticker.id);
-                      frame.setPointerCapture(e.pointerId);
+                      }
+                      setActiveStickerId(sticker.id)
+                      frame.setPointerCapture(e.pointerId)
                     }}
                   >
                     <span className="hero-sticker-rotation-handle" />
@@ -434,9 +409,9 @@ function Landing() {
                     draggable={false}
                   />
                 </div>
-              );
-            })()
-          ))}
+              )
+            })(),
+          )}
         </div>
         <div className="relative z-[1] mx-auto w-full max-w-3xl">
           <div className="rise-in text-left">
@@ -456,6 +431,12 @@ function Landing() {
               >
                 {primaryCtaLabel}
               </button>
+              <Link
+                to="/studio"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-black/14 bg-white/85 px-8 py-3.5 text-base font-medium text-(--text) no-underline backdrop-blur-sm hover:border-black/22 hover:bg-white sm:min-h-14 sm:px-10 sm:py-4 sm:text-[1.0625rem]"
+              >
+                Avnac Studio
+              </Link>
               <a
                 href="https://github.com/akinloluwami/avnac"
                 target="_blank"
@@ -464,6 +445,15 @@ function Landing() {
               >
                 GitHub
               </a>
+            </div>
+            <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-[var(--text-muted)]">
+              <span>Want to back the project?</span>
+              <Link
+                to="/sponsor"
+                className="inline-flex items-center rounded-full border border-black/10 bg-white/70 px-4 py-2 font-medium text-[var(--text)] no-underline backdrop-blur-sm hover:border-black/18 hover:bg-white"
+              >
+                Sponsor Avnac
+              </Link>
             </div>
           </div>
         </div>
@@ -510,7 +500,7 @@ function Landing() {
             </article>
 
             <div className="landing-feature-list">
-              {capabilityCards.map((feature) => (
+              {capabilityCards.map(feature => (
                 <article key={feature.title} className="landing-copy-card">
                   <div className="landing-kicker">{feature.eyebrow}</div>
                   <h3>{feature.title}</h3>
@@ -527,21 +517,19 @@ function Landing() {
           <div className="landing-process-shell">
             <div className="landing-process-header">
               <div>
-                <div className="landing-kicker landing-kicker-inverse">
-                  Workflow
-                </div>
+                <div className="landing-kicker landing-kicker-inverse">Workflow</div>
                 <h2 className="display-title landing-process-title">
                   From blank canvas to finished graphic.
                 </h2>
               </div>
               <p>
-                The flow is simple: create a file, build the composition, keep
-                iterating in the browser, and export when it is ready.
+                The flow is simple: create a file, build the composition, keep iterating in the
+                browser, and export when it is ready.
               </p>
             </div>
 
             <div className="landing-process-grid">
-              {workflowSteps.map((step) => (
+              {workflowSteps.map(step => (
                 <article key={step.step} className="landing-process-card">
                   <span>{step.step}</span>
                   <h3>{step.title}</h3>
@@ -570,9 +558,8 @@ function Landing() {
                 Magic can turn prompts into edits on the canvas.
               </h2>
               <p className="landing-section-copy">
-                The editor includes a Magic panel for prompt-based changes. It
-                can work from broad layout instructions or smaller refinement
-                requests inside the current design.
+                The editor includes a Magic panel for prompt-based changes. It can work from broad
+                layout instructions or smaller refinement requests inside the current design.
               </p>
             </div>
 
@@ -580,8 +567,8 @@ function Landing() {
               <article className="landing-ai-hero-card">
                 <div className="landing-ai-hero-label">Magic beta</div>
                 <p>
-                  Ask for a poster, a headline treatment, a new element, or a
-                  change to what is already on the board.
+                  Ask for a poster, a headline treatment, a new element, or a change to what is
+                  already on the board.
                 </p>
                 <div className="landing-ai-prompt-list">
                   <span>“Design a bold typographic poster for a jazz night.”</span>
@@ -591,7 +578,7 @@ function Landing() {
               </article>
 
               <div className="landing-ai-card-list">
-                {aiHighlights.map((item) => (
+                {aiHighlights.map(item => (
                   <article key={item.title} className="landing-ai-card">
                     <div className="landing-kicker">{item.eyebrow}</div>
                     <h3>{item.title}</h3>
@@ -609,9 +596,7 @@ function Landing() {
           <div className="landing-cta-band landing-cta-band-only">
             <div>
               <div className="landing-kicker">{ctaKicker}</div>
-              <h2 className="display-title landing-cta-title">
-                {ctaTitle}
-              </h2>
+              <h2 className="display-title landing-cta-title">{ctaTitle}</h2>
             </div>
             <div className="landing-cta-actions">
               <button
@@ -634,10 +619,7 @@ function Landing() {
         </div>
       </section>
 
-      <NewCanvasDialog
-        open={newCanvasOpen}
-        onClose={() => setNewCanvasOpen(false)}
-      />
+      <NewCanvasDialog open={newCanvasOpen} onClose={() => setNewCanvasOpen(false)} />
     </main>
-  );
+  )
 }

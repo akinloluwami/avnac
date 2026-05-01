@@ -48,14 +48,11 @@ export default function DeleteConfirmDialog({
     <div
       className="fixed inset-0 z-[260] flex items-center justify-center p-4 sm:p-6"
       role="presentation"
-      onMouseDown={(e) => {
+      onMouseDown={e => {
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div
-        className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
-        aria-hidden
-      />
+      <div className="absolute inset-0 bg-black/35 backdrop-blur-[2px]" aria-hidden />
       <div
         ref={panelRef}
         role="alertdialog"
@@ -63,7 +60,7 @@ export default function DeleteConfirmDialog({
         aria-labelledby={titleId}
         aria-describedby={descId}
         className="relative z-[1] w-full max-w-md rounded-2xl border border-[var(--line)] bg-[var(--surface)]/95 p-6 backdrop-blur-md sm:p-8"
-        onMouseDown={(e) => e.stopPropagation()}
+        onMouseDown={e => e.stopPropagation()}
       >
         <h2
           id={titleId}
@@ -71,10 +68,7 @@ export default function DeleteConfirmDialog({
         >
           {title}
         </h2>
-        <p
-          id={descId}
-          className="mt-3 text-[15px] leading-relaxed text-[var(--text-muted)]"
-        >
+        <p id={descId} className="mt-3 text-[15px] leading-relaxed text-[var(--text-muted)]">
           {message}
         </p>
         <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2">

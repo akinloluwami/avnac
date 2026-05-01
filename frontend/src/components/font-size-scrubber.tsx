@@ -23,10 +23,7 @@ export default function FontSizeScrubber({
   } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const clamp = useCallback(
-    (n: number) => Math.max(min, Math.min(max, Math.round(n))),
-    [min, max],
-  )
+  const clamp = useCallback((n: number) => Math.max(min, Math.min(max, Math.round(n))), [min, max])
 
   useEffect(() => {
     if (!editing) return
@@ -87,9 +84,9 @@ export default function FontSizeScrubber({
         type="text"
         inputMode="numeric"
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={e => setDraft(e.target.value)}
         onBlur={commitDraft}
-        onKeyDown={(e) => {
+        onKeyDown={e => {
           if (e.key === 'Enter') {
             e.preventDefault()
             commitDraft()
@@ -118,7 +115,7 @@ export default function FontSizeScrubber({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
-      onDoubleClick={(e) => {
+      onDoubleClick={e => {
         e.preventDefault()
         setDraft(String(display))
         setEditing(true)

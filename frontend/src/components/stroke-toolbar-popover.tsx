@@ -1,14 +1,14 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import { BorderFullIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useViewportAwarePopoverPlacement } from '../hooks/use-viewport-aware-popover'
 import type { BgValue } from './background-popover'
 import EditorRangeSlider from './editor-range-slider'
-import PaintPopoverControl from './paint-popover-control'
-import { useViewportAwarePopoverPlacement } from '../hooks/use-viewport-aware-popover'
 import {
   floatingToolbarIconButton,
   floatingToolbarPopoverMenuClass,
 } from './floating-toolbar-shell'
+import PaintPopoverControl from './paint-popover-control'
 
 const PANEL_ESTIMATE_H = 340
 const STROKE_WIDTH_MAX = 40
@@ -34,10 +34,7 @@ export default function StrokeToolbarPopover({
   const rootRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const pickPanel = useCallback(() => panelRef.current, [])
-  const w = Math.max(
-    strokeWidthMin,
-    Math.min(strokeWidthMax, Math.round(strokeWidthPx)),
-  )
+  const w = Math.max(strokeWidthMin, Math.min(strokeWidthMax, Math.round(strokeWidthPx)))
 
   const { openUpward, shiftX } = useViewportAwarePopoverPlacement(
     open,
@@ -61,15 +58,12 @@ export default function StrokeToolbarPopover({
     <div ref={rootRef} className="relative shrink-0">
       <button
         type="button"
-        className={[
-          floatingToolbarIconButton(open, { wide: true }),
-          'gap-1 px-2',
-        ].join(' ')}
+        className={[floatingToolbarIconButton(open, { wide: true }), 'gap-1 px-2'].join(' ')}
         aria-label={`Outline stroke, ${w}px`}
         title="Stroke"
         aria-expanded={open}
         aria-haspopup="dialog"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen(o => !o)}
       >
         <HugeiconsIcon icon={BorderFullIcon} size={18} strokeWidth={1.75} />
         <span className="min-w-[2.25rem] text-left text-xs font-medium tabular-nums text-neutral-700">
@@ -89,12 +83,8 @@ export default function StrokeToolbarPopover({
           }}
         >
           <div className="mb-3 flex items-center justify-between gap-3">
-            <span className="text-[13px] font-medium text-neutral-800">
-              Stroke width
-            </span>
-            <span className="text-[13px] tabular-nums text-neutral-600">
-              {w}px
-            </span>
+            <span className="text-[13px] font-medium text-neutral-800">Stroke width</span>
+            <span className="text-[13px] tabular-nums text-neutral-600">{w}px</span>
           </div>
           <EditorRangeSlider
             min={strokeWidthMin}
@@ -108,9 +98,7 @@ export default function StrokeToolbarPopover({
             trackClassName="mb-4 w-full"
           />
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[13px] font-medium text-neutral-800">
-              Stroke color
-            </span>
+            <span className="text-[13px] font-medium text-neutral-800">Stroke color</span>
             <PaintPopoverControl
               compact
               value={strokePaint}

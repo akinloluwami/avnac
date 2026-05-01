@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  getAvnacDocumentStorageKind,
-  parseAvnacDocument,
-} from '../lib/avnac-scene'
+import { getAvnacDocumentStorageKind, parseAvnacDocument } from '../lib/avnac-scene'
 
 describe('parseAvnacDocument', () => {
   it('detects current vs legacy stored document formats', () => {
@@ -173,11 +170,7 @@ describe('parseAvnacDocument', () => {
 
     expect(document).not.toBeNull()
     expect(document?.objects).toHaveLength(3)
-    expect(document?.objects.map((obj) => obj.type)).toEqual([
-      'image',
-      'rect',
-      'text',
-    ])
+    expect(document?.objects.map(obj => obj.type)).toEqual(['image', 'rect', 'text'])
     expect(document?.objects[0]).toMatchObject({
       id: 'legacy-qr',
       type: 'image',
@@ -195,11 +188,13 @@ describe('parseAvnacDocument', () => {
       fontWeight: 700,
       lineHeight: 1.16,
     })
-    expect(
-      (document?.objects[1] as { strokeWidth?: number } | undefined)?.strokeWidth,
-    ).toBeCloseTo(36.73, 2)
-    expect(
-      (document?.objects[2] as { fontSize?: number } | undefined)?.fontSize,
-    ).toBeCloseTo(225.9865, 4)
+    expect((document?.objects[1] as { strokeWidth?: number } | undefined)?.strokeWidth).toBeCloseTo(
+      36.73,
+      2,
+    )
+    expect((document?.objects[2] as { fontSize?: number } | undefined)?.fontSize).toBeCloseTo(
+      225.9865,
+      4,
+    )
   })
 })

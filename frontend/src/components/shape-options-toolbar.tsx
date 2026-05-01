@@ -1,4 +1,3 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ArrowDown01Icon,
   BendToolIcon,
@@ -7,26 +6,27 @@ import {
   StraightEdgeIcon,
   Tick02Icon,
 } from '@hugeicons/core-free-icons'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import {
   useStablePickPanel,
   useViewportAwarePopoverPlacement,
 } from '../hooks/use-viewport-aware-popover'
 import {
-  isAvnacStrokeLineLike,
   type ArrowLineStyle,
   type ArrowPathType,
   type AvnacShapeMeta,
+  isAvnacStrokeLineLike,
 } from '../lib/avnac-shape-meta'
 import type { BgValue } from './background-popover'
+import CornerRadiusToolbarControl from './corner-radius-toolbar-control'
+import EditorRangeSlider from './editor-range-slider'
 import {
   FloatingToolbarDivider,
   FloatingToolbarShell,
   floatingToolbarIconButton,
   floatingToolbarPopoverClass,
 } from './floating-toolbar-shell'
-import CornerRadiusToolbarControl from './corner-radius-toolbar-control'
-import EditorRangeSlider from './editor-range-slider'
 import PaintPopoverControl from './paint-popover-control'
 
 type Props = {
@@ -98,11 +98,7 @@ export default function ShapeOptionsToolbar({
 
   const arrowPopoverOpen = strokePanelOpen || lineTypePanelOpen
   const arrowPopoverEstimateH = strokePanelOpen ? 300 : 160
-  const pickArrowPanel = useStablePickPanel(
-    strokePanelOpen,
-    strokePanelRef,
-    lineTypePanelRef,
-  )
+  const pickArrowPanel = useStablePickPanel(strokePanelOpen, strokePanelRef, lineTypePanelRef)
   const { openUpward: arrowPopoverUp, shiftX: arrowPopoverShiftX } =
     useViewportAwarePopoverPlacement(
       arrowPopoverOpen,
@@ -219,7 +215,7 @@ export default function ShapeOptionsToolbar({
             min={3}
             max={32}
             value={sides}
-            onChange={(e) => {
+            onChange={e => {
               const v = Number(e.target.value)
               if (Number.isFinite(v)) onPolygonSides(Math.round(v))
             }}
@@ -263,7 +259,7 @@ export default function ShapeOptionsToolbar({
             min={3}
             max={24}
             value={pts}
-            onChange={(e) => {
+            onChange={e => {
               const v = Number(e.target.value)
               if (Number.isFinite(v)) onStarPoints(Math.round(v))
             }}
@@ -293,15 +289,11 @@ export default function ShapeOptionsToolbar({
     const rounded = meta.arrowRoundedEnds ?? false
     const strokeW = meta.arrowStrokeWidth ?? 10
     const pathType = meta.arrowPathType ?? 'straight'
-    const strokeOptionsLabel =
-      meta.kind === 'line' ? 'Line options' : 'Arrow options'
+    const strokeOptionsLabel = meta.kind === 'line' ? 'Line options' : 'Arrow options'
 
     return (
       <div ref={arrowRootRef} className="relative">
-        <FloatingToolbarShell
-          role="toolbar"
-          aria-label={strokeOptionsLabel}
-        >
+        <FloatingToolbarShell role="toolbar" aria-label={strokeOptionsLabel}>
           <div className="flex items-center gap-1 py-1 pl-2 pr-2">
             <PaintPopoverControl
               compact
@@ -323,14 +315,12 @@ export default function ShapeOptionsToolbar({
               aria-label="Line type"
               title="Line type"
               onClick={() => {
-                setLineTypePanelOpen((o) => !o)
+                setLineTypePanelOpen(o => !o)
                 setStrokePanelOpen(false)
               }}
             >
               <HugeiconsIcon
-                icon={
-                  pathType === 'curved' ? BendToolIcon : StraightEdgeIcon
-                }
+                icon={pathType === 'curved' ? BendToolIcon : StraightEdgeIcon}
                 size={18}
                 strokeWidth={1.75}
               />
@@ -354,7 +344,7 @@ export default function ShapeOptionsToolbar({
               aria-label="Stroke style"
               title="Stroke style"
               onClick={() => {
-                setStrokePanelOpen((o) => !o)
+                setStrokePanelOpen(o => !o)
                 setLineTypePanelOpen(false)
               }}
             >
@@ -474,9 +464,7 @@ export default function ShapeOptionsToolbar({
             </div>
 
             <label className="mt-3 flex cursor-pointer items-center justify-between">
-              <span className="text-[13px] font-medium text-neutral-700">
-                Rounded end points
-              </span>
+              <span className="text-[13px] font-medium text-neutral-700">Rounded end points</span>
               <button
                 type="button"
                 role="switch"
@@ -495,9 +483,7 @@ export default function ShapeOptionsToolbar({
             </label>
 
             <div className="mt-3 flex flex-col gap-1.5">
-              <span className="text-[13px] font-medium text-neutral-700">
-                Stroke weight
-              </span>
+              <span className="text-[13px] font-medium text-neutral-700">Stroke weight</span>
               <div className="flex items-center gap-2">
                 <EditorRangeSlider
                   min={1}
@@ -512,7 +498,7 @@ export default function ShapeOptionsToolbar({
                   min={1}
                   max={80}
                   value={strokeW}
-                  onChange={(e) => {
+                  onChange={e => {
                     const v = Number(e.target.value)
                     if (Number.isFinite(v)) onArrowStrokeWidth(v)
                   }}

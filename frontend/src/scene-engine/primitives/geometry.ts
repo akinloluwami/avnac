@@ -1,4 +1,4 @@
-import type { ResizeHandleId, MarqueeRect } from './types'
+import type { MarqueeRect, ResizeHandleId } from './types'
 
 const ROTATION_SNAP_DEG = 15
 
@@ -146,12 +146,7 @@ export function constrainAspectRatioBounds(
   }
 }
 
-export function rectFromPoints(
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
-): MarqueeRect {
+export function rectFromPoints(x1: number, y1: number, x2: number, y2: number): MarqueeRect {
   const left = Math.min(x1, x2)
   const top = Math.min(y1, y2)
   return {

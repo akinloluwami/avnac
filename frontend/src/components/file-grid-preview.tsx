@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { idbGetDocument } from '../lib/avnac-editor-idb'
 import {
   avnacDocumentPreviewCacheKey,
   renderAvnacDocumentPreviewDataUrl,
 } from '../lib/avnac-document-preview'
+import { idbGetDocument } from '../lib/avnac-editor-idb'
 
 type FileGridPreviewProps = {
   persistId: string
@@ -47,13 +47,7 @@ export default function FileGridPreview({
   }, [persistId, updatedAt])
 
   if (src) {
-    return (
-      <img
-        src={src}
-        alt=""
-        className={['h-full w-full object-cover', className].join(' ')}
-      />
-    )
+    return <img src={src} alt="" className={['h-full w-full object-cover', className].join(' ')} />
   }
 
   return (

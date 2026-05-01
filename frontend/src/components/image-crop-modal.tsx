@@ -1,14 +1,7 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import { Cancel01Icon, Tick02Icon } from '@hugeicons/core-free-icons'
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useReducer,
-  useRef,
-  useState,
-} from 'react'
+import { HugeiconsIcon } from '@hugeicons/react'
 import type { CSSProperties } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 const MIN_SIDE = 12
@@ -31,16 +24,7 @@ type Props = {
   onApply: (rect: ImageCropModalApplyPayload) => void
 }
 
-type DragKind =
-  | 'move'
-  | 'nw'
-  | 'n'
-  | 'ne'
-  | 'e'
-  | 'se'
-  | 's'
-  | 'sw'
-  | 'w'
+type DragKind = 'move' | 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
 
 function clampCrop(r: CropRect, nw: number, nh: number): CropRect {
   let { x, y, w, h } = r
@@ -51,13 +35,7 @@ function clampCrop(r: CropRect, nw: number, nh: number): CropRect {
   return { x, y, w, h }
 }
 
-export default function ImageCropModal({
-  open,
-  imageSrc,
-  initialCrop,
-  onCancel,
-  onApply,
-}: Props) {
+export default function ImageCropModal({ open, imageSrc, initialCrop, onCancel, onApply }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const initialCropRef = useRef(initialCrop)
@@ -165,7 +143,7 @@ export default function ImageCropModal({
       const dx = (e.clientX - d.startClientX) / d.scale
       const dy = (e.clientY - d.startClientY) / d.scale
       const s = d.start
-      let next: CropRect = { ...s }
+      const next: CropRect = { ...s }
 
       if (d.kind === 'move') {
         next.x = s.x + dx
@@ -214,11 +192,7 @@ export default function ImageCropModal({
   }, [open, natural.w, natural.h])
 
   const shade = (_dir: string, style: CSSProperties) => (
-    <div
-      className="pointer-events-none absolute bg-black/55"
-      style={style}
-      aria-hidden
-    />
+    <div className="pointer-events-none absolute bg-black/55" style={style} aria-hidden />
   )
 
   if (!open || typeof document === 'undefined') return null
@@ -242,7 +216,7 @@ export default function ImageCropModal({
       aria-hidden
       className={`absolute z-10 box-border rounded-sm border-2 border-white bg-[var(--accent,#6366f1)] shadow ${className}`}
       style={{ width: HANDLE_PX, height: HANDLE_PX, margin: -HANDLE_PX / 2 }}
-      onPointerDown={(e) => onPointerDownCrop(e, kind)}
+      onPointerDown={e => onPointerDownCrop(e, kind)}
     />
   )
 
@@ -252,15 +226,13 @@ export default function ImageCropModal({
       role="dialog"
       aria-modal="true"
       aria-label="Crop image"
-      onMouseDown={(e) => {
+      onMouseDown={e => {
         if (e.target === e.currentTarget) onCancel()
       }}
     >
       <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-black/10 bg-[var(--surface)] shadow-2xl">
         <div className="flex items-center justify-between border-b border-black/10 px-4 py-3">
-          <h2 className="m-0 text-base font-semibold text-[var(--text)]">
-            Crop image
-          </h2>
+          <h2 className="m-0 text-base font-semibold text-[var(--text)]">Crop image</h2>
           <button
             type="button"
             className="rounded-lg p-1.5 text-neutral-500 hover:bg-black/5 hover:text-neutral-800"
@@ -271,10 +243,7 @@ export default function ImageCropModal({
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-auto p-4">
-          <div
-            ref={wrapRef}
-            className="relative mx-auto inline-block max-w-full"
-          >
+          <div ref={wrapRef} className="relative mx-auto inline-block max-w-full">
             <img
               key={imageSrc}
               ref={imgRef}
@@ -316,17 +285,14 @@ export default function ImageCropModal({
               <div
                 className="pointer-events-auto absolute z-[1] cursor-move border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.35)]"
                 style={boxStyle}
-                onPointerDown={(e) => onPointerDownCrop(e, 'move')}
+                onPointerDown={e => onPointerDownCrop(e, 'move')}
               >
                 {handle('nw', 'left-0 top-0 cursor-nwse-resize')}
                 {handle('n', 'left-1/2 top-0 -translate-x-1/2 cursor-ns-resize')}
                 {handle('ne', 'right-0 top-0 cursor-nesw-resize')}
                 {handle('e', 'right-0 top-1/2 -translate-y-1/2 cursor-ew-resize')}
                 {handle('se', 'right-0 bottom-0 cursor-nwse-resize')}
-                {handle(
-                  's',
-                  'bottom-0 left-1/2 -translate-x-1/2 cursor-ns-resize',
-                )}
+                {handle('s', 'bottom-0 left-1/2 -translate-x-1/2 cursor-ns-resize')}
                 {handle('sw', 'bottom-0 left-0 cursor-nesw-resize')}
                 {handle('w', 'left-0 top-1/2 -translate-y-1/2 cursor-ew-resize')}
               </div>

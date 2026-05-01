@@ -35,26 +35,18 @@ export function shadowColorString(ui: ShadowUi): string {
   return `rgba(${r},${g},${b},${a})`
 }
 
-export function parseShadowColor(
-  color: string,
-): { hex: string; opacityPct: number } {
+export function parseShadowColor(color: string): { hex: string; opacityPct: number } {
   const t = color.trim()
-  const rgba =
-    /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i.exec(
-      t,
-    )
+  const rgba = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i.exec(
+    t,
+  )
   if (rgba) {
     const r = clampChannel(Number(rgba[1]))
     const g = clampChannel(Number(rgba[2]))
     const b = clampChannel(Number(rgba[3]))
-    const a =
-      rgba[4] !== undefined
-        ? Math.max(0, Math.min(1, Number(rgba[4])))
-        : 1
+    const a = rgba[4] !== undefined ? Math.max(0, Math.min(1, Number(rgba[4]))) : 1
     return {
-      hex: `#${[r, g, b]
-        .map((v) => v.toString(16).padStart(2, '0'))
-        .join('')}`,
+      hex: `#${[r, g, b].map(v => v.toString(16).padStart(2, '0')).join('')}`,
       opacityPct: Math.round(a * 100),
     }
   }
@@ -67,18 +59,10 @@ export function parseShadowColor(
 export function averageShadowUi(rows: ShadowUi[]): ShadowUi {
   if (rows.length === 0) return { ...DEFAULT_SHADOW_UI }
   const blur = Math.round(rows.reduce((sum, row) => sum + row.blur, 0) / rows.length)
-  const offsetX = Math.round(
-    rows.reduce((sum, row) => sum + row.offsetX, 0) / rows.length,
-  )
-  const offsetY = Math.round(
-    rows.reduce((sum, row) => sum + row.offsetY, 0) / rows.length,
-  )
-  const opacityPct = Math.round(
-    rows.reduce((sum, row) => sum + row.opacityPct, 0) / rows.length,
-  )
+  const offsetX = Math.round(rows.reduce((sum, row) => sum + row.offsetX, 0) / rows.length)
+  const offsetY = Math.round(rows.reduce((sum, row) => sum + row.offsetY, 0) / rows.length)
+  const opacityPct = Math.round(rows.reduce((sum, row) => sum + row.opacityPct, 0) / rows.length)
   const baseColor = rows[0]?.colorHex ?? '#000000'
-  const colorHex = rows.every((row) => row.colorHex === baseColor)
-    ? baseColor
-    : '#000000'
+  const colorHex = rows.every(row => row.colorHex === baseColor) ? baseColor : '#000000'
   return { blur, offsetX, offsetY, colorHex, opacityPct }
 }

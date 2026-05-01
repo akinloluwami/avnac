@@ -49,21 +49,18 @@ export default function DocumentMigrationDialog({
     <div
       className="fixed inset-0 z-[280] flex items-center justify-center p-4 sm:p-6"
       role="presentation"
-      onMouseDown={(e) => {
+      onMouseDown={e => {
         if (e.target === e.currentTarget && !busy) onClose()
       }}
     >
-      <div
-        className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
-        aria-hidden
-      />
+      <div className="absolute inset-0 bg-black/35 backdrop-blur-[2px]" aria-hidden />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descId}
         className="relative z-[1] w-full max-w-md rounded-2xl border border-[var(--line)] bg-[var(--surface)]/95 p-6 backdrop-blur-md sm:p-8"
-        onMouseDown={(e) => e.stopPropagation()}
+        onMouseDown={e => e.stopPropagation()}
       >
         <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
           Legacy File
@@ -74,10 +71,7 @@ export default function DocumentMigrationDialog({
         >
           {title}
         </h2>
-        <p
-          id={descId}
-          className="mt-3 text-[15px] leading-relaxed text-[var(--text-muted)]"
-        >
+        <p id={descId} className="mt-3 text-[15px] leading-relaxed text-[var(--text-muted)]">
           {message}
         </p>
         <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2">

@@ -1,4 +1,3 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
   TextAlignCenterIcon,
   TextAlignJustifyCenterIcon,
@@ -8,14 +7,8 @@ import {
   TextItalicIcon,
   TextUnderlineIcon,
 } from '@hugeicons/core-free-icons'
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { GOOGLE_FONT_FAMILIES } from '../data/google-font-families'
 import { loadGoogleFontFamily } from '../lib/load-google-font'
 import type { BgValue } from './background-popover'
@@ -133,19 +126,12 @@ export default function TextFormatToolbar({
   }, [fontOpen, fontQuery, filteredFonts.length])
 
   return (
-    <FloatingToolbarShell
-      ref={rootRef}
-      role="toolbar"
-      aria-label="Text formatting"
-    >
-      <div
-        ref={fontTriggerWrapRef}
-        className="relative flex shrink-0 items-center py-1 pl-2"
-      >
+    <FloatingToolbarShell ref={rootRef} role="toolbar" aria-label="Text formatting">
+      <div ref={fontTriggerWrapRef} className="relative flex shrink-0 items-center py-1 pl-2">
         <button
           type="button"
           className="flex h-8 max-w-[9.5rem] items-center gap-1 truncate rounded-lg px-2 text-left text-xs font-medium text-neutral-800 outline-none hover:bg-black/[0.06] sm:max-w-[11rem]"
-          onClick={() => setFontOpen((o) => !o)}
+          onClick={() => setFontOpen(o => !o)}
           aria-expanded={fontOpen}
           aria-haspopup="listbox"
         >
@@ -164,7 +150,7 @@ export default function TextFormatToolbar({
               <input
                 type="search"
                 value={fontQuery}
-                onChange={(e) => setFontQuery(e.target.value)}
+                onChange={e => setFontQuery(e.target.value)}
                 placeholder="Search fonts…"
                 className="w-full rounded-lg border border-black/10 bg-neutral-50 px-2.5 py-1.5 text-sm text-neutral-900 outline-none ring-0 placeholder:text-neutral-400 focus:border-black/20"
                 autoFocus
@@ -176,7 +162,7 @@ export default function TextFormatToolbar({
               role="listbox"
               aria-label="Google Fonts"
             >
-              {filteredFonts.map((name) => (
+              {filteredFonts.map(name => (
                 <li key={name} role="none">
                   <button
                     type="button"
@@ -198,9 +184,7 @@ export default function TextFormatToolbar({
               ))}
             </ul>
             {filteredFonts.length === 0 ? (
-              <p className="px-3 py-4 text-center text-xs text-neutral-500">
-                No matches
-              </p>
+              <p className="px-3 py-4 text-center text-xs text-neutral-500">No matches</p>
             ) : null}
           </div>
         ) : null}
@@ -214,7 +198,7 @@ export default function TextFormatToolbar({
             value={values.fontSize}
             min={8}
             max={800}
-            onChange={(fontSize) => onChange({ fontSize })}
+            onChange={fontSize => onChange({ fontSize })}
           />
         </div>
 
@@ -223,7 +207,7 @@ export default function TextFormatToolbar({
         <PaintPopoverControl
           compact
           value={values.fillStyle}
-          onChange={(fillStyle) => onChange({ fillStyle })}
+          onChange={fillStyle => onChange({ fillStyle })}
           title="Text color and gradient"
           ariaLabel="Text color and gradient"
         />
@@ -238,11 +222,7 @@ export default function TextFormatToolbar({
             aria-label="Align left"
             onClick={() => onChange({ textAlign: 'left' })}
           >
-            <HugeiconsIcon
-              icon={TextAlignLeftIcon}
-              size={18}
-              strokeWidth={1.75}
-            />
+            <HugeiconsIcon icon={TextAlignLeftIcon} size={18} strokeWidth={1.75} />
           </button>
           <button
             type="button"
@@ -251,11 +231,7 @@ export default function TextFormatToolbar({
             aria-label="Align center"
             onClick={() => onChange({ textAlign: 'center' })}
           >
-            <HugeiconsIcon
-              icon={TextAlignCenterIcon}
-              size={18}
-              strokeWidth={1.75}
-            />
+            <HugeiconsIcon icon={TextAlignCenterIcon} size={18} strokeWidth={1.75} />
           </button>
           <button
             type="button"
@@ -264,11 +240,7 @@ export default function TextFormatToolbar({
             aria-label="Align right"
             onClick={() => onChange({ textAlign: 'right' })}
           >
-            <HugeiconsIcon
-              icon={TextAlignRightIcon}
-              size={18}
-              strokeWidth={1.75}
-            />
+            <HugeiconsIcon icon={TextAlignRightIcon} size={18} strokeWidth={1.75} />
           </button>
           <button
             type="button"
@@ -277,11 +249,7 @@ export default function TextFormatToolbar({
             aria-label="Justify"
             onClick={() => onChange({ textAlign: 'justify' })}
           >
-            <HugeiconsIcon
-              icon={TextAlignJustifyCenterIcon}
-              size={18}
-              strokeWidth={1.75}
-            />
+            <HugeiconsIcon icon={TextAlignJustifyCenterIcon} size={18} strokeWidth={1.75} />
           </button>
 
           <div className="mx-0.5 h-5 w-px shrink-0 bg-black/10" aria-hidden />
@@ -311,11 +279,7 @@ export default function TextFormatToolbar({
             aria-label="Underline"
             onClick={() => onChange({ underline: !values.underline })}
           >
-            <HugeiconsIcon
-              icon={TextUnderlineIcon}
-              size={18}
-              strokeWidth={1.75}
-            />
+            <HugeiconsIcon icon={TextUnderlineIcon} size={18} strokeWidth={1.75} />
           </button>
         </div>
       </div>

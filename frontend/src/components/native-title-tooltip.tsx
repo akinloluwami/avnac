@@ -81,10 +81,7 @@ export default function NativeTitleTooltip() {
 
     const scheduleShow = (el: Element, text: string) => {
       clearShowTimer()
-      if (
-        activeTargetRef.current &&
-        activeTargetRef.current !== el
-      ) {
+      if (activeTargetRef.current && activeTargetRef.current !== el) {
         restoreTitle(activeTargetRef.current)
         activeTargetRef.current = null
         setTip(null)
@@ -180,9 +177,7 @@ export default function NativeTitleTooltip() {
       style={{
         left: tip.left,
         top: tip.top,
-        transform: tip.placeAbove
-          ? 'translate(-50%, -100%)'
-          : 'translate(-50%, 0)',
+        transform: tip.placeAbove ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
       }}
       role="tooltip"
     >

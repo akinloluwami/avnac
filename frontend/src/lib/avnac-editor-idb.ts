@@ -1,9 +1,9 @@
 import {
+  type AvnacDocument,
+  type AvnacDocumentStorageKind,
   cloneAvnacDocument,
   getAvnacDocumentStorageKind,
   parseAvnacDocument,
-  type AvnacDocumentStorageKind,
-  type AvnacDocument,
 } from './avnac-document'
 import type { VectorBoardDocument } from './avnac-vector-board-document'
 import {
@@ -65,9 +65,7 @@ function openDb(): Promise<IDBDatabase> {
   })
 }
 
-export async function idbGetEditorRecord(
-  id: string,
-): Promise<AvnacEditorIdbRecord | null> {
+export async function idbGetEditorRecord(id: string): Promise<AvnacEditorIdbRecord | null> {
   const db = await openDb()
   try {
     return await new Promise<AvnacEditorIdbRecord | null>((resolve, reject) => {
@@ -76,11 +74,7 @@ export async function idbGetEditorRecord(
       const r = tx.objectStore(STORE).get(id)
       r.onerror = () => reject(r.error ?? new Error('idb get failed'))
       r.onsuccess = () => {
-        resolve(
-          normalizeEditorRecord(
-            (r.result as StoredAvnacEditorIdbRecord | undefined) ?? null,
-          ),
-        )
+        resolve(normalizeEditorRecord((r.result as StoredAvnacEditorIdbRecord | undefined) ?? null))
       }
     })
   } finally {
@@ -88,9 +82,7 @@ export async function idbGetEditorRecord(
   }
 }
 
-export async function idbGetDocument(
-  id: string,
-): Promise<AvnacDocument | null> {
+export async function idbGetDocument(id: string): Promise<AvnacDocument | null> {
   const row = await idbGetEditorRecord(id)
   return row?.document ?? null
 }
@@ -114,9 +106,9 @@ export async function idbListDocuments(): Promise<AvnacEditorIdbListItem[]> {
       r.onerror = () => reject(r.error ?? new Error('idb getAll failed'))
       r.onsuccess = () => {
         const rows = (r.result as StoredAvnacEditorIdbRecord[])
-          .map((row) => normalizeEditorRecord(row))
+          .map(row => normalizeEditorRecord(row))
           .filter((row): row is AvnacEditorIdbRecord => row != null)
-        const items: AvnacEditorIdbListItem[] = rows.map((row) => ({
+        const items: AvnacEditorIdbListItem[] = rows.map(row => ({
           id: row.id,
           name: row.name?.trim() || 'Untitled',
           updatedAt: row.updatedAt,
@@ -161,10 +153,7 @@ export async function idbPutDocument(
   }
 }
 
-export async function idbSetDocumentName(
-  id: string,
-  name: string,
-): Promise<void> {
+export async function idbSetDocumentName(id: string, name: string): Promise<void> {
   const row = await idbGetEditorRecord(id)
   if (!row) return
   await idbPutDocument(id, row.document, { name })
@@ -208,9 +197,7 @@ export async function idbDuplicateDocument(sourceId: string): Promise<string | n
   return newId
 }
 
-export async function idbMigrateLegacyDocument(
-  id: string,
-): Promise<boolean> {
+export async function idbMigrateLegacyDocument(id: string): Promise<boolean> {
   const row = await idbGetEditorRecord(id)
   if (!row) return false
   if (row.storageKind !== 'legacy') return true

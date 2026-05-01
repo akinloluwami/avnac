@@ -1,13 +1,12 @@
-import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
-
+import { type Dispatch, type MutableRefObject, type SetStateAction, useEffect } from 'react'
+import { idbGetDocument, idbPutDocument } from '../../lib/avnac-editor-idb'
 import {
   AVNAC_STORAGE_KEY,
+  type AvnacDocument,
   cloneAvnacDocument,
   createEmptyAvnacDocument,
   parseAvnacDocument,
-  type AvnacDocument,
 } from '../../lib/avnac-scene'
-import { idbGetDocument, idbPutDocument } from '../../lib/avnac-editor-idb'
 import { clampDimension } from '../../scene-engine/primitives'
 
 type UseSceneDocumentLifecycleArgs = {
@@ -128,14 +127,7 @@ export function useSceneDocumentLifecycle({
     return () => {
       if (historyTimerRef.current) window.clearTimeout(historyTimerRef.current)
     }
-  }, [
-    applyingHistoryRef,
-    doc,
-    historyIndexRef,
-    historyRef,
-    historyTimerRef,
-    ready,
-  ])
+  }, [applyingHistoryRef, doc, historyIndexRef, historyRef, historyTimerRef, ready])
 
   useEffect(() => {
     if (!ready) return
@@ -148,7 +140,7 @@ export function useSceneDocumentLifecycle({
       }
       void idbPutDocument(persistIdRef.current, snapshot, {
         name: persistDisplayNameRef.current,
-      }).catch((error) => {
+      }).catch(error => {
         console.error('[avnac] autosave failed', error)
       })
     }, 240)
