@@ -18,7 +18,7 @@ type ElementToolbarLayout = {
 
 export type CanvasStageContextValue = {
   actions: {
-    activatePage: (pageId: string) => void
+    activatePage: (pageId: string, options?: { selectBackground?: boolean }) => void
     addPage: (afterPageId?: string) => void
     alignElementToArtboard: (kind: CanvasAlignKind) => void
     alignSelectedElements: (kind: CanvasAlignKind) => void
