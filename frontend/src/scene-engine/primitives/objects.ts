@@ -70,6 +70,7 @@ function normalizedImageCrop(image: SceneImage): SceneImage['crop'] {
     y: clampNumber(image.crop.y || 0, 0, Math.max(0, naturalHeight - height)),
     width,
     height,
+    rotation: image.crop.rotation || 0,
   }
 }
 
@@ -108,6 +109,7 @@ function fitImageCropToAspect(
     y: clampNumber(centerY - height / 2, 0, Math.max(0, naturalHeight - height)),
     width,
     height,
+    rotation: crop.rotation || 0,
   }
 }
 
@@ -157,6 +159,7 @@ function cropImageFromSideHandle(
       y: crop.y,
       width,
       height: crop.height,
+      rotation: crop.rotation || 0,
     }
     return next
   }
@@ -189,6 +192,7 @@ function cropImageFromSideHandle(
       y: clampNumber(y, 0, Math.max(0, naturalHeight - height)),
       width: crop.width,
       height,
+      rotation: crop.rotation || 0,
     }
     return next
   }
