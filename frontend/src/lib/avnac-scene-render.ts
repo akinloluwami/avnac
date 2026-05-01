@@ -19,6 +19,12 @@ export function sceneTextLineHeight(obj: SceneText): number {
   return Math.max(0.6, Math.min(4, raw))
 }
 
+export function sceneTextLetterSpacing(obj: SceneText): number {
+  const raw = obj.letterSpacing
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return 0
+  return raw
+}
+
 function getMeasureContext(): CanvasRenderingContext2D | null {
   if (typeof document === 'undefined') return null
   if (!measureCanvas) measureCanvas = document.createElement('canvas')
@@ -199,6 +205,69 @@ function setTextFont(ctx: CanvasRenderingContext2D, obj: SceneText) {
   ctx.font = `${obj.fontStyle} ${weight} ${obj.fontSize}px "${obj.fontFamily}", sans-serif`
 }
 
+function measureSceneTextLineWidth(
+  ctx: CanvasRenderingContext2D,
+  obj: SceneText,
+  line: string,
+): number {
+  if (!line) return 0
+  const letterSpacing = sceneTextLetterSpacing(obj)
+  if (letterSpacing === 0) return ctx.measureText(line).width
+  const chars = Array.from(line)
+  const width =
+    chars.reduce((sum, char) => sum + ctx.measureText(char).width, 0) +
+    Math.max(0, chars.length - 1) * letterSpacing
+  return Math.max(0, width)
+}
+
+function drawSceneTextLine(
+  ctx: CanvasRenderingContext2D,
+  obj: SceneText,
+  line: string,
+  x: number,
+  y: number,
+  mode: 'fill' | 'stroke',
+) {
+  const letterSpacing = sceneTextLetterSpacing(obj)
+  if (letterSpacing === 0 || line.length <= 1) {
+    if (mode === 'stroke') ctx.strokeText(line, x, y)
+    else ctx.fillText(line, x, y)
+    return
+  }
+  const chars = Array.from(line)
+  let cursor = x
+  for (let i = 0; i < chars.length; i += 1) {
+    const char = chars[i] ?? ''
+    if (mode === 'stroke') ctx.strokeText(char, cursor, y)
+    else ctx.fillText(char, cursor, y)
+    cursor += ctx.measureText(char).width
+    if (i < chars.length - 1) cursor += letterSpacing
+  }
+}
+
+function splitSceneTextTokenToFit(
+  ctx: CanvasRenderingContext2D,
+  obj: SceneText,
+  token: string,
+  maxWidth: number,
+): string[] {
+  if (!token) return ['']
+  const chars = Array.from(token)
+  const parts: string[] = []
+  let current = ''
+  for (const char of chars) {
+    const next = current + char
+    if (measureSceneTextLineWidth(ctx, obj, next) <= maxWidth || !current) {
+      current = next
+      continue
+    }
+    parts.push(current)
+    current = char
+  }
+  if (current) parts.push(current)
+  return parts
+}
+
 function cssLineBoxBaselineOffset(
   ctx: CanvasRenderingContext2D,
   obj: SceneText,
@@ -253,12 +322,29 @@ export function layoutSceneText(
     let current = ''
     for (const word of words) {
       const next = current ? `${current}${word}` : word
-      if (measure.measureText(next).width <= maxWidth || !current) {
+      if (measureSceneTextLineWidth(measure, obj, next) <= maxWidth) {
         current = next
         continue
       }
+      if (!current) {
+        const split = splitSceneTextTokenToFit(measure, obj, word.trimStart(), maxWidth)
+        current = split.pop() ?? ''
+        lines.push(...split)
+        continue
+      }
       lines.push(current.trimEnd())
-      current = word.trimStart()
+      const remainder = word.trimStart()
+      if (!remainder) {
+        current = ''
+        continue
+      }
+      if (measureSceneTextLineWidth(measure, obj, remainder) <= maxWidth) {
+        current = remainder
+        continue
+      }
+      const split = splitSceneTextTokenToFit(measure, obj, remainder, maxWidth)
+      current = split.pop() ?? ''
+      lines.push(...split)
     }
     lines.push(current.trimEnd())
   }
@@ -285,34 +371,33 @@ function drawTextObject(ctx: CanvasRenderingContext2D, obj: SceneText) {
   const text = layoutSceneText(obj, ctx)
   setTextFont(ctx, obj)
   ctx.textBaseline = 'alphabetic'
-  ctx.fillStyle = bgValueToCanvasPaint(ctx, obj.fill, obj.width, obj.height)
-  ctx.strokeStyle = bgValueToCanvasPaint(ctx, obj.stroke, obj.width, obj.height)
-  ctx.lineWidth = obj.strokeWidth
+  ctx.textAlign = 'left'
+  const fillPaint = bgValueToCanvasPaint(ctx, obj.fill, obj.width, obj.height)
+  const strokePaint = bgValueToCanvasPaint(ctx, obj.stroke, obj.width, obj.height)
   const textAlign = obj.textAlign === 'justify' ? 'left' : obj.textAlign
-  ctx.textAlign = textAlign
   const anchorX = textAlign === 'center' ? obj.width / 2 : textAlign === 'right' ? obj.width : 0
   const baselineOffset = cssLineBoxBaselineOffset(ctx, obj, text.lineHeight)
   for (let i = 0; i < text.lines.length; i += 1) {
     const line = text.lines[i] ?? ''
     const y = i * text.lineHeight
     const baselineY = y + baselineOffset
-    if (obj.strokeWidth > 0) ctx.strokeText(line, anchorX, baselineY)
-    ctx.fillText(line, anchorX, baselineY)
+    const width = measureSceneTextLineWidth(ctx, obj, line)
+    const startX =
+      textAlign === 'center' ? anchorX - width / 2 : textAlign === 'right' ? anchorX - width : 0
+    if (obj.strokeWidth > 0) {
+      ctx.strokeStyle = strokePaint
+      ctx.lineWidth = obj.strokeWidth
+      drawSceneTextLine(ctx, obj, line, startX, baselineY, 'stroke')
+    }
+    ctx.fillStyle = fillPaint
+    drawSceneTextLine(ctx, obj, line, startX, baselineY, 'fill')
     if (obj.underline && line.length > 0) {
-      const metrics = ctx.measureText(line)
-      const width = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
-      const startX =
-        textAlign === 'center'
-          ? anchorX - width / 2
-          : textAlign === 'right'
-            ? anchorX - width
-            : anchorX
       const underlineY = baselineY + obj.fontSize * 0.12
       ctx.beginPath()
       ctx.moveTo(startX, underlineY)
       ctx.lineTo(startX + width, underlineY)
       ctx.lineWidth = Math.max(1, obj.fontSize * 0.06)
-      ctx.strokeStyle = bgValueToCanvasPaint(ctx, obj.fill, obj.width, obj.height)
+      ctx.strokeStyle = fillPaint
       ctx.stroke()
     }
   }
