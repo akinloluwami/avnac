@@ -70,6 +70,7 @@ export type AiEllipseSpec = AiPlacement & {
 export type AiTextSpec = AiPlacement & {
   text: string
   fontSize?: number
+  letterSpacing?: number
   fontFamily?: string
   fontWeight?: number | 'normal' | 'bold'
   fontStyle?: 'normal' | 'italic'
@@ -113,6 +114,7 @@ export type AiUpdateSpec = {
   opacity?: number
   text?: string
   fontSize?: number
+  letterSpacing?: number
 }
 
 export type AiDesignController = {

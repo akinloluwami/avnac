@@ -1,32 +1,29 @@
 import {
   createContext,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
 } from 'react'
 
-import type {
-  AvnacDocument,
-  SceneObject,
-} from '../../lib/avnac-scene'
+import type { AvnacDocument, SceneObject } from '../../lib/avnac-scene'
 import {
+  emptyVectorBoardDocument,
+  type VectorBoardDocument,
+  vectorDocHasRenderableStrokes,
+} from '../../lib/avnac-vector-board-document'
+import {
+  type AvnacVectorBoardMeta,
   loadVectorBoardDocs,
   loadVectorBoards,
   mergeVectorBoardDocsForMeta,
   saveVectorBoardDocs,
   saveVectorBoards,
-  type AvnacVectorBoardMeta,
 } from '../../lib/avnac-vector-boards-storage'
-import {
-  emptyVectorBoardDocument,
-  vectorDocHasRenderableStrokes,
-  type VectorBoardDocument,
-} from '../../lib/avnac-vector-board-document'
 
 type UseVectorBoardControlsArgs = {
   addObjects: (objectsToAdd: SceneObject[]) => void
@@ -70,9 +67,7 @@ export function VectorBoardControlsProvider({
 export function useVectorBoardControlsContext() {
   const value = useContext(VectorBoardControlsContext)
   if (!value) {
-    throw new Error(
-      'useVectorBoardControlsContext must be used within VectorBoardControlsProvider',
-    )
+    throw new Error('useVectorBoardControlsContext must be used within VectorBoardControlsProvider')
   }
   return value
 }
@@ -114,8 +109,8 @@ export function useVectorBoardControls({
       name: `Vector ${boards.length + 1}`,
       createdAt: Date.now(),
     }
-    setBoards((prev) => [...prev, board])
-    setBoardDocs((prev) => ({
+    setBoards(prev => [...prev, board])
+    setBoardDocs(prev => ({
       ...prev,
       [id]: emptyVectorBoardDocument(),
     }))
@@ -124,17 +119,15 @@ export function useVectorBoardControls({
 
   const deleteVectorBoard = useCallback(
     (id: string) => {
-      setBoards((prev) => prev.filter((board) => board.id !== id))
-      setBoardDocs((prev) => {
+      setBoards(prev => prev.filter(board => board.id !== id))
+      setBoardDocs(prev => {
         const next = { ...prev }
         delete next[id]
         return next
       })
-      setDoc((prev) => ({
+      setDoc(prev => ({
         ...prev,
-        objects: prev.objects.filter(
-          (obj) => !(obj.type === 'vector-board' && obj.boardId === id),
-        ),
+        objects: prev.objects.filter(obj => !(obj.type === 'vector-board' && obj.boardId === id)),
       }))
       if (vectorWorkspaceId === id) setVectorWorkspaceId(null)
     },
@@ -149,12 +142,9 @@ export function useVectorBoardControls({
     setVectorWorkspaceId(null)
   }, [])
 
-  const onVectorBoardDocumentChange = useCallback(
-    (boardId: string, next: VectorBoardDocument) => {
-      setBoardDocs((prev) => ({ ...prev, [boardId]: next }))
-    },
-    [],
-  )
+  const onVectorBoardDocumentChange = useCallback((boardId: string, next: VectorBoardDocument) => {
+    setBoardDocs(prev => ({ ...prev, [boardId]: next }))
+  }, [])
 
   const placeVectorBoard = useCallback(
     (boardId: string, x?: number, y?: number) => {
@@ -189,9 +179,7 @@ export function useVectorBoardControls({
   }, [placeVectorBoard, vectorWorkspaceId])
 
   const vectorWorkspaceName = useMemo(
-    () =>
-      boards.find((board) => board.id === vectorWorkspaceId)?.name ??
-      'Vector board',
+    () => boards.find(board => board.id === vectorWorkspaceId)?.name ?? 'Vector board',
     [boards, vectorWorkspaceId],
   )
 

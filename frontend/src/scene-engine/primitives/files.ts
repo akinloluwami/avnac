@@ -4,7 +4,7 @@ export function readClipboardImageFiles(): Promise<File[]> {
   return read.call(navigator.clipboard).then(async (items: ClipboardItem[]) => {
     const files: File[] = []
     for (const item of items) {
-      const imageType = item.types.find((type) => type.startsWith('image/'))
+      const imageType = item.types.find(type => type.startsWith('image/'))
       if (!imageType) continue
       const blob = await item.getType(imageType)
       const ext = imageType.split('/')[1]?.split('+')[0] || 'png'
@@ -25,20 +25,18 @@ export function isImageFile(file: File): boolean {
 
 export function transferMayContainFiles(dt: DataTransfer | null): boolean {
   if (!dt) return false
-  return Array.from(dt.types).some(
-    (type) => type === 'Files' || type === 'application/x-moz-file',
-  )
+  return Array.from(dt.types).some(type => type === 'Files' || type === 'application/x-moz-file')
 }
 
 export function imageFilesFromTransfer(dt: DataTransfer | null): File[] {
   if (!dt) return []
   const files = Array.from(dt.files).filter(isImageFile)
   const itemFiles = Array.from(dt.items)
-    .filter((item) => item.kind === 'file')
-    .map((item) => item.getAsFile())
+    .filter(item => item.kind === 'file')
+    .map(item => item.getAsFile())
     .filter((file): file is File => !!file && isImageFile(file))
   const seen = new Set<string>()
-  return [...files, ...itemFiles].filter((file) => {
+  return [...files, ...itemFiles].filter(file => {
     const key = `${file.name}:${file.size}:${file.type}:${file.lastModified}`
     if (seen.has(key)) return false
     seen.add(key)

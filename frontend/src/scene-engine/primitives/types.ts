@@ -2,16 +2,7 @@ import type { SceneObject } from '../../lib/avnac-scene'
 
 export type ResizeHandleId = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
 
-export const RESIZE_HANDLES: ResizeHandleId[] = [
-  'nw',
-  'n',
-  'ne',
-  'e',
-  'se',
-  's',
-  'sw',
-  'w',
-]
+export const RESIZE_HANDLES: ResizeHandleId[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
 
 export type TransformDimensionUi = {
   left: number

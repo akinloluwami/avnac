@@ -1,12 +1,9 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import { TransparencyIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useViewportAwarePopoverPlacement } from '../hooks/use-viewport-aware-popover'
 import EditorRangeSlider from './editor-range-slider'
-import {
-  floatingToolbarIconButton,
-  floatingToolbarPopoverClass,
-} from './floating-toolbar-shell'
+import { floatingToolbarIconButton, floatingToolbarPopoverClass } from './floating-toolbar-shell'
 
 const PANEL_ESTIMATE_H = 120
 
@@ -15,10 +12,7 @@ type Props = {
   onChange: (opacityPct: number) => void
 }
 
-export default function TransparencyToolbarPopover({
-  opacityPct,
-  onChange,
-}: Props) {
+export default function TransparencyToolbarPopover({ opacityPct, onChange }: Props) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -45,15 +39,12 @@ export default function TransparencyToolbarPopover({
     <div ref={rootRef} className="relative shrink-0">
       <button
         type="button"
-        className={[
-          floatingToolbarIconButton(open, { wide: true }),
-          'gap-1 px-2',
-        ].join(' ')}
+        className={[floatingToolbarIconButton(open, { wide: true }), 'gap-1 px-2'].join(' ')}
         aria-label={`Transparency, ${opacityPct}%`}
         title="Transparency"
         aria-expanded={open}
         aria-haspopup="dialog"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen(o => !o)}
       >
         <HugeiconsIcon icon={TransparencyIcon} size={18} strokeWidth={1.75} />
         <span className="min-w-[2.25rem] text-left text-xs font-medium tabular-nums text-neutral-700">
@@ -73,12 +64,8 @@ export default function TransparencyToolbarPopover({
           }}
         >
           <div className="mb-2 flex items-center justify-between gap-3">
-            <span className="text-[13px] font-medium text-neutral-800">
-              Opacity
-            </span>
-            <span className="text-[13px] tabular-nums text-neutral-600">
-              {opacityPct}%
-            </span>
+            <span className="text-[13px] font-medium text-neutral-800">Opacity</span>
+            <span className="text-[13px] tabular-nums text-neutral-600">{opacityPct}%</span>
           </div>
           <EditorRangeSlider
             min={0}

@@ -61,10 +61,7 @@ export function samplePenAnchorsToPolyline(
   } else if (out.length > 0) {
     const f = out[0]!
     const last = out[out.length - 1]!
-    if (
-      (f[0] - last[0]) * (f[0] - last[0]) + (f[1] - last[1]) * (f[1] - last[1]) >
-      1e-16
-    ) {
+    if ((f[0] - last[0]) * (f[0] - last[0]) + (f[1] - last[1]) * (f[1] - last[1]) > 1e-16) {
       out.push([f[0], f[1]])
     }
   }
@@ -78,9 +75,7 @@ export function penAnchorsToPathCommands(
 ): [string, ...number[]][] | null {
   if (anchors.length < 2) return null
   const S = scale
-  const cmds: [string, ...number[]][] = [
-    ['M', anchors[0]!.x * S, anchors[0]!.y * S],
-  ]
+  const cmds: [string, ...number[]][] = [['M', anchors[0]!.x * S, anchors[0]!.y * S]]
   const segCount = closed ? anchors.length : anchors.length - 1
   for (let i = 0; i < segCount; i++) {
     const a = anchors[i]!
@@ -214,11 +209,10 @@ export function splitPenBezierSegment(
   const p1 = ctrlOutAbs(a)
   const p2 = ctrlInAbs(b)
   const p3: [number, number] = [b.x, b.y]
-  const lerp = (
-    u: [number, number],
-    v: [number, number],
-    k: number,
-  ): [number, number] => [u[0] + (v[0] - u[0]) * k, u[1] + (v[1] - u[1]) * k]
+  const lerp = (u: [number, number], v: [number, number], k: number): [number, number] => [
+    u[0] + (v[0] - u[0]) * k,
+    u[1] + (v[1] - u[1]) * k,
+  ]
   const q0 = lerp(p0, p1, tc)
   const q1 = lerp(p1, p2, tc)
   const q2 = lerp(p2, p3, tc)
@@ -226,7 +220,7 @@ export function splitPenBezierSegment(
   const r1 = lerp(q1, q2, tc)
   const s = lerp(r0, r1, tc)
 
-  const out = anchors.map((x) => ({ ...x }))
+  const out = anchors.map(x => ({ ...x }))
   const A = out[segmentIndex]!
   const B = out[bIndex]!
 

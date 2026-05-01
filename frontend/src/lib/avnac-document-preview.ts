@@ -13,10 +13,7 @@ function trimPreviewCache() {
   }
 }
 
-export function avnacDocumentPreviewCacheKey(
-  persistId: string,
-  updatedAt: number,
-): string {
+export function avnacDocumentPreviewCacheKey(persistId: string, updatedAt: number): string {
   return `${persistId}:${updatedAt}`
 }
 
@@ -38,15 +35,13 @@ export async function renderAvnacDocumentPreviewDataUrl(
   }
   const maxCssPx = options?.maxCssPx ?? 400
   const maxEdge = Math.max(doc.artboard.width, doc.artboard.height)
-  const multiplier =
-    maxEdge > 0 ? Math.max(1, Math.round(Math.min(3, maxCssPx / maxEdge))) : 1
+  const multiplier = maxEdge > 0 ? Math.max(1, Math.round(Math.min(3, maxCssPx / maxEdge))) : 1
 
   try {
-    const url = await renderAvnacDocumentToDataUrl(
-      doc,
-      loadVectorBoardDocs(persistId),
-      { multiplier, transparent: false },
-    )
+    const url = await renderAvnacDocumentToDataUrl(doc, loadVectorBoardDocs(persistId), {
+      multiplier,
+      transparent: false,
+    })
     if (cacheKey) {
       previewCache.set(cacheKey, url)
       trimPreviewCache()

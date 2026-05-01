@@ -1,15 +1,11 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ArrowDown01Icon,
   HelpCircleIcon,
   Image01Icon,
   TextFontIcon,
 } from '@hugeicons/core-free-icons'
-import type {
-  Dispatch,
-  RefObject,
-  SetStateAction,
-} from 'react'
+import { HugeiconsIcon } from '@hugeicons/react'
+import type { Dispatch, RefObject, SetStateAction } from 'react'
 
 import CanvasZoomSlider from '../canvas-zoom-slider'
 import ShapesPopover, {
@@ -94,7 +90,9 @@ export function EditorBottomTools({
               type="button"
               disabled={!ready}
               className={toolbarSplitBtn(!ready, { wide: true })}
-              onClick={() => addShapeFromKind(shapesQuickAddKind === 'generic' ? 'rect' : shapesQuickAddKind)}
+              onClick={() =>
+                addShapeFromKind(shapesQuickAddKind === 'generic' ? 'rect' : shapesQuickAddKind)
+              }
               aria-label="Add shape"
               title="Add shape"
             >
@@ -108,7 +106,7 @@ export function EditorBottomTools({
               type="button"
               disabled={!ready}
               className={toolbarSplitBtn(!ready)}
-              onClick={() => setShapesPopoverOpen((open) => !open)}
+              onClick={() => setShapesPopoverOpen(open => !open)}
               aria-expanded={shapesPopoverOpen}
               aria-haspopup="menu"
               aria-label="More shapes"
@@ -120,7 +118,7 @@ export function EditorBottomTools({
               disabled={!ready}
               anchorRef={shapeToolSplitRef}
               onClose={() => setShapesPopoverOpen(false)}
-              onPick={(kind) => {
+              onPick={kind => {
                 setShapesQuickAddKind(kind)
                 addShapeFromKind(kind)
                 setShapesPopoverOpen(false)

@@ -1,7 +1,4 @@
-import {
-  samplePenAnchorsToPolyline,
-  type VectorPenAnchor,
-} from './avnac-vector-pen-bezier'
+import { samplePenAnchorsToPolyline, type VectorPenAnchor } from './avnac-vector-pen-bezier'
 
 export const VECTOR_BOARD_DOC_VERSION = 2 as const
 
@@ -9,13 +6,7 @@ export const AVNAC_VECTOR_BOARD_DRAG_MIME = 'application/avnac-vector-board'
 
 export type { VectorPenAnchor }
 
-export type VectorStrokeKind =
-  | 'pen'
-  | 'line'
-  | 'rect'
-  | 'ellipse'
-  | 'arrow'
-  | 'polygon'
+export type VectorStrokeKind = 'pen' | 'line' | 'rect' | 'ellipse' | 'arrow' | 'polygon'
 
 export type VectorBoardStroke = {
   id: string
@@ -83,8 +74,7 @@ function parsePenAnchors(raw: unknown): VectorPenAnchor[] | undefined {
     const y = typeof o.y === 'number' ? o.y : Number.NaN
     if (!Number.isFinite(x) || !Number.isFinite(y)) continue
     const a: VectorPenAnchor = { x, y }
-    const num = (k: string) =>
-      typeof o[k] === 'number' ? (o[k] as number) : undefined
+    const num = (k: string) => (typeof o[k] === 'number' ? (o[k] as number) : undefined)
     const ix = num('inX')
     const iy = num('inY')
     const ox = num('outX')
@@ -108,17 +98,13 @@ function strokeFromUnknown(s: Record<string, unknown>): VectorBoardStroke | null
   const points = Array.isArray(pointsRaw)
     ? (pointsRaw as unknown[]).filter(
         (p): p is [number, number] =>
-          Array.isArray(p) &&
-          p.length >= 2 &&
-          typeof p[0] === 'number' &&
-          typeof p[1] === 'number',
+          Array.isArray(p) && p.length >= 2 && typeof p[0] === 'number' && typeof p[1] === 'number',
       )
     : []
   if (points.length === 0 && (!penAnchors || penAnchors.length < 2)) return null
   const id = typeof s.id === 'string' ? s.id : crypto.randomUUID()
   const stroke = typeof s.stroke === 'string' ? s.stroke : '#1a1a1a'
-  const strokeWidthN =
-    typeof s.strokeWidthN === 'number' ? s.strokeWidthN : 0
+  const strokeWidthN = typeof s.strokeWidthN === 'number' ? s.strokeWidthN : 0
   const kind = (typeof s.kind === 'string' ? s.kind : 'pen') as VectorStrokeKind
   const fill = typeof s.fill === 'string' ? s.fill : ''
   const row: VectorBoardStroke = {
@@ -137,7 +123,7 @@ function strokeFromUnknown(s: Record<string, unknown>): VectorBoardStroke | null
 function migrateV1ToV2(raw: VectorBoardDocumentV1): VectorBoardDocument {
   const layer = createVectorBoardLayer('Layer 1')
   layer.strokes = raw.strokes
-    .map((s) =>
+    .map(s =>
       strokeFromUnknown({
         ...s,
         kind: 'pen',
@@ -165,18 +151,15 @@ export function migrateVectorBoardDocument(raw: unknown): VectorBoardDocument {
       const visible = typeof L.visible === 'boolean' ? L.visible : true
       const strokesRaw = Array.isArray(L.strokes) ? L.strokes : []
       const strokes = strokesRaw
-        .map((s) =>
-          s && typeof s === 'object'
-            ? strokeFromUnknown(s as Record<string, unknown>)
-            : null,
+        .map(s =>
+          s && typeof s === 'object' ? strokeFromUnknown(s as Record<string, unknown>) : null,
         )
         .filter((x): x is VectorBoardStroke => x != null)
       layers.push({ id, name, visible, strokes })
     }
     if (layers.length === 0) return emptyVectorBoardDocument()
-    let activeLayerId =
-      typeof o.activeLayerId === 'string' ? o.activeLayerId : layers[0]!.id
-    if (!layers.some((l) => l.id === activeLayerId)) {
+    let activeLayerId = typeof o.activeLayerId === 'string' ? o.activeLayerId : layers[0]!.id
+    if (!layers.some(l => l.id === activeLayerId)) {
       activeLayerId = layers[0]!.id
     }
     return { v: VECTOR_BOARD_DOC_VERSION, layers, activeLayerId }
@@ -190,18 +173,16 @@ export function migrateVectorBoardDocument(raw: unknown): VectorBoardDocument {
   return emptyVectorBoardDocument()
 }
 
-export function getActiveLayer(
-  doc: VectorBoardDocument,
-): VectorBoardLayer | undefined {
-  return doc.layers.find((l) => l.id === doc.activeLayerId)
+export function getActiveLayer(doc: VectorBoardDocument): VectorBoardLayer | undefined {
+  return doc.layers.find(l => l.id === doc.activeLayerId)
 }
 
 export function flattenVisibleStrokes(doc: VectorBoardDocument): VectorBoardStroke[] {
-  return doc.layers.filter((l) => l.visible).flatMap((l) => l.strokes)
+  return doc.layers.filter(l => l.visible).flatMap(l => l.strokes)
 }
 
 export function vectorDocHasRenderableStrokes(doc: VectorBoardDocument): boolean {
-  return flattenVisibleStrokes(doc).some((s) => strokeIsRenderable(s))
+  return flattenVisibleStrokes(doc).some(s => strokeIsRenderable(s))
 }
 
 export function strokeIsRenderable(s: VectorBoardStroke): boolean {
@@ -210,23 +191,14 @@ export function strokeIsRenderable(s: VectorBoardStroke): boolean {
     return s.points.length >= 2
   }
   if (s.kind === 'polygon') return s.points.length >= 2
-  if (
-    s.kind === 'line' ||
-    s.kind === 'rect' ||
-    s.kind === 'ellipse' ||
-    s.kind === 'arrow'
-  ) {
+  if (s.kind === 'line' || s.kind === 'rect' || s.kind === 'ellipse' || s.kind === 'arrow') {
     return s.points.length >= 2
   }
   return false
 }
 
 /** Distance from normalized point to stroke (for eraser), in normalized space. */
-export function distanceToStroke(
-  nx: number,
-  ny: number,
-  s: VectorBoardStroke,
-): number {
+export function distanceToStroke(nx: number, ny: number, s: VectorBoardStroke): number {
   const pts = strokeToWorldPoints(s)
   if (pts.length < 2) return Infinity
   let best = Infinity
@@ -274,12 +246,7 @@ export const VECTOR_SELECT_HIT_NORM = 0.022
 /** True when outline should paint: visible stroke color and non-zero width (Canvas treats lineWidth 0 as a hairline). */
 export function vectorStrokeOutlineIsVisible(s: VectorBoardStroke): boolean {
   const wn = typeof s.strokeWidthN === 'number' ? s.strokeWidthN : 0
-  return (
-    Boolean(s.stroke) &&
-    s.stroke !== 'transparent' &&
-    Number.isFinite(wn) &&
-    wn > 0
-  )
+  return Boolean(s.stroke) && s.stroke !== 'transparent' && Number.isFinite(wn) && wn > 0
 }
 
 export function findTopStrokeAt(
@@ -307,16 +274,13 @@ export function translateVectorStroke(
   dx: number,
   dy: number,
 ): VectorBoardStroke {
-  const mapPt = (p: [number, number]): [number, number] => [
-    p[0] + dx,
-    p[1] + dy,
-  ]
+  const mapPt = (p: [number, number]): [number, number] => [p[0] + dx, p[1] + dy]
   const next: VectorBoardStroke = {
     ...s,
     points: s.points.map(mapPt),
   }
   if (s.penAnchors && s.penAnchors.length > 0) {
-    next.penAnchors = s.penAnchors.map((a) => ({
+    next.penAnchors = s.penAnchors.map(a => ({
       ...a,
       x: a.x + dx,
       y: a.y + dy,
@@ -345,7 +309,7 @@ export function scaleVectorStroke(
     points: s.points.map(mapPt),
   }
   if (s.penAnchors && s.penAnchors.length > 0) {
-    next.penAnchors = s.penAnchors.map((a) => ({
+    next.penAnchors = s.penAnchors.map(a => ({
       ...a,
       x: ax + (a.x - ax) * sx,
       y: ay + (a.y - ay) * sy,
@@ -371,14 +335,12 @@ export function applyTranslateStrokeInDoc(
 ): VectorBoardDocument {
   return {
     ...doc,
-    layers: doc.layers.map((L) =>
+    layers: doc.layers.map(L =>
       L.id !== layerId
         ? L
         : {
             ...L,
-            strokes: L.strokes.map((s) =>
-              s.id !== strokeId ? s : translateVectorStroke(s, dx, dy),
-            ),
+            strokes: L.strokes.map(s => (s.id !== strokeId ? s : translateVectorStroke(s, dx, dy))),
           },
     ),
   }
@@ -406,9 +368,9 @@ export function applyTranslateStrokesInDoc(
   const index = buildSelectionSet(selections)
   return {
     ...doc,
-    layers: doc.layers.map((L) => ({
+    layers: doc.layers.map(L => ({
       ...L,
-      strokes: L.strokes.map((s) =>
+      strokes: L.strokes.map(s =>
         index.has(`${L.id}:${s.id}`) ? translateVectorStroke(s, dx, dy) : s,
       ),
     })),
@@ -423,9 +385,9 @@ export function removeStrokesFromDoc(
   const index = buildSelectionSet(selections)
   return {
     ...doc,
-    layers: doc.layers.map((L) => ({
+    layers: doc.layers.map(L => ({
       ...L,
-      strokes: L.strokes.filter((s) => !index.has(`${L.id}:${s.id}`)),
+      strokes: L.strokes.filter(s => !index.has(`${L.id}:${s.id}`)),
     })),
   }
 }
@@ -447,7 +409,7 @@ export function getStrokesForSelections(
     const m = byLayer.get(L.id)!
     for (const s of L.strokes) {
       const key = `${L.id}:${s.id}`
-      if (!seen.has(key) && selections.some((sel) => sel.layerId === L.id && sel.strokeId === s.id)) {
+      if (!seen.has(key) && selections.some(sel => sel.layerId === L.id && sel.strokeId === s.id)) {
         out.push(m.get(s.id)!)
         seen.add(key)
       }
@@ -464,7 +426,7 @@ export function duplicateSelectionsInPlace(
   const index = buildSelectionSet(selections)
   const newSelections: DocStrokeSelection[] = []
   let mutated = false
-  const layers = doc.layers.map((L) => {
+  const layers = doc.layers.map(L => {
     const out: VectorBoardStroke[] = []
     for (const s of L.strokes) {
       out.push(s)
@@ -521,9 +483,9 @@ export function applyScaleStrokesInDoc(
   const index = buildSelectionSet(selections)
   return {
     ...doc,
-    layers: doc.layers.map((L) => ({
+    layers: doc.layers.map(L => ({
       ...L,
-      strokes: L.strokes.map((s) =>
+      strokes: L.strokes.map(s =>
         index.has(`${L.id}:${s.id}`) ? scaleVectorStroke(s, ax, ay, sx, sy) : s,
       ),
     })),
@@ -564,14 +526,14 @@ function reorderStrokesInLayer(
   op: ZOrderOp,
 ): VectorBoardStroke[] {
   if (strokes.length === 0) return strokes
-  const selectedInOrder = strokes.filter((s) => selectedIds.has(s.id))
+  const selectedInOrder = strokes.filter(s => selectedIds.has(s.id))
   if (selectedInOrder.length === 0) return strokes
   if (op === 'front') {
-    const rest = strokes.filter((s) => !selectedIds.has(s.id))
+    const rest = strokes.filter(s => !selectedIds.has(s.id))
     return [...rest, ...selectedInOrder]
   }
   if (op === 'back') {
-    const rest = strokes.filter((s) => !selectedIds.has(s.id))
+    const rest = strokes.filter(s => !selectedIds.has(s.id))
     return [...selectedInOrder, ...rest]
   }
   const out = strokes.slice()
@@ -611,7 +573,7 @@ export function applyZOrderInDoc(
   }
   return {
     ...doc,
-    layers: doc.layers.map((L) => {
+    layers: doc.layers.map(L => {
       const ids = byLayer.get(L.id)
       if (!ids) return L
       return { ...L, strokes: reorderStrokesInLayer(L.strokes, ids, op) }
@@ -627,14 +589,12 @@ export function updateStrokeInDocFull(
 ): VectorBoardDocument {
   return {
     ...doc,
-    layers: doc.layers.map((L) =>
+    layers: doc.layers.map(L =>
       L.id !== layerId
         ? L
         : {
             ...L,
-            strokes: L.strokes.map((s) =>
-              s.id !== strokeId ? s : { ...s, ...patch },
-            ),
+            strokes: L.strokes.map(s => (s.id !== strokeId ? s : { ...s, ...patch })),
           },
     ),
   }
@@ -644,8 +604,8 @@ export function cloneVectorBoardStroke(stroke: VectorBoardStroke): VectorBoardSt
   return {
     ...stroke,
     id: crypto.randomUUID(),
-    points: stroke.points.map((p) => [p[0], p[1]] as [number, number]),
-    penAnchors: stroke.penAnchors?.map((a) => ({ ...a })),
+    points: stroke.points.map(p => [p[0], p[1]] as [number, number]),
+    penAnchors: stroke.penAnchors?.map(a => ({ ...a })),
   }
 }
 
@@ -656,10 +616,8 @@ export function removeStrokeFromDoc(
 ): VectorBoardDocument {
   return {
     ...doc,
-    layers: doc.layers.map((L) =>
-      L.id !== layerId
-        ? L
-        : { ...L, strokes: L.strokes.filter((s) => s.id !== strokeId) },
+    layers: doc.layers.map(L =>
+      L.id !== layerId ? L : { ...L, strokes: L.strokes.filter(s => s.id !== strokeId) },
     ),
   }
 }
@@ -669,22 +627,16 @@ export function insertStrokeCloneAfterInDoc(
   layerId: string,
   strokeId: string,
 ): { doc: VectorBoardDocument; newStrokeId: string } | null {
-  const L = doc.layers.find((l) => l.id === layerId)
+  const L = doc.layers.find(l => l.id === layerId)
   if (!L) return null
-  const i = L.strokes.findIndex((s) => s.id === strokeId)
+  const i = L.strokes.findIndex(s => s.id === strokeId)
   if (i < 0) return null
   const clone = cloneVectorBoardStroke(L.strokes[i]!)
-  const nextStrokes = [
-    ...L.strokes.slice(0, i + 1),
-    clone,
-    ...L.strokes.slice(i + 1),
-  ]
+  const nextStrokes = [...L.strokes.slice(0, i + 1), clone, ...L.strokes.slice(i + 1)]
   return {
     doc: {
       ...doc,
-      layers: doc.layers.map((l) =>
-        l.id === layerId ? { ...l, strokes: nextStrokes } : l,
-      ),
+      layers: doc.layers.map(l => (l.id === layerId ? { ...l, strokes: nextStrokes } : l)),
     },
     newStrokeId: clone.id,
   }
@@ -697,9 +649,9 @@ export function appendClonedStrokesToActiveLayer(
   dy: number,
 ): { doc: VectorBoardDocument; newStrokeIds: string[] } | null {
   const active = getActiveLayer(doc)
-  if (!active || !active.visible) return null
+  if (!active?.visible) return null
   const newStrokeIds: string[] = []
-  const newStrokes = strokes.map((s) => {
+  const newStrokes = strokes.map(s => {
     const c = cloneVectorBoardStroke(s)
     newStrokeIds.push(c.id)
     return translateVectorStroke(c, dx, dy)
@@ -707,19 +659,15 @@ export function appendClonedStrokesToActiveLayer(
   return {
     doc: {
       ...doc,
-      layers: doc.layers.map((L) =>
-        L.id !== active.id
-          ? L
-          : { ...L, strokes: [...L.strokes, ...newStrokes] },
+      layers: doc.layers.map(L =>
+        L.id !== active.id ? L : { ...L, strokes: [...L.strokes, ...newStrokes] },
       ),
     },
     newStrokeIds,
   }
 }
 
-export function parseVectorStrokeClipboardText(
-  text: string,
-): VectorBoardStroke[] | null {
+export function parseVectorStrokeClipboardText(text: string): VectorBoardStroke[] | null {
   let parsed: unknown
   try {
     parsed = JSON.parse(text)
@@ -728,8 +676,7 @@ export function parseVectorStrokeClipboardText(
   }
   if (!parsed || typeof parsed !== 'object') return null
   const o = parsed as Record<string, unknown>
-  if (o.avnacVectorStrokeClip !== true || o.v !== 1 || !Array.isArray(o.strokes))
-    return null
+  if (o.avnacVectorStrokeClip !== true || o.v !== 1 || !Array.isArray(o.strokes)) return null
   const out: VectorBoardStroke[] = []
   for (const row of o.strokes) {
     if (!row || typeof row !== 'object') continue
@@ -747,14 +694,12 @@ export function updateVectorStrokeInDoc(
 ): VectorBoardDocument {
   return {
     ...doc,
-    layers: doc.layers.map((L) =>
+    layers: doc.layers.map(L =>
       L.id !== layerId
         ? L
         : {
             ...L,
-            strokes: L.strokes.map((s) =>
-              s.id !== strokeId ? s : { ...s, ...patch },
-            ),
+            strokes: L.strokes.map(s => (s.id !== strokeId ? s : { ...s, ...patch })),
           },
     ),
   }
@@ -779,12 +724,7 @@ export function normBoundsForStroke(
   return { minX, minY, maxX, maxY }
 }
 
-function distToSegment(
-  px: number,
-  py: number,
-  a: [number, number],
-  b: [number, number],
-): number {
+function distToSegment(px: number, py: number, a: [number, number], b: [number, number]): number {
   const [ax, ay] = a
   const [bx, by] = b
   const abx = bx - ax
@@ -800,11 +740,7 @@ function distToSegment(
   return Math.hypot(px - qx, py - qy)
 }
 
-function pointInPolygon(
-  nx: number,
-  ny: number,
-  pts: [number, number][],
-): boolean {
+function pointInPolygon(nx: number, ny: number, pts: [number, number][]): boolean {
   if (pts.length < 3) return false
   let inside = false
   for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
@@ -814,20 +750,14 @@ function pointInPolygon(
     const yj = pts[j]![1]
     const denom = yj - yi
     if (Math.abs(denom) < 1e-18) continue
-    const intersect =
-      (yi > ny) !== (yj > ny) &&
-      nx < ((xj - xi) * (ny - yi)) / denom + xi
+    const intersect = yi > ny !== yj > ny && nx < ((xj - xi) * (ny - yi)) / denom + xi
     if (intersect) inside = !inside
   }
   return inside
 }
 
 /** Point inside rect / ellipse / closed polygon (normalized space). */
-function pointInClosedStroke(
-  s: VectorBoardStroke,
-  nx: number,
-  ny: number,
-): boolean {
+function pointInClosedStroke(s: VectorBoardStroke, nx: number, ny: number): boolean {
   if (s.kind === 'pen' && s.penClosed === true) {
     if (s.penAnchors && s.penAnchors.length >= 2) {
       const pts = samplePenAnchorsToPolyline(s.penAnchors, 48, true)
@@ -870,12 +800,7 @@ function pointInClosedStroke(
   return false
 }
 
-function strokeHitAtNorm(
-  nx: number,
-  ny: number,
-  s: VectorBoardStroke,
-  threshold: number,
-): boolean {
+function strokeHitAtNorm(nx: number, ny: number, s: VectorBoardStroke, threshold: number): boolean {
   const edge = distanceToStroke(nx, ny, s)
   const halfW = s.strokeWidthN * 0.5
   if (edge <= threshold + halfW) return true
@@ -898,19 +823,16 @@ export function fillTopClosedShapeAt(
     if (!layer.visible) continue
     const strokesRev = [...layer.strokes].reverse()
     for (const s of strokesRev) {
-      if (s.kind !== 'rect' && s.kind !== 'ellipse' && s.kind !== 'polygon')
-        continue
+      if (s.kind !== 'rect' && s.kind !== 'ellipse' && s.kind !== 'polygon') continue
       if (!pointInClosedStroke(s, nx, ny)) continue
       return {
         ...doc,
-        layers: doc.layers.map((L) =>
+        layers: doc.layers.map(L =>
           L.id !== layer.id
             ? L
             : {
                 ...L,
-                strokes: L.strokes.map((x) =>
-                  x.id !== s.id ? x : { ...x, fill: nextFill },
-                ),
+                strokes: L.strokes.map(x => (x.id !== s.id ? x : { ...x, fill: nextFill })),
               },
         ),
       }

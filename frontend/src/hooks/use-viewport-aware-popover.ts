@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useLayoutEffect,
-  useState,
-  type RefObject,
-} from 'react'
+import { type RefObject, useCallback, useLayoutEffect, useState } from 'react'
 
 export function measureViewportPopoverPlacement(
   anchor: HTMLElement,
@@ -33,8 +28,7 @@ export function measureViewportPopoverPlacement(
       else if (rootCx + w / 2 > window.innerWidth - pad)
         shiftX = window.innerWidth - pad - (rootCx + w / 2)
     } else {
-      if (pr.right > window.innerWidth - pad)
-        shiftX = window.innerWidth - pad - pr.right
+      if (pr.right > window.innerWidth - pad) shiftX = window.innerWidth - pad - pr.right
       else if (pr.left < pad) shiftX = pad - pr.left
     }
   }
@@ -70,8 +64,7 @@ export function measurePopoverPlacementInContainer(
       const w = pr.width
       const rootCx = rr.left + rr.width / 2
       if (rootCx - w / 2 < vr.left + pad) shiftX = vr.left + pad - (rootCx - w / 2)
-      else if (rootCx + w / 2 > vr.right - pad)
-        shiftX = vr.right - pad - (rootCx + w / 2)
+      else if (rootCx + w / 2 > vr.right - pad) shiftX = vr.right - pad - (rootCx + w / 2)
     } else if (horizontal === 'right') {
       if (pr.right > vr.right - pad) shiftX = vr.right - pad - pr.right
       else if (pr.left < vr.left + pad) shiftX = vr.left + pad - pr.left
@@ -95,12 +88,9 @@ export function measureHorizontalFlyoutInContainer(
   let shiftX = 0
   let shiftY = 0
   if (pr.right > vr.right - pad) shiftX += vr.right - pad - pr.right
-  if (pr.left + shiftX < vr.left + pad)
-    shiftX += vr.left + pad - (pr.left + shiftX)
-  if (pr.bottom + shiftY > vr.bottom - pad)
-    shiftY += vr.bottom - pad - (pr.bottom + shiftY)
-  if (pr.top + shiftY < vr.top + pad)
-    shiftY += vr.top + pad - (pr.top + shiftY)
+  if (pr.left + shiftX < vr.left + pad) shiftX += vr.left + pad - (pr.left + shiftX)
+  if (pr.bottom + shiftY > vr.bottom - pad) shiftY += vr.bottom - pad - (pr.bottom + shiftY)
+  if (pr.top + shiftY < vr.top + pad) shiftY += vr.top + pad - (pr.top + shiftY)
   return { shiftX, shiftY }
 }
 
@@ -121,10 +111,7 @@ export function useContainedHorizontalPopoverPlacement(
       const viewport = viewportRef.current
       const panel = pickPanel()
       if (!viewport || !panel) return
-      const { shiftX, shiftY } = measureHorizontalFlyoutInContainer(
-        viewport,
-        panel,
-      )
+      const { shiftX, shiftY } = measureHorizontalFlyoutInContainer(viewport, panel)
       setShift({ x: shiftX, y: shiftY })
     }
 
@@ -237,8 +224,6 @@ export function useStablePickPanel(
   lineTypePanelRef: RefObject<HTMLDivElement | null>,
 ): () => HTMLElement | null {
   return useCallback(() => {
-    return strokePanelOpen
-      ? strokePanelRef.current
-      : lineTypePanelRef.current
+    return strokePanelOpen ? strokePanelRef.current : lineTypePanelRef.current
   }, [strokePanelOpen, strokePanelRef, lineTypePanelRef])
 }

@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  getAvnacDocumentStorageKind,
-  parseAvnacDocument,
-} from '../lib/avnac-scene'
+import { getAvnacDocumentStorageKind, parseAvnacDocument } from '../lib/avnac-scene'
 
 describe('parseAvnacDocument', () => {
   it('detects current vs legacy stored document formats', () => {
@@ -173,11 +170,7 @@ describe('parseAvnacDocument', () => {
 
     expect(document).not.toBeNull()
     expect(document?.objects).toHaveLength(3)
-    expect(document?.objects.map((obj) => obj.type)).toEqual([
-      'image',
-      'rect',
-      'text',
-    ])
+    expect(document?.objects.map(obj => obj.type)).toEqual(['image', 'rect', 'text'])
     expect(document?.objects[0]).toMatchObject({
       id: 'legacy-qr',
       type: 'image',
@@ -195,11 +188,80 @@ describe('parseAvnacDocument', () => {
       fontWeight: 700,
       lineHeight: 1.16,
     })
-    expect(
-      (document?.objects[1] as { strokeWidth?: number } | undefined)?.strokeWidth,
-    ).toBeCloseTo(36.73, 2)
-    expect(
-      (document?.objects[2] as { fontSize?: number } | undefined)?.fontSize,
-    ).toBeCloseTo(225.9865, 4)
+    expect((document?.objects[1] as { strokeWidth?: number } | undefined)?.strokeWidth).toBeCloseTo(
+      36.73,
+      2,
+    )
+    expect((document?.objects[2] as { fontSize?: number } | undefined)?.fontSize).toBeCloseTo(
+      225.9865,
+      4,
+    )
+  })
+
+  it('defaults missing letter spacing to zero and preserves stored values', () => {
+    const document = parseAvnacDocument({
+      v: 2,
+      artboard: { width: 1200, height: 900 },
+      bg: { type: 'solid', color: '#ffffff' },
+      activePageId: '',
+      pages: [],
+      objects: [
+        {
+          id: 'text-default',
+          type: 'text',
+          x: 120,
+          y: 140,
+          width: 320,
+          height: 120,
+          rotation: 0,
+          opacity: 1,
+          visible: true,
+          locked: false,
+          blurPct: 0,
+          shadow: null,
+          text: 'Default spacing',
+          fill: { type: 'solid', color: '#171717' },
+          stroke: { type: 'solid', color: 'transparent' },
+          strokeWidth: 0,
+          fontFamily: 'Inter',
+          fontSize: 64,
+          lineHeight: 1.22,
+          fontWeight: 'normal',
+          fontStyle: 'normal',
+          underline: false,
+          textAlign: 'left',
+        },
+        {
+          id: 'text-spaced',
+          type: 'text',
+          x: 180,
+          y: 260,
+          width: 320,
+          height: 120,
+          rotation: 0,
+          opacity: 1,
+          visible: true,
+          locked: false,
+          blurPct: 0,
+          shadow: null,
+          text: 'Stored spacing',
+          fill: { type: 'solid', color: '#171717' },
+          stroke: { type: 'solid', color: 'transparent' },
+          strokeWidth: 0,
+          fontFamily: 'Inter',
+          fontSize: 64,
+          letterSpacing: 18,
+          lineHeight: 1.22,
+          fontWeight: 'normal',
+          fontStyle: 'normal',
+          underline: false,
+          textAlign: 'left',
+        },
+      ],
+    })
+
+    expect(document).not.toBeNull()
+    expect((document?.objects[0] as { letterSpacing?: number } | undefined)?.letterSpacing).toBe(0)
+    expect((document?.objects[1] as { letterSpacing?: number } | undefined)?.letterSpacing).toBe(18)
   })
 })

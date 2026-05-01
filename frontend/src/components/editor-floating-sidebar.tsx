@@ -1,7 +1,7 @@
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
 import { motion } from 'motion/react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { editorSidebarIcons, type EditorSidebarIconId } from '@/lib/editor-sidebar-icons'
+import { type EditorSidebarIconId, editorSidebarIcons } from '@/lib/editor-sidebar-icons'
 
 export type EditorSidebarPanelId = EditorSidebarIconId
 
@@ -66,19 +66,11 @@ type SidebarIndicatorState = {
   height: number
 }
 
-export default function EditorFloatingSidebar({
-  activePanel,
-  onSelectPanel,
-  disabled,
-}: Props) {
+export default function EditorFloatingSidebar({ activePanel, onSelectPanel, disabled }: Props) {
   const navRef = useRef<HTMLElement | null>(null)
-  const buttonRefs = useRef<
-    Partial<Record<EditorSidebarPanelId, HTMLButtonElement | null>>
-  >({})
+  const buttonRefs = useRef<Partial<Record<EditorSidebarPanelId, HTMLButtonElement | null>>>({})
   const [indicator, setIndicator] = useState<SidebarIndicatorState | null>(null)
-  const activeItem = activePanel
-    ? ITEMS.find((item) => item.id === activePanel) ?? null
-    : null
+  const activeItem = activePanel ? (ITEMS.find(item => item.id === activePanel) ?? null) : null
 
   useLayoutEffect(() => {
     if (!activeItem || activeItem.fancy) {
@@ -122,7 +114,7 @@ export default function EditorFloatingSidebar({
     const observer = new ResizeObserver(updateIndicator)
     const nav = navRef.current
     if (nav) observer.observe(nav)
-    Object.values(buttonRefs.current).forEach((button) => {
+    Object.values(buttonRefs.current).forEach(button => {
       if (button) observer.observe(button)
     })
     window.addEventListener('resize', updateIndicator)
@@ -159,14 +151,14 @@ export default function EditorFloatingSidebar({
           className="pointer-events-none absolute left-0 top-0 z-0 rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
         />
       ) : null}
-      {ITEMS.map((item) => {
+      {ITEMS.map(item => {
         const active = activePanel === item.id
         const icon = active ? item.activeIcon : item.icon
         if (item.fancy) {
           return (
             <button
               key={item.id}
-              ref={(node) => {
+              ref={node => {
                 buttonRefs.current[item.id] = node
               }}
               type="button"
@@ -193,7 +185,7 @@ export default function EditorFloatingSidebar({
         return (
           <button
             key={item.id}
-            ref={(node) => {
+            ref={node => {
               buttonRefs.current[item.id] = node
             }}
             type="button"

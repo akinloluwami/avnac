@@ -1,26 +1,13 @@
-import {
-  createContext,
-  useContext,
-  type ReactNode,
-  type SetStateAction,
-} from 'react'
+import { createContext, type ReactNode, type SetStateAction, useContext } from 'react'
 import { useStore } from 'zustand'
-import {
-  createStore,
-  type StoreApi,
-} from 'zustand/vanilla'
+import { createStore, type StoreApi } from 'zustand/vanilla'
 
-import {
-  syncActivePage,
-  type AvnacDocument,
-} from '../../lib/avnac-scene'
+import { type AvnacDocument, syncActivePage } from '../../lib/avnac-scene'
 
 type EditorSetter<T> = SetStateAction<T>
 
 function applySetter<T>(next: EditorSetter<T>, current: T) {
-  return typeof next === 'function'
-    ? (next as (value: T) => T)(current)
-    : next
+  return typeof next === 'function' ? (next as (value: T) => T)(current) : next
 }
 
 export type EditorStoreState = {
@@ -35,16 +22,13 @@ export type EditorStoreState = {
 export type EditorStoreApi = StoreApi<EditorStoreState>
 
 export function createEditorStore(initialDoc: AvnacDocument): EditorStoreApi {
-  return createStore<EditorStoreState>((set) => ({
+  return createStore<EditorStoreState>(set => ({
     doc: syncActivePage(initialDoc),
     hoveredId: null,
     selectedIds: [],
-    setDoc: (next) =>
-      set((state) => ({ doc: syncActivePage(applySetter(next, state.doc)) })),
-    setHoveredId: (next) =>
-      set((state) => ({ hoveredId: applySetter(next, state.hoveredId) })),
-    setSelectedIds: (next) =>
-      set((state) => ({ selectedIds: applySetter(next, state.selectedIds) })),
+    setDoc: next => set(state => ({ doc: syncActivePage(applySetter(next, state.doc)) })),
+    setHoveredId: next => set(state => ({ hoveredId: applySetter(next, state.hoveredId) })),
+    setSelectedIds: next => set(state => ({ selectedIds: applySetter(next, state.selectedIds) })),
   }))
 }
 
@@ -57,16 +41,10 @@ export function EditorStoreProvider({
   children: ReactNode
   store: EditorStoreApi
 }) {
-  return (
-    <EditorStoreContext.Provider value={store}>
-      {children}
-    </EditorStoreContext.Provider>
-  )
+  return <EditorStoreContext.Provider value={store}>{children}</EditorStoreContext.Provider>
 }
 
-export function useEditorStore<T>(
-  selector: (state: EditorStoreState) => T,
-): T {
+export function useEditorStore<T>(selector: (state: EditorStoreState) => T): T {
   const store = useContext(EditorStoreContext)
   if (!store) {
     throw new Error('useEditorStore must be used within EditorStoreProvider')

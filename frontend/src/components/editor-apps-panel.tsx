@@ -1,11 +1,7 @@
+import { ArrowLeft01Icon, Cancel01Icon, QrCodeIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import {
-  ArrowLeft01Icon,
-  Cancel01Icon,
-  QrCodeIcon,
-} from '@hugeicons/core-free-icons'
-import { useCallback, useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   editorSidebarPanelLeftClass,
   editorSidebarPanelTopClass,
@@ -31,10 +27,7 @@ const COLOR_DEFAULTS: QrColors = {
   light: '#ffffff',
 }
 
-function toQrDataUrl(
-  url: string,
-  colors: { dark: string; light: string },
-): Promise<string> {
+function toQrDataUrl(url: string, colors: { dark: string; light: string }): Promise<string> {
   return QRCode.toDataURL(url.trim(), {
     width: QR_EXPORT_PX,
     margin: QR_MARGIN,
@@ -78,7 +71,7 @@ export default function EditorAppsPanel({ open, onClose }: Props) {
     const timer = window.setTimeout(() => {
       const gen = ++previewGenRef.current
       void toQrDataUrl(t, qrColors).then(
-        (dataUrl) => {
+        dataUrl => {
           if (cancelled || gen !== previewGenRef.current) return
           setQrPreview(dataUrl)
           setQrError(null)
@@ -139,11 +132,7 @@ export default function EditorAppsPanel({ open, onClose }: Props) {
               onClick={() => setScreen('menu')}
               aria-label="Back to apps"
             >
-              <HugeiconsIcon
-                icon={ArrowLeft01Icon}
-                size={18}
-                strokeWidth={1.75}
-              />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={18} strokeWidth={1.75} />
             </button>
           ) : null}
           <span className="truncate text-sm font-semibold text-neutral-800">
@@ -174,9 +163,7 @@ export default function EditorAppsPanel({ open, onClose }: Props) {
               className="shrink-0 text-neutral-700"
             />
             <div className="min-w-0">
-              <div className="text-[13px] font-semibold text-neutral-900">
-                QR code
-              </div>
+              <div className="text-[13px] font-semibold text-neutral-900">QR code</div>
               <div className="text-[11.5px] text-neutral-500">
                 Encode a URL and place it on the artboard.
               </div>
@@ -190,7 +177,7 @@ export default function EditorAppsPanel({ open, onClose }: Props) {
             <input
               type="url"
               value={qrUrl}
-              onChange={(e) => setQrUrl(e.target.value)}
+              onChange={e => setQrUrl(e.target.value)}
               className="mt-1 h-10 w-full rounded-xl border border-black/[0.08] bg-white px-2.5 text-[13px] text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/45"
               placeholder="https://example.com"
               autoComplete="url"
@@ -200,9 +187,7 @@ export default function EditorAppsPanel({ open, onClose }: Props) {
 
           <details className="group rounded-xl border border-black/[0.08] bg-white">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-3 [&::-webkit-details-marker]:hidden">
-              <span className="text-[13px] font-semibold text-neutral-900">
-                Customize
-              </span>
+              <span className="text-[13px] font-semibold text-neutral-900">Customize</span>
               <span
                 className="flex size-7 shrink-0 items-center justify-center text-neutral-500 transition-transform duration-200 group-open:rotate-180"
                 aria-hidden
@@ -232,9 +217,7 @@ export default function EditorAppsPanel({ open, onClose }: Props) {
                   <input
                     type="color"
                     value={qrColors.light}
-                    onChange={(e) =>
-                      setQrColors((c) => ({ ...c, light: e.target.value }))
-                    }
+                    onChange={e => setQrColors(c => ({ ...c, light: e.target.value }))}
                     className="absolute inset-0 z-10 size-9 cursor-pointer opacity-0"
                     aria-label="QR background color"
                   />
@@ -250,9 +233,7 @@ export default function EditorAppsPanel({ open, onClose }: Props) {
                   <input
                     type="color"
                     value={qrColors.dark}
-                    onChange={(e) =>
-                      setQrColors((c) => ({ ...c, dark: e.target.value }))
-                    }
+                    onChange={e => setQrColors(c => ({ ...c, dark: e.target.value }))}
                     className="absolute inset-0 z-10 size-9 cursor-pointer opacity-0"
                     aria-label="QR foreground color"
                   />
@@ -265,9 +246,7 @@ export default function EditorAppsPanel({ open, onClose }: Props) {
             </div>
           </details>
 
-          {qrError ? (
-            <p className="text-[12px] text-red-600">{qrError}</p>
-          ) : null}
+          {qrError ? <p className="text-[12px] text-red-600">{qrError}</p> : null}
 
           {qrPreview ? (
             <div className="flex justify-center rounded-xl border border-black/[0.06] bg-white p-3">

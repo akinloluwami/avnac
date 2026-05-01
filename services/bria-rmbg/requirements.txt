@@ -1,0 +1,12 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+python-multipart==0.0.20
+pillow==11.3.0
+numpy==2.0.2
+torch==2.8.0
+torchvision==0.23.0
+transformers==4.57.6
+timm==1.0.26
+kornia==0.8.2
+safetensors==0.7.0
+huggingface_hub==0.36.2

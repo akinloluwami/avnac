@@ -6,11 +6,7 @@ export type ArtboardPreset = {
   height: number
 }
 
-export type ArtboardPresetCategory =
-  | 'general'
-  | 'social-media'
-  | 'presentation'
-  | 'print'
+export type ArtboardPresetCategory = 'general' | 'social-media' | 'presentation' | 'print'
 
 export const ARTBOARD_PRESETS: readonly ArtboardPreset[] = [
   {

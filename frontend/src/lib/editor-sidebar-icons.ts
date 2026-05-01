@@ -1,4 +1,3 @@
-import type { IconSvgElement } from '@hugeicons/react'
 import {
   AiMagicIcon,
   Album02Icon,
@@ -7,24 +6,16 @@ import {
   Layers02Icon,
   PenTool01Icon,
 } from '@hugeicons/core-free-icons'
+import type { IconSvgElement } from '@hugeicons/react'
 
-export type EditorSidebarIconId =
-  | 'layers'
-  | 'uploads'
-  | 'images'
-  | 'vector-board'
-  | 'apps'
-  | 'ai'
+export type EditorSidebarIconId = 'layers' | 'uploads' | 'images' | 'vector-board' | 'apps' | 'ai'
 
 export type EditorSidebarIconDefinition = {
   icon: IconSvgElement
   activeIcon: IconSvgElement
 }
 
-export type EditorSidebarIconSet = Record<
-  EditorSidebarIconId,
-  EditorSidebarIconDefinition
->
+export type EditorSidebarIconSet = Record<EditorSidebarIconId, EditorSidebarIconDefinition>
 
 /**
  * Default, contributor-friendly icon set.

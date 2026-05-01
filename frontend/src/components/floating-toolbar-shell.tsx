@@ -11,10 +11,7 @@ type ShellProps = {
 }
 
 export const FloatingToolbarShell = forwardRef<HTMLDivElement, ShellProps>(
-  function FloatingToolbarShell(
-    { children, className = '', role, 'aria-label': ariaLabel },
-    ref,
-  ) {
+  function FloatingToolbarShell({ children, className = '', role, 'aria-label': ariaLabel }, ref) {
     return (
       <div
         ref={ref}
@@ -39,10 +36,7 @@ export function FloatingToolbarDivider() {
   )
 }
 
-export function floatingToolbarIconButton(
-  active: boolean,
-  opts?: { wide?: boolean },
-): string {
+export function floatingToolbarIconButton(active: boolean, opts?: { wide?: boolean }): string {
   const base = opts?.wide
     ? 'flex h-8 min-w-[2.75rem] shrink-0 items-center justify-center gap-0.5 rounded-lg px-1.5 text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'
     : 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-600 outline-none transition-colors hover:bg-black/[0.06]'

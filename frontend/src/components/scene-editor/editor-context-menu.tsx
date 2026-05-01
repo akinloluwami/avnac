@@ -1,4 +1,3 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
   Copy01Icon,
   Delete02Icon,
@@ -8,6 +7,7 @@ import {
   SquareLock01Icon,
   SquareUnlock01Icon,
 } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 
 export type EditorContextMenuState = {
   x: number

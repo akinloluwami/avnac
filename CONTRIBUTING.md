@@ -33,6 +33,13 @@ cd backend
 npm install
 ```
 
+If you install both packages, you can also run the shared repo-level quality commands from the project root:
+
+```bash
+npm run lint
+npm run format:check
+```
+
 ## Run Locally
 
 Frontend:
@@ -59,7 +66,14 @@ git checkout -b fix/short-description
 
 2. Make your changes.
 
-3. Run the relevant tests or type checks before you commit.
+3. Run the relevant checks before you commit.
+
+```bash
+npm run lint
+npm run format:check
+```
+
+If you only changed one side of the app, you can run the same commands inside `frontend/` or `backend/`.
 
 ## Commit and Pull Request
 

@@ -1,10 +1,10 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import { Add01Icon, Cancel01Icon, Delete02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import {
   AVNAC_VECTOR_BOARD_DRAG_MIME,
   emptyVectorBoardDocument,
-  vectorDocHasRenderableStrokes,
   type VectorBoardDocument,
+  vectorDocHasRenderableStrokes,
 } from '../lib/avnac-vector-board-document'
 import type { AvnacVectorBoardMeta } from '../lib/avnac-vector-boards-storage'
 import {
@@ -46,9 +46,7 @@ export default function EditorVectorBoardPanel({
       aria-label="Vector boards"
     >
       <div className="flex items-center justify-between border-b border-black/[0.06] px-3 py-2">
-        <span className="text-sm font-semibold text-neutral-800">
-          Vector boards
-        </span>
+        <span className="text-sm font-semibold text-neutral-800">Vector boards</span>
         <button
           type="button"
           className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-600 hover:bg-black/[0.06]"
@@ -60,12 +58,10 @@ export default function EditorVectorBoardPanel({
       </div>
       <div className="flex max-h-[min(50vh,360px)] flex-col gap-2 overflow-auto p-2">
         {boards.length === 0 ? (
-          <p className="px-2 py-6 text-center text-sm text-neutral-500">
-            No vector boards yet.
-          </p>
+          <p className="px-2 py-6 text-center text-sm text-neutral-500">No vector boards yet.</p>
         ) : (
           <ul className="flex flex-col gap-1.5">
-            {boards.map((b) => {
+            {boards.map(b => {
               const doc = boardDocs[b.id] ?? emptyVectorBoardDocument()
               const hasContent = vectorDocHasRenderableStrokes(doc)
               return (
@@ -73,7 +69,7 @@ export default function EditorVectorBoardPanel({
                   <div className="flex items-center gap-2 rounded-xl border border-black/[0.06] bg-neutral-50/80 p-2">
                     <div
                       draggable={hasContent}
-                      onDragStart={(e) => {
+                      onDragStart={e => {
                         if (!hasContent) {
                           e.preventDefault()
                           return
@@ -110,7 +106,7 @@ export default function EditorVectorBoardPanel({
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-red-50 hover:text-red-600"
                       title="Delete vector board"
                       aria-label={`Delete ${b.name}`}
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation()
                         onDeleteBoard(b.id)
                       }}

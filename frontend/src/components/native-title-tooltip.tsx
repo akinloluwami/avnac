@@ -37,6 +37,8 @@ export default function NativeTitleTooltip() {
   const scheduledElRef = useRef<Element | null>(null)
   const activeTargetRef = useRef<Element | null>(null)
   const stashRef = useRef(new WeakMap<Element, string>())
+  const trackedElRef = useRef<Element | null>(null)
+  const titleObserverRef = useRef<MutationObserver | null>(null)
 
   useEffect(() => {
     const clearShowTimer = () => {
@@ -55,8 +57,35 @@ export default function NativeTitleTooltip() {
       }
     }
 
+    const stopTrackingTitle = () => {
+      titleObserverRef.current?.disconnect()
+      titleObserverRef.current = null
+      trackedElRef.current = null
+    }
+
+    const startTrackingTitle = (el: Element) => {
+      stopTrackingTitle()
+      trackedElRef.current = el
+      const observer = new MutationObserver(() => {
+        if (!document.contains(el)) {
+          hide()
+          return
+        }
+        const nextText = el.getAttribute('title')?.trim()
+        if (!nextText) return
+        stashRef.current.set(el, nextText)
+        el.removeAttribute('title')
+        if (activeTargetRef.current === el) {
+          setTip(positionTip(el, nextText))
+        }
+      })
+      observer.observe(el, { attributes: true, attributeFilter: ['title'] })
+      titleObserverRef.current = observer
+    }
+
     const hide = () => {
       clearShowTimer()
+      stopTrackingTitle()
       if (scheduledElRef.current) {
         restoreTitle(scheduledElRef.current)
         scheduledElRef.current = null
@@ -67,7 +96,7 @@ export default function NativeTitleTooltip() {
     }
 
     const stashTitle = (el: Element, text: string) => {
-      if (!stashRef.current.has(el)) stashRef.current.set(el, text)
+      stashRef.current.set(el, text)
       el.removeAttribute('title')
     }
 
@@ -81,15 +110,13 @@ export default function NativeTitleTooltip() {
 
     const scheduleShow = (el: Element, text: string) => {
       clearShowTimer()
-      if (
-        activeTargetRef.current &&
-        activeTargetRef.current !== el
-      ) {
+      if (activeTargetRef.current && activeTargetRef.current !== el) {
         restoreTitle(activeTargetRef.current)
         activeTargetRef.current = null
         setTip(null)
       }
       stashTitle(el, text)
+      startTrackingTitle(el)
       scheduledElRef.current = el
       showTimerRef.current = setTimeout(() => {
         showTimerRef.current = null
@@ -114,6 +141,7 @@ export default function NativeTitleTooltip() {
       if (scheduled) {
         if (!rel || !scheduled.contains(rel)) {
           clearShowTimer()
+          if (trackedElRef.current === scheduled) stopTrackingTitle()
           restoreTitle(scheduled)
           scheduledElRef.current = null
         }
@@ -141,6 +169,7 @@ export default function NativeTitleTooltip() {
       if (scheduled) {
         if (!rel || !scheduled.contains(rel)) {
           clearShowTimer()
+          if (trackedElRef.current === scheduled) stopTrackingTitle()
           restoreTitle(scheduled)
           scheduledElRef.current = null
         }
@@ -180,9 +209,7 @@ export default function NativeTitleTooltip() {
       style={{
         left: tip.left,
         top: tip.top,
-        transform: tip.placeAbove
-          ? 'translate(-50%, -100%)'
-          : 'translate(-50%, 0)',
+        transform: tip.placeAbove ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
       }}
       role="tooltip"
     >

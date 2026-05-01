@@ -1,8 +1,5 @@
 import type { VectorBoardDocument } from './avnac-vector-board-document'
-import {
-  emptyVectorBoardDocument,
-  migrateVectorBoardDocument,
-} from './avnac-vector-board-document'
+import { emptyVectorBoardDocument, migrateVectorBoardDocument } from './avnac-vector-board-document'
 
 export type AvnacVectorBoardMeta = {
   id: string
@@ -20,13 +17,12 @@ export function loadVectorBoards(persistId: string): AvnacVectorBoardMeta[] {
     const parsed = JSON.parse(raw) as unknown
     if (!Array.isArray(parsed)) return []
     return parsed
-      .map((row) => {
+      .map(row => {
         if (!row || typeof row !== 'object') return null
         const o = row as Record<string, unknown>
         const id = typeof o.id === 'string' ? o.id : null
         const name = typeof o.name === 'string' ? o.name : null
-        const createdAt =
-          typeof o.createdAt === 'number' ? o.createdAt : null
+        const createdAt = typeof o.createdAt === 'number' ? o.createdAt : null
         if (!id || !name || createdAt == null) return null
         return { id, name, createdAt } satisfies AvnacVectorBoardMeta
       })
@@ -36,10 +32,7 @@ export function loadVectorBoards(persistId: string): AvnacVectorBoardMeta[] {
   }
 }
 
-export function saveVectorBoards(
-  persistId: string,
-  boards: AvnacVectorBoardMeta[],
-) {
+export function saveVectorBoards(persistId: string, boards: AvnacVectorBoardMeta[]) {
   try {
     localStorage.setItem(keyFor(persistId), JSON.stringify(boards))
   } catch {
@@ -47,9 +40,7 @@ export function saveVectorBoards(
   }
 }
 
-export function loadVectorBoardDocs(
-  persistId: string,
-): Record<string, VectorBoardDocument> {
+export function loadVectorBoardDocs(persistId: string): Record<string, VectorBoardDocument> {
   try {
     const raw = localStorage.getItem(docsKeyFor(persistId))
     if (!raw) return {}
@@ -66,10 +57,7 @@ export function loadVectorBoardDocs(
   }
 }
 
-export function saveVectorBoardDocs(
-  persistId: string,
-  docs: Record<string, VectorBoardDocument>,
-) {
+export function saveVectorBoardDocs(persistId: string, docs: Record<string, VectorBoardDocument>) {
   try {
     localStorage.setItem(docsKeyFor(persistId), JSON.stringify(docs))
   } catch {

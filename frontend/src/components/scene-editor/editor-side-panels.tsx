@@ -1,11 +1,7 @@
-import {
-  emptyVectorBoardDocument,
-} from '../../lib/avnac-vector-board-document'
+import { emptyVectorBoardDocument } from '../../lib/avnac-vector-board-document'
 import EditorAiPanel from '../editor-ai-panel'
 import EditorAppsPanel from '../editor-apps-panel'
-import EditorFloatingSidebar, {
-  type EditorSidebarPanelId,
-} from '../editor-floating-sidebar'
+import EditorFloatingSidebar, { type EditorSidebarPanelId } from '../editor-floating-sidebar'
 import EditorImagesPanel from '../editor-images-panel'
 import EditorLayersPanel from '../editor-layers-panel'
 import EditorUploadsPanel from '../editor-uploads-panel'
@@ -50,10 +46,7 @@ export function EditorSidePanels({
   return (
     <>
       {ready ? (
-        <EditorFloatingSidebar
-          activePanel={activePanel}
-          onSelectPanel={onSelectPanel}
-        />
+        <EditorFloatingSidebar activePanel={activePanel} onSelectPanel={onSelectPanel} />
       ) : null}
 
       <EditorLayersPanel
@@ -67,14 +60,8 @@ export function EditorSidePanels({
         onReorder={onLayerReorder}
         onRenameLayer={onRenameLayer}
       />
-      <EditorUploadsPanel
-        open={ready && activePanel === 'uploads'}
-        onClose={onClosePanel}
-      />
-      <EditorImagesPanel
-        open={ready && activePanel === 'images'}
-        onClose={onClosePanel}
-      />
+      <EditorUploadsPanel open={ready && activePanel === 'uploads'} onClose={onClosePanel} />
+      <EditorImagesPanel open={ready && activePanel === 'images'} onClose={onClosePanel} />
       <EditorVectorBoardPanel
         open={ready && activePanel === 'vector-board'}
         onClose={onClosePanel}
@@ -84,20 +71,14 @@ export function EditorSidePanels({
         onOpenBoard={openVectorBoardWorkspace}
         onDeleteBoard={deleteVectorBoard}
       />
-      <EditorAppsPanel
-        open={ready && activePanel === 'apps'}
-        onClose={onClosePanel}
-      />
-      <EditorAiPanel
-        open={ready && activePanel === 'ai'}
-        onClose={onClosePanel}
-      />
+      <EditorAppsPanel open={ready && activePanel === 'apps'} onClose={onClosePanel} />
+      <EditorAiPanel open={ready && activePanel === 'ai'} onClose={onClosePanel} />
       {vectorWorkspaceId ? (
         <VectorBoardWorkspace
           open
           boardName={vectorWorkspaceName}
           document={boardDocs[vectorWorkspaceId] ?? emptyVectorBoardDocument()}
-          onDocumentChange={(next) => onVectorBoardDocumentChange(vectorWorkspaceId, next)}
+          onDocumentChange={next => onVectorBoardDocumentChange(vectorWorkspaceId, next)}
           onSave={closeVectorWorkspace}
           onSaveAndPlace={() => {
             placeActiveVectorBoardAtArtboardCenter()

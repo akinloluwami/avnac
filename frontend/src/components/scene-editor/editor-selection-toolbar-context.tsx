@@ -1,15 +1,6 @@
-import {
-  createContext,
-  useContext,
-  type ReactNode,
-  type RefObject,
-} from 'react'
+import { createContext, type ReactNode, type RefObject, useContext } from 'react'
 
-import type {
-  ArrowLineStyle,
-  ArrowPathType,
-  AvnacShapeMeta,
-} from '../../lib/avnac-shape-meta'
+import type { ArrowLineStyle, ArrowPathType, AvnacShapeMeta } from '../../lib/avnac-shape-meta'
 import type { BgValue } from '../background-popover'
 import type { TextFormatToolbarValues } from '../text-format-toolbar'
 
@@ -40,6 +31,7 @@ type SelectionToolbarState = {
   elementToolbarLockedDisplay: boolean
   hasObjectSelected: boolean
   imageCornerToolbar: SelectionImageCornerToolbar | null
+  imageRemovalState: 'idle' | 'running' | 'success'
   ready: boolean
   selectionEffectsFooterSlot: ReactNode
   shapeToolbarModel: SelectionShapeToolbarModel | null
@@ -60,6 +52,7 @@ type SelectionToolbarActions = {
   onArtboardResize: (width: number, height: number) => void
   onTextFormatChange: (next: Partial<TextFormatToolbarValues>) => void
   openImageCropModal: () => void
+  removeImageBackground: () => void
   toggleBackgroundPopover: () => void
 }
 
@@ -69,8 +62,7 @@ export type EditorSelectionToolbarContextValue = {
   state: SelectionToolbarState
 }
 
-const EditorSelectionToolbarContext =
-  createContext<EditorSelectionToolbarContextValue | null>(null)
+const EditorSelectionToolbarContext = createContext<EditorSelectionToolbarContextValue | null>(null)
 
 export function EditorSelectionToolbarProvider({
   children,
@@ -89,9 +81,7 @@ export function EditorSelectionToolbarProvider({
 export function useEditorSelectionToolbar() {
   const value = useContext(EditorSelectionToolbarContext)
   if (!value) {
-    throw new Error(
-      'useEditorSelectionToolbar must be used within EditorSelectionToolbarProvider',
-    )
+    throw new Error('useEditorSelectionToolbar must be used within EditorSelectionToolbarProvider')
   }
   return value
 }

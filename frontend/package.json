@@ -9,7 +9,11 @@
     "dev": "vite dev --port 3300",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "format:check": "biome check --linter-enabled=false --assist-enabled=false ."
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^1.0.16",
@@ -35,6 +39,7 @@
     "@hugeicons-pro/core-solid-rounded": "^4.1.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/devtools-vite": "latest",
     "@testing-library/dom": "^10.4.1",

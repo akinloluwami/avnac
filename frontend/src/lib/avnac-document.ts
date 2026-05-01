@@ -1,6 +1,9 @@
 export {
   AVNAC_DOC_VERSION,
   AVNAC_STORAGE_KEY,
+  type AvnacDocument,
+  type AvnacDocumentStorageKind,
+  type AvnacPage,
   activateAvnacPage,
   cloneAvnacDocument,
   cloneAvnacPage,
@@ -9,10 +12,6 @@ export {
   createEmptyAvnacPage,
   getAvnacDocumentStorageKind,
   parseAvnacDocument,
-  syncActivePage,
-  type AvnacDocumentStorageKind,
-  type AvnacDocument,
-  type AvnacPage,
   type SceneArrow,
   type SceneGroup,
   type SceneImage,
@@ -23,4 +22,5 @@ export {
   type SceneStar,
   type SceneText,
   type SceneVectorBoard,
+  syncActivePage,
 } from './avnac-scene'

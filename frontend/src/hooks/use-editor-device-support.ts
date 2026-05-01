@@ -10,9 +10,10 @@ function detectEditorUnsupportedOnThisDevice(): boolean {
   }
 
   const uaDataMobile = nav.userAgentData?.mobile === true
-  const uaMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(
-    navigator.userAgent,
-  )
+  const uaMobile =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(
+      navigator.userAgent,
+    )
   const coarseCompact =
     window.matchMedia('(max-width: 1024px) and (pointer: coarse)').matches ||
     (navigator.maxTouchPoints > 1 && window.innerWidth <= 1024)
@@ -21,9 +22,7 @@ function detectEditorUnsupportedOnThisDevice(): boolean {
 }
 
 export function useEditorUnsupportedOnThisDevice(): boolean {
-  const [unsupported, setUnsupported] = useState(() =>
-    detectEditorUnsupportedOnThisDevice(),
-  )
+  const [unsupported, setUnsupported] = useState(() => detectEditorUnsupportedOnThisDevice())
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 1024px) and (pointer: coarse)')

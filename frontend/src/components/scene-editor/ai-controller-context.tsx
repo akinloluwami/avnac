@@ -1,8 +1,4 @@
-import {
-  createContext,
-  useContext,
-  type ReactNode,
-} from 'react'
+import { createContext, type ReactNode, useContext } from 'react'
 
 import type { AiDesignController } from '../../lib/avnac-ai-controller'
 
@@ -15,11 +11,7 @@ export function AiControllerProvider({
   children: ReactNode
   controller: AiDesignController
 }) {
-  return (
-    <AiControllerContext.Provider value={controller}>
-      {children}
-    </AiControllerContext.Provider>
-  )
+  return <AiControllerContext.Provider value={controller}>{children}</AiControllerContext.Provider>
 }
 
 export function useAiController() {

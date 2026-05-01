@@ -1,4 +1,3 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
   AlignBottomIcon,
   AlignHorizontalCenterIcon,
@@ -14,20 +13,21 @@ import {
   GroupItemsIcon,
   Layers02Icon,
   More01Icon,
-  UngroupItemsIcon,
   SquareLock01Icon,
   SquareUnlock01Icon,
+  UngroupItemsIcon,
 } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import {
+  type CSSProperties,
   forwardRef,
+  type MutableRefObject,
+  type RefObject,
   useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
-  type CSSProperties,
-  type MutableRefObject,
-  type RefObject,
 } from 'react'
 import {
   measureHorizontalFlyoutInContainer,
@@ -41,13 +41,7 @@ import {
   floatingToolbarPopoverMenuClass,
 } from './floating-toolbar-shell'
 
-export type CanvasAlignKind =
-  | 'left'
-  | 'centerH'
-  | 'right'
-  | 'top'
-  | 'centerV'
-  | 'bottom'
+export type CanvasAlignKind = 'left' | 'centerH' | 'right' | 'top' | 'centerV' | 'bottom'
 
 const VIEWPORT_CONTAIN_PAD = 8
 
@@ -133,10 +127,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
     const morePanelRef = useRef<HTMLDivElement>(null)
     const alignElementsFlyoutRef = useRef<HTMLDivElement>(null)
     const alignPageFlyoutRef = useRef<HTMLDivElement>(null)
-    const pickMorePanel = useCallback(
-      () => morePanelRef.current,
-      [],
-    )
+    const pickMorePanel = useCallback(() => morePanelRef.current, [])
     const morePopoverShift = useContainedHorizontalPopoverPlacement(
       moreOpen,
       viewportRef,
@@ -182,10 +173,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
       }
       const prev = prevAnchorRef.current
       const anchorMoved =
-        !prev ||
-        prev.left !== cur.left ||
-        prev.top !== cur.top ||
-        prev.placement !== cur.placement
+        !prev || prev.left !== cur.left || prev.top !== cur.top || prev.placement !== cur.placement
       prevAnchorRef.current = cur
 
       if (anchorMoved) {
@@ -199,7 +187,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
       if (anchorMoved) {
         setViewportNudge({ x: d.x, y: d.y })
       } else if (d.x !== 0 || d.y !== 0) {
-        setViewportNudge((prevNudge) => ({
+        setViewportNudge(prevNudge => ({
           x: prevNudge.x + d.x,
           y: prevNudge.y + d.y,
         }))
@@ -213,7 +201,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
         const vr = vport.getBoundingClientRect()
         const delta = containmentDeltaForRect(r, vr, VIEWPORT_CONTAIN_PAD)
         if (Math.abs(delta.x) < 0.25 && Math.abs(delta.y) < 0.25) return
-        setViewportNudge((prevNudge) => ({
+        setViewportNudge(prevNudge => ({
           x: prevNudge.x + delta.x,
           y: prevNudge.y + delta.y,
         }))
@@ -255,10 +243,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
         if (alignElementsOpen) {
           const panel = alignElementsFlyoutRef.current
           if (panel) {
-            const { shiftX, shiftY } = measureHorizontalFlyoutInContainer(
-              viewport,
-              panel,
-            )
+            const { shiftX, shiftY } = measureHorizontalFlyoutInContainer(viewport, panel)
             setAlignElementsFlyoutShift({ x: shiftX, y: shiftY })
           }
         } else {
@@ -267,10 +252,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
         if (alignOpen) {
           const panel = alignPageFlyoutRef.current
           if (panel) {
-            const { shiftX, shiftY } = measureHorizontalFlyoutInContainer(
-              viewport,
-              panel,
-            )
+            const { shiftX, shiftY } = measureHorizontalFlyoutInContainer(viewport, panel)
             setAlignPageFlyoutShift({ x: shiftX, y: shiftY })
           }
         } else {
@@ -285,12 +267,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
         window.removeEventListener('resize', sync)
         window.removeEventListener('scroll', sync, true)
       }
-    }, [
-      moreOpen,
-      alignElementsOpen,
-      alignOpen,
-      viewportRef,
-    ])
+    }, [moreOpen, alignElementsOpen, alignOpen, viewportRef])
 
     useEffect(() => {
       if (!moreOpen && !alignOpen && !alignElementsOpen) return
@@ -332,27 +309,19 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
         }}
       >
         <FloatingToolbarShell role="toolbar" aria-label="Element actions">
-          <div
-            ref={moreWrapRef}
-            className="relative flex items-stretch overflow-visible"
-          >
+          <div ref={moreWrapRef} className="relative flex items-stretch overflow-visible">
             {locked ? (
               <button
                 type="button"
-                className={[
-                  floatingToolbarIconButton(true, { wide: true }),
-                  'gap-1.5 px-2.5',
-                ].join(' ')}
+                className={[floatingToolbarIconButton(true, { wide: true }), 'gap-1.5 px-2.5'].join(
+                  ' ',
+                )}
                 title="Unlock"
                 aria-label="Unlock"
                 aria-pressed={true}
                 onClick={onToggleLock}
               >
-                <HugeiconsIcon
-                  icon={SquareUnlock01Icon}
-                  size={18}
-                  strokeWidth={1.75}
-                />
+                <HugeiconsIcon icon={SquareUnlock01Icon} size={18} strokeWidth={1.75} />
                 <span className="text-[13px] font-medium">Unlock</span>
               </button>
             ) : (
@@ -369,11 +338,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
                       aria-label="Group selection"
                       onClick={onGroup}
                     >
-                      <HugeiconsIcon
-                        icon={GroupItemsIcon}
-                        size={18}
-                        strokeWidth={1.75}
-                      />
+                      <HugeiconsIcon icon={GroupItemsIcon} size={18} strokeWidth={1.75} />
                       <span className="text-[13px] font-medium">Group</span>
                     </button>
                     <FloatingToolbarDivider />
@@ -391,11 +356,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
                       aria-label="Ungroup selection"
                       onClick={onUngroup}
                     >
-                      <HugeiconsIcon
-                        icon={UngroupItemsIcon}
-                        size={18}
-                        strokeWidth={1.75}
-                      />
+                      <HugeiconsIcon icon={UngroupItemsIcon} size={18} strokeWidth={1.75} />
                       <span className="text-[13px] font-medium">Ungroup</span>
                     </button>
                     <FloatingToolbarDivider />
@@ -408,11 +369,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
                   aria-label="Duplicate"
                   onClick={onDuplicate}
                 >
-                  <HugeiconsIcon
-                    icon={Layers02Icon}
-                    size={18}
-                    strokeWidth={1.75}
-                  />
+                  <HugeiconsIcon icon={Layers02Icon} size={18} strokeWidth={1.75} />
                 </button>
                 <button
                   type="button"
@@ -422,11 +379,7 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
                   aria-pressed={false}
                   onClick={onToggleLock}
                 >
-                  <HugeiconsIcon
-                    icon={SquareLock01Icon}
-                    size={18}
-                    strokeWidth={1.75}
-                  />
+                  <HugeiconsIcon icon={SquareLock01Icon} size={18} strokeWidth={1.75} />
                 </button>
                 <button
                   type="button"
@@ -435,388 +388,383 @@ const CanvasElementToolbar = forwardRef<HTMLDivElement, CanvasElementToolbarProp
                   aria-label="Delete"
                   onClick={onDelete}
                 >
-                  <HugeiconsIcon
-                    icon={Delete02Icon}
-                    size={18}
-                    strokeWidth={1.75}
-                  />
+                  <HugeiconsIcon icon={Delete02Icon} size={18} strokeWidth={1.75} />
                 </button>
                 <FloatingToolbarDivider />
                 <div className="relative flex items-center pr-1">
-              <button
-                type="button"
-                className={floatingToolbarIconButton(moreOpen)}
-                title="More options"
-                aria-label="More options"
-                aria-expanded={moreOpen}
-                aria-haspopup="menu"
-                onClick={() => {
-                  setMoreOpen((o) => !o)
-                  setAlignOpen(false)
-                  setAlignElementsOpen(false)
-                }}
-              >
-                <HugeiconsIcon icon={More01Icon} size={18} strokeWidth={1.75} />
-              </button>
-              {moreOpen ? (
-                <div
-                  ref={morePanelRef}
-                  role="menu"
-                  className={[
-                    'absolute left-0 top-full z-[60] mt-1.5 min-w-[11rem] py-1',
-                    floatingToolbarPopoverMenuClass,
-                  ].join(' ')}
-                  style={{
-                    transform:
-                      morePopoverShift.x !== 0 || morePopoverShift.y !== 0
-                        ? `translate(${morePopoverShift.x}px, ${morePopoverShift.y}px)`
-                        : undefined,
-                  }}
-                >
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-medium text-neutral-800 hover:bg-black/[0.05]"
-                  onClick={() => {
-                    onCopy()
-                    setMoreOpen(false)
-                  }}
-                >
-                  <HugeiconsIcon
-                    icon={Copy01Icon}
-                    size={18}
-                    strokeWidth={1.75}
-                    className="shrink-0 text-neutral-600"
-                  />
-                  Copy
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-medium text-neutral-800 hover:bg-black/[0.05]"
-                  onClick={() => {
-                    void onPaste()
-                    setMoreOpen(false)
-                  }}
-                >
-                  <HugeiconsIcon
-                    icon={FilePasteIcon}
-                    size={18}
-                    strokeWidth={1.75}
-                    className="shrink-0 text-neutral-600"
-                  />
-                  Paste
-                </button>
-                <div className="my-1 h-px bg-black/[0.06]" aria-hidden />
-                {canAlignElements ? (
-                  <div className="relative w-full shrink-0">
-                    <button
-                      type="button"
-                      className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[13px] font-medium text-neutral-800 hover:bg-black/[0.05]"
-                      aria-expanded={alignElementsOpen}
-                      onClick={() => {
-                        setAlignElementsOpen((a) => !a)
-                        setAlignOpen(false)
-                      }}
-                    >
-                      <span className="flex items-center gap-2">
-                        <HugeiconsIcon
-                          icon={AlignSelectionIcon}
-                          size={18}
-                          strokeWidth={1.75}
-                          className="shrink-0 text-neutral-600"
-                        />
-                        Align elements
-                      </span>
-                      <HugeiconsIcon
-                        icon={ArrowRight01Icon}
-                        size={14}
-                        strokeWidth={1.75}
-                        className={`shrink-0 transition-transform ${alignElementsOpen ? 'rotate-180' : ''}`}
-                      />
-                    </button>
-                    {alignElementsOpen ? (
-                      <div
-                        ref={alignElementsFlyoutRef}
-                        role="menu"
-                        className={[
-                          'absolute left-full top-0 z-[61] ml-1.5 min-w-[10.5rem] py-1',
-                          floatingToolbarPopoverClass,
-                        ].join(' ')}
-                        style={{
-                          transform:
-                            alignElementsFlyoutShift.x !== 0 ||
-                            alignElementsFlyoutShift.y !== 0
-                              ? `translate(${alignElementsFlyoutShift.x}px, ${alignElementsFlyoutShift.y}px)`
-                              : undefined,
-                        }}
-                      >
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
-                          onClick={() => {
-                            onAlignElements('left')
-                            setAlignElementsOpen(false)
-                            setMoreOpen(false)
-                          }}
-                        >
-                          <HugeiconsIcon
-                            icon={AlignLeftIcon}
-                            size={16}
-                            strokeWidth={1.75}
-                            className="text-neutral-600"
-                          />
-                          Left
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
-                          onClick={() => {
-                            onAlignElements('centerH')
-                            setAlignElementsOpen(false)
-                            setMoreOpen(false)
-                          }}
-                        >
-                          <HugeiconsIcon
-                            icon={AlignHorizontalCenterIcon}
-                            size={16}
-                            strokeWidth={1.75}
-                            className="text-neutral-600"
-                          />
-                          Center
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
-                          onClick={() => {
-                            onAlignElements('right')
-                            setAlignElementsOpen(false)
-                            setMoreOpen(false)
-                          }}
-                        >
-                          <HugeiconsIcon
-                            icon={AlignRightIcon}
-                            size={16}
-                            strokeWidth={1.75}
-                            className="text-neutral-600"
-                          />
-                          Right
-                        </button>
-                        <div className="my-1 h-px bg-black/[0.06]" aria-hidden />
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
-                          onClick={() => {
-                            onAlignElements('top')
-                            setAlignElementsOpen(false)
-                            setMoreOpen(false)
-                          }}
-                        >
-                          <HugeiconsIcon
-                            icon={AlignTopIcon}
-                            size={16}
-                            strokeWidth={1.75}
-                            className="text-neutral-600"
-                          />
-                          Top
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
-                          onClick={() => {
-                            onAlignElements('centerV')
-                            setAlignElementsOpen(false)
-                            setMoreOpen(false)
-                          }}
-                        >
-                          <HugeiconsIcon
-                            icon={AlignVerticalCenterIcon}
-                            size={16}
-                            strokeWidth={1.75}
-                            className="text-neutral-600"
-                          />
-                          Middle
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
-                          onClick={() => {
-                            onAlignElements('bottom')
-                            setAlignElementsOpen(false)
-                            setMoreOpen(false)
-                          }}
-                        >
-                          <HugeiconsIcon
-                            icon={AlignBottomIcon}
-                            size={16}
-                            strokeWidth={1.75}
-                            className="text-neutral-600"
-                          />
-                          Bottom
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-                <div className="relative w-full shrink-0">
                   <button
                     type="button"
-                    className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[13px] font-medium text-neutral-800 hover:bg-black/[0.05]"
-                    aria-expanded={alignOpen}
+                    className={floatingToolbarIconButton(moreOpen)}
+                    title="More options"
+                    aria-label="More options"
+                    aria-expanded={moreOpen}
+                    aria-haspopup="menu"
                     onClick={() => {
-                      setAlignOpen((a) => !a)
+                      setMoreOpen(o => !o)
+                      setAlignOpen(false)
                       setAlignElementsOpen(false)
                     }}
                   >
-                    <span>Align to page</span>
-                    <HugeiconsIcon
-                      icon={ArrowRight01Icon}
-                      size={14}
-                      strokeWidth={1.75}
-                      className={`shrink-0 transition-transform ${alignOpen ? 'rotate-180' : ''}`}
-                    />
+                    <HugeiconsIcon icon={More01Icon} size={18} strokeWidth={1.75} />
                   </button>
-                  {alignOpen ? (
+                  {moreOpen ? (
                     <div
-                      ref={alignPageFlyoutRef}
+                      ref={morePanelRef}
                       role="menu"
                       className={[
-                        'absolute left-full top-0 z-[61] ml-1.5 min-w-[11rem] py-1',
-                        floatingToolbarPopoverClass,
+                        'absolute left-0 top-full z-[60] mt-1.5 min-w-[11rem] py-1',
+                        floatingToolbarPopoverMenuClass,
                       ].join(' ')}
                       style={{
                         transform:
-                          alignPageFlyoutShift.x !== 0 ||
-                          alignPageFlyoutShift.y !== 0
-                            ? `translate(${alignPageFlyoutShift.x}px, ${alignPageFlyoutShift.y}px)`
+                          morePopoverShift.x !== 0 || morePopoverShift.y !== 0
+                            ? `translate(${morePopoverShift.x}px, ${morePopoverShift.y}px)`
                             : undefined,
                       }}
                     >
                       <button
                         type="button"
                         role="menuitem"
-                        disabled={alignAlreadySatisfied.left}
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-medium text-neutral-800 hover:bg-black/[0.05]"
                         onClick={() => {
-                          onAlign('left')
-                          setAlignOpen(false)
+                          onCopy()
                           setMoreOpen(false)
                         }}
                       >
                         <HugeiconsIcon
-                          icon={AlignLeftIcon}
-                          size={16}
+                          icon={Copy01Icon}
+                          size={18}
                           strokeWidth={1.75}
-                          className="text-neutral-600"
+                          className="shrink-0 text-neutral-600"
                         />
-                        Left
+                        Copy
                       </button>
                       <button
                         type="button"
                         role="menuitem"
-                        disabled={alignAlreadySatisfied.centerH}
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-medium text-neutral-800 hover:bg-black/[0.05]"
                         onClick={() => {
-                          onAlign('centerH')
-                          setAlignOpen(false)
+                          void onPaste()
                           setMoreOpen(false)
                         }}
                       >
                         <HugeiconsIcon
-                          icon={AlignHorizontalCenterIcon}
-                          size={16}
+                          icon={FilePasteIcon}
+                          size={18}
                           strokeWidth={1.75}
-                          className="text-neutral-600"
+                          className="shrink-0 text-neutral-600"
                         />
-                        Center horizontally
+                        Paste
                       </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        disabled={alignAlreadySatisfied.right}
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
-                        onClick={() => {
-                          onAlign('right')
-                          setAlignOpen(false)
-                          setMoreOpen(false)
-                        }}
-                      >
-                        <HugeiconsIcon
-                          icon={AlignRightIcon}
-                          size={16}
-                          strokeWidth={1.75}
-                          className="text-neutral-600"
-                        />
-                        Right
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        disabled={alignAlreadySatisfied.top}
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
-                        onClick={() => {
-                          onAlign('top')
-                          setAlignOpen(false)
-                          setMoreOpen(false)
-                        }}
-                      >
-                        <HugeiconsIcon
-                          icon={AlignTopIcon}
-                          size={16}
-                          strokeWidth={1.75}
-                          className="text-neutral-600"
-                        />
-                        Top
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        disabled={alignAlreadySatisfied.centerV}
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
-                        onClick={() => {
-                          onAlign('centerV')
-                          setAlignOpen(false)
-                          setMoreOpen(false)
-                        }}
-                      >
-                        <HugeiconsIcon
-                          icon={AlignVerticalCenterIcon}
-                          size={16}
-                          strokeWidth={1.75}
-                          className="text-neutral-600"
-                        />
-                        Center vertically
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        disabled={alignAlreadySatisfied.bottom}
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
-                        onClick={() => {
-                          onAlign('bottom')
-                          setAlignOpen(false)
-                          setMoreOpen(false)
-                        }}
-                      >
-                        <HugeiconsIcon
-                          icon={AlignBottomIcon}
-                          size={16}
-                          strokeWidth={1.75}
-                          className="text-neutral-600"
-                        />
-                        Bottom
-                      </button>
+                      <div className="my-1 h-px bg-black/[0.06]" aria-hidden />
+                      {canAlignElements ? (
+                        <div className="relative w-full shrink-0">
+                          <button
+                            type="button"
+                            className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[13px] font-medium text-neutral-800 hover:bg-black/[0.05]"
+                            aria-expanded={alignElementsOpen}
+                            onClick={() => {
+                              setAlignElementsOpen(a => !a)
+                              setAlignOpen(false)
+                            }}
+                          >
+                            <span className="flex items-center gap-2">
+                              <HugeiconsIcon
+                                icon={AlignSelectionIcon}
+                                size={18}
+                                strokeWidth={1.75}
+                                className="shrink-0 text-neutral-600"
+                              />
+                              Align elements
+                            </span>
+                            <HugeiconsIcon
+                              icon={ArrowRight01Icon}
+                              size={14}
+                              strokeWidth={1.75}
+                              className={`shrink-0 transition-transform ${alignElementsOpen ? 'rotate-180' : ''}`}
+                            />
+                          </button>
+                          {alignElementsOpen ? (
+                            <div
+                              ref={alignElementsFlyoutRef}
+                              role="menu"
+                              className={[
+                                'absolute left-full top-0 z-[61] ml-1.5 min-w-[10.5rem] py-1',
+                                floatingToolbarPopoverClass,
+                              ].join(' ')}
+                              style={{
+                                transform:
+                                  alignElementsFlyoutShift.x !== 0 ||
+                                  alignElementsFlyoutShift.y !== 0
+                                    ? `translate(${alignElementsFlyoutShift.x}px, ${alignElementsFlyoutShift.y}px)`
+                                    : undefined,
+                              }}
+                            >
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
+                                onClick={() => {
+                                  onAlignElements('left')
+                                  setAlignElementsOpen(false)
+                                  setMoreOpen(false)
+                                }}
+                              >
+                                <HugeiconsIcon
+                                  icon={AlignLeftIcon}
+                                  size={16}
+                                  strokeWidth={1.75}
+                                  className="text-neutral-600"
+                                />
+                                Left
+                              </button>
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
+                                onClick={() => {
+                                  onAlignElements('centerH')
+                                  setAlignElementsOpen(false)
+                                  setMoreOpen(false)
+                                }}
+                              >
+                                <HugeiconsIcon
+                                  icon={AlignHorizontalCenterIcon}
+                                  size={16}
+                                  strokeWidth={1.75}
+                                  className="text-neutral-600"
+                                />
+                                Center
+                              </button>
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
+                                onClick={() => {
+                                  onAlignElements('right')
+                                  setAlignElementsOpen(false)
+                                  setMoreOpen(false)
+                                }}
+                              >
+                                <HugeiconsIcon
+                                  icon={AlignRightIcon}
+                                  size={16}
+                                  strokeWidth={1.75}
+                                  className="text-neutral-600"
+                                />
+                                Right
+                              </button>
+                              <div className="my-1 h-px bg-black/[0.06]" aria-hidden />
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
+                                onClick={() => {
+                                  onAlignElements('top')
+                                  setAlignElementsOpen(false)
+                                  setMoreOpen(false)
+                                }}
+                              >
+                                <HugeiconsIcon
+                                  icon={AlignTopIcon}
+                                  size={16}
+                                  strokeWidth={1.75}
+                                  className="text-neutral-600"
+                                />
+                                Top
+                              </button>
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
+                                onClick={() => {
+                                  onAlignElements('centerV')
+                                  setAlignElementsOpen(false)
+                                  setMoreOpen(false)
+                                }}
+                              >
+                                <HugeiconsIcon
+                                  icon={AlignVerticalCenterIcon}
+                                  size={16}
+                                  strokeWidth={1.75}
+                                  className="text-neutral-600"
+                                />
+                                Middle
+                              </button>
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05]"
+                                onClick={() => {
+                                  onAlignElements('bottom')
+                                  setAlignElementsOpen(false)
+                                  setMoreOpen(false)
+                                }}
+                              >
+                                <HugeiconsIcon
+                                  icon={AlignBottomIcon}
+                                  size={16}
+                                  strokeWidth={1.75}
+                                  className="text-neutral-600"
+                                />
+                                Bottom
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+                      <div className="relative w-full shrink-0">
+                        <button
+                          type="button"
+                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[13px] font-medium text-neutral-800 hover:bg-black/[0.05]"
+                          aria-expanded={alignOpen}
+                          onClick={() => {
+                            setAlignOpen(a => !a)
+                            setAlignElementsOpen(false)
+                          }}
+                        >
+                          <span>Align to page</span>
+                          <HugeiconsIcon
+                            icon={ArrowRight01Icon}
+                            size={14}
+                            strokeWidth={1.75}
+                            className={`shrink-0 transition-transform ${alignOpen ? 'rotate-180' : ''}`}
+                          />
+                        </button>
+                        {alignOpen ? (
+                          <div
+                            ref={alignPageFlyoutRef}
+                            role="menu"
+                            className={[
+                              'absolute left-full top-0 z-[61] ml-1.5 min-w-[11rem] py-1',
+                              floatingToolbarPopoverClass,
+                            ].join(' ')}
+                            style={{
+                              transform:
+                                alignPageFlyoutShift.x !== 0 || alignPageFlyoutShift.y !== 0
+                                  ? `translate(${alignPageFlyoutShift.x}px, ${alignPageFlyoutShift.y}px)`
+                                  : undefined,
+                            }}
+                          >
+                            <button
+                              type="button"
+                              role="menuitem"
+                              disabled={alignAlreadySatisfied.left}
+                              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                              onClick={() => {
+                                onAlign('left')
+                                setAlignOpen(false)
+                                setMoreOpen(false)
+                              }}
+                            >
+                              <HugeiconsIcon
+                                icon={AlignLeftIcon}
+                                size={16}
+                                strokeWidth={1.75}
+                                className="text-neutral-600"
+                              />
+                              Left
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              disabled={alignAlreadySatisfied.centerH}
+                              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                              onClick={() => {
+                                onAlign('centerH')
+                                setAlignOpen(false)
+                                setMoreOpen(false)
+                              }}
+                            >
+                              <HugeiconsIcon
+                                icon={AlignHorizontalCenterIcon}
+                                size={16}
+                                strokeWidth={1.75}
+                                className="text-neutral-600"
+                              />
+                              Center horizontally
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              disabled={alignAlreadySatisfied.right}
+                              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                              onClick={() => {
+                                onAlign('right')
+                                setAlignOpen(false)
+                                setMoreOpen(false)
+                              }}
+                            >
+                              <HugeiconsIcon
+                                icon={AlignRightIcon}
+                                size={16}
+                                strokeWidth={1.75}
+                                className="text-neutral-600"
+                              />
+                              Right
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              disabled={alignAlreadySatisfied.top}
+                              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                              onClick={() => {
+                                onAlign('top')
+                                setAlignOpen(false)
+                                setMoreOpen(false)
+                              }}
+                            >
+                              <HugeiconsIcon
+                                icon={AlignTopIcon}
+                                size={16}
+                                strokeWidth={1.75}
+                                className="text-neutral-600"
+                              />
+                              Top
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              disabled={alignAlreadySatisfied.centerV}
+                              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                              onClick={() => {
+                                onAlign('centerV')
+                                setAlignOpen(false)
+                                setMoreOpen(false)
+                              }}
+                            >
+                              <HugeiconsIcon
+                                icon={AlignVerticalCenterIcon}
+                                size={16}
+                                strokeWidth={1.75}
+                                className="text-neutral-600"
+                              />
+                              Center vertically
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              disabled={alignAlreadySatisfied.bottom}
+                              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-neutral-800 hover:bg-black/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                              onClick={() => {
+                                onAlign('bottom')
+                                setAlignOpen(false)
+                                setMoreOpen(false)
+                              }}
+                            >
+                              <HugeiconsIcon
+                                icon={AlignBottomIcon}
+                                size={16}
+                                strokeWidth={1.75}
+                                className="text-neutral-600"
+                              />
+                              Bottom
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   ) : null}
-                </div>
-              </div>
-              ) : null}
                 </div>
               </>
             )}

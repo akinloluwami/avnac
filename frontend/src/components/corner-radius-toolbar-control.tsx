@@ -1,12 +1,9 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import { RadiusIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useViewportAwarePopoverPlacement } from '../hooks/use-viewport-aware-popover'
 import EditorRangeSlider from './editor-range-slider'
-import {
-  floatingToolbarIconButton,
-  floatingToolbarPopoverClass,
-} from './floating-toolbar-shell'
+import { floatingToolbarIconButton, floatingToolbarPopoverClass } from './floating-toolbar-shell'
 
 const PANEL_ESTIMATE_H = 120
 
@@ -17,12 +14,7 @@ type Props = {
   disabled?: boolean
 }
 
-export default function CornerRadiusToolbarControl({
-  value,
-  max,
-  onChange,
-  disabled,
-}: Props) {
+export default function CornerRadiusToolbarControl({ value, max, onChange, disabled }: Props) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -65,7 +57,7 @@ export default function CornerRadiusToolbarControl({
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => {
-          if (!isDisabled) setOpen((o) => !o)
+          if (!isDisabled) setOpen(o => !o)
         }}
       >
         <HugeiconsIcon icon={RadiusIcon} size={18} strokeWidth={1.75} />
@@ -86,18 +78,14 @@ export default function CornerRadiusToolbarControl({
           }}
         >
           <div className="mb-2 flex items-center justify-between gap-3">
-            <span className="text-[13px] font-medium text-neutral-800">
-              Corner radius
-            </span>
-            <span className="text-[13px] tabular-nums text-neutral-600">
-              {rounded}px
-            </span>
+            <span className="text-[13px] font-medium text-neutral-800">Corner radius</span>
+            <span className="text-[13px] tabular-nums text-neutral-600">{rounded}px</span>
           </div>
           <EditorRangeSlider
             min={0}
             max={sliderMax}
             value={Math.min(value, sliderMax)}
-            onChange={(v) => onChange(Math.min(v, safeMax))}
+            onChange={v => onChange(Math.min(v, safeMax))}
             aria-label="Corner radius"
             aria-valuemin={0}
             aria-valuemax={sliderMax}

@@ -5,10 +5,10 @@ import type { EditorLayerRow } from '../editor-layers-panel'
 import { useEditorStore } from './editor-store'
 
 export function useEditorLayerControls() {
-  const objects = useEditorStore((state) => state.doc.objects)
-  const selectedIds = useEditorStore((state) => state.selectedIds)
-  const setDoc = useEditorStore((state) => state.setDoc)
-  const setSelectedIds = useEditorStore((state) => state.setSelectedIds)
+  const objects = useEditorStore(state => state.doc.objects)
+  const selectedIds = useEditorStore(state => state.selectedIds)
+  const setDoc = useEditorStore(state => state.setDoc)
+  const setSelectedIds = useEditorStore(state => state.setSelectedIds)
 
   const layerRows = useMemo<EditorLayerRow[]>(
     () =>
@@ -26,12 +26,12 @@ export function useEditorLayerControls() {
 
   const onLayerReorder = useCallback(
     (orderedLayerIds: string[]) => {
-      const byId = new Map(objects.map((obj) => [obj.id, obj]))
+      const byId = new Map(objects.map(obj => [obj.id, obj]))
       const next = [...orderedLayerIds]
         .reverse()
-        .map((id) => byId.get(id))
+        .map(id => byId.get(id))
         .filter((obj): obj is SceneObject => !!obj)
-      setDoc((prev) => ({ ...prev, objects: next }))
+      setDoc(prev => ({ ...prev, objects: next }))
     },
     [objects, setDoc],
   )
@@ -47,7 +47,7 @@ export function useEditorLayerControls() {
 
   const onToggleLayerVisible = useCallback(
     (stackIndex: number) => {
-      setDoc((prev) => ({
+      setDoc(prev => ({
         ...prev,
         objects: prev.objects.map((obj, index) =>
           index === stackIndex ? { ...obj, visible: !obj.visible } : obj,
@@ -59,7 +59,7 @@ export function useEditorLayerControls() {
 
   const onLayerBringForward = useCallback(
     (stackIndex: number) => {
-      setDoc((prev) => {
+      setDoc(prev => {
         if (stackIndex >= prev.objects.length - 1) return prev
         const next = [...prev.objects]
         const swap = next[stackIndex]
@@ -73,7 +73,7 @@ export function useEditorLayerControls() {
 
   const onLayerSendBackward = useCallback(
     (stackIndex: number) => {
-      setDoc((prev) => {
+      setDoc(prev => {
         if (stackIndex <= 0) return prev
         const next = [...prev.objects]
         const swap = next[stackIndex]
@@ -87,7 +87,7 @@ export function useEditorLayerControls() {
 
   const onRenameLayer = useCallback(
     (stackIndex: number, name: string) => {
-      setDoc((prev) => ({
+      setDoc(prev => ({
         ...prev,
         objects: prev.objects.map((obj, index) =>
           index === stackIndex ? { ...obj, name: name.trim() || undefined } : obj,

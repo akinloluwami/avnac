@@ -1,14 +1,6 @@
-import {
-  useEffect,
-  type Dispatch,
-  type MutableRefObject,
-  type SetStateAction,
-} from 'react'
+import { type Dispatch, type MutableRefObject, type SetStateAction, useEffect } from 'react'
 
-import {
-  cloneAvnacDocument,
-  type AvnacDocument,
-} from '../../lib/avnac-scene'
+import { type AvnacDocument, cloneAvnacDocument } from '../../lib/avnac-scene'
 import type { LayerReorderKind } from '../../scene-engine/primitives'
 
 type AsyncCommand = () => void | Promise<void>
@@ -68,9 +60,7 @@ export function useEditorKeyboardShortcuts({
       const target = e.target as HTMLElement | null
       const editingTextInput =
         target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.isContentEditable)
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
       if (e.key === '?' && !editingTextInput) {
         e.preventDefault()
         setShortcutsOpen(true)

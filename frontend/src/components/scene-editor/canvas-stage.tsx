@@ -1,24 +1,19 @@
+import { Copy01Icon, Delete02Icon, LayerAddIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import {
-  Copy01Icon,
-  Delete02Icon,
-  LayerAddIcon,
-} from '@hugeicons/core-free-icons'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
-import {
-  getObjectRotatedBounds,
-} from '../../lib/avnac-scene'
+import { getObjectRotatedBounds } from '../../lib/avnac-scene'
 import CanvasElementToolbar, { type CanvasAlignKind } from '../canvas-element-toolbar'
+import { useCanvasStageContext } from './canvas-stage-context'
+import { useEditorStore } from './editor-store'
 import { SceneObjectView } from './object-view'
 import {
+  ImageRemovalOverlay,
   SelectionBoundsOverlay,
   SelectionOverlay,
   SnapGuidesOverlay,
 } from './selection-overlays'
-import { useEditorStore } from './editor-store'
 import { useVectorBoardControlsContext } from './use-vector-board-controls'
-import { useCanvasStageContext } from './canvas-stage-context'
 
 const EMPTY_ALIGN_STATE: Record<CanvasAlignKind, boolean> = {
   left: false,
@@ -90,7 +85,6 @@ function CanvasPageControls({
 }
 
 export function CanvasStage() {
-  const [hoveredPageId, setHoveredPageId] = useState<string | null>(null)
   const { actions, refs, state } = useCanvasStageContext()
   const {
     activatePage,
@@ -118,12 +112,7 @@ export function CanvasStage() {
     toggleElementLock,
     ungroupSelection,
   } = actions
-  const {
-    artboardInnerRef,
-    artboardOuterRef,
-    elementToolbarRef,
-    viewportRef,
-  } = refs
+  const { artboardInnerRef, artboardOuterRef, elementToolbarRef, viewportRef } = refs
   const {
     backgroundActive,
     backgroundHovered,
@@ -136,6 +125,7 @@ export function CanvasStage() {
     elementToolbarLayout,
     elementToolbarLockedDisplay,
     hasObjectSelected,
+    imageRemovalEffect,
     marqueeRect,
     ready,
     scale,
@@ -146,21 +136,17 @@ export function CanvasStage() {
     textDraft,
     textEditingId,
   } = state
-  const doc = useEditorStore((storeState) => storeState.doc)
-  const selectedIds = useEditorStore((state) => state.selectedIds)
-  const hoveredId = useEditorStore((state) => state.hoveredId)
+  const doc = useEditorStore(storeState => storeState.doc)
+  const selectedIds = useEditorStore(state => state.selectedIds)
+  const hoveredId = useEditorStore(state => state.hoveredId)
   const { boardDocs } = useVectorBoardControlsContext()
   const pages = doc.pages.length > 0 ? doc.pages : []
   const canDeletePage = pages.length > 1
-  const activePage = pages.find((page) => page.id === doc.activePageId) ?? pages[0]
+  const activePage = pages.find(page => page.id === doc.activePageId) ?? pages[0]
   const activeObjects = activePage?.objects ?? doc.objects
-  const artboardW = activePage?.artboard.width ?? doc.artboard.width
-  const artboardH = activePage?.artboard.height ?? doc.artboard.height
   const hoveredObject = useMemo(
     () =>
-      hoveredId
-        ? activeObjects.find((obj) => obj.id === hoveredId && obj.visible) ?? null
-        : null,
+      hoveredId ? (activeObjects.find(obj => obj.id === hoveredId && obj.visible) ?? null) : null,
     [hoveredId, activeObjects],
   )
   const noop = () => {}
@@ -168,11 +154,10 @@ export function CanvasStage() {
   return (
     <div className="flex min-h-full w-max min-w-full flex-col items-start px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-4">
       <div className="relative z-0 mx-auto my-auto flex flex-col">
-        {pages.map((page) => {
+        {pages.map(page => {
           const isActive = page.id === doc.activePageId
           const isDeleting = deletingPageIds.includes(page.id)
           const isLastPage = pages[pages.length - 1]?.id === page.id
-          const showPageHover = hoveredPageId === page.id && !isDeleting
           const pageW = page.artboard.width
           const pageH = page.artboard.height
           const pageObjects = page.objects
@@ -184,18 +169,12 @@ export function CanvasStage() {
               key={page.id}
               className="relative inline-block"
               data-avnac-page-id={page.id}
-              onPointerEnter={() => setHoveredPageId(page.id)}
-              onPointerLeave={() => {
-                setHoveredPageId((current) => (current === page.id ? null : current))
-              }}
               style={{
                 height: isDeleting ? 0 : pageSlotHeight,
                 opacity: isDeleting ? 0 : 1,
                 overflow: isDeleting ? 'hidden' : 'visible',
                 pointerEvents: isDeleting ? 'none' : undefined,
-                transform: isDeleting
-                  ? 'translateX(-72px) scale(0.985)'
-                  : 'translateY(0) scale(1)',
+                transform: isDeleting ? 'translateX(-72px) scale(0.985)' : 'translateY(0) scale(1)',
                 transformOrigin: 'center left',
                 filter: isDeleting ? 'blur(8px)' : 'blur(0px)',
                 transition: isDeleting
@@ -224,9 +203,9 @@ export function CanvasStage() {
                 onPointerDown={
                   isActive
                     ? undefined
-                    : (e) => {
+                    : e => {
                         if (e.button !== 0) return
-                        activatePage(page.id)
+                        activatePage(page.id, { selectBackground: true })
                       }
                 }
               >
@@ -250,9 +229,7 @@ export function CanvasStage() {
                     onCopy={copyElementToClipboard}
                     onPaste={pasteFromClipboard}
                     onAlign={alignElementToArtboard}
-                    alignAlreadySatisfied={
-                      elementToolbarAlignAlready ?? EMPTY_ALIGN_STATE
-                    }
+                    alignAlreadySatisfied={elementToolbarAlignAlready ?? EMPTY_ALIGN_STATE}
                     canGroup={elementToolbarCanGroup}
                     canAlignElements={elementToolbarCanAlignElements}
                     canUngroup={elementToolbarCanUngroup}
@@ -279,8 +256,8 @@ export function CanvasStage() {
                 >
                   <div className="absolute inset-0 overflow-hidden rounded-[inherit]">
                     {pageObjects
-                      .filter((obj) => obj.visible)
-                      .map((obj) => (
+                      .filter(obj => obj.visible)
+                      .map(obj => (
                         <SceneObjectView
                           key={obj.id}
                           obj={obj}
@@ -288,9 +265,7 @@ export function CanvasStage() {
                           textEditingId={isActive ? textEditingId : null}
                           textDraft={isActive ? textDraft : ''}
                           onObjectPointerDown={isActive ? onObjectPointerDown : noop}
-                          onObjectHoverChange={
-                            isActive ? onObjectHoverChange : noop
-                          }
+                          onObjectHoverChange={isActive ? onObjectHoverChange : noop}
                           onTextDoubleClick={isActive ? onTextDoubleClick : noop}
                           onTextDraftChange={isActive ? onTextDraftChange : noop}
                           onTextDraftCommit={isActive ? commitTextDraft : noop}
@@ -305,41 +280,35 @@ export function CanvasStage() {
                         artboardW={pageW}
                         artboardH={pageH}
                       />
-                      {hoveredObject &&
-                      selectedIds.length === 0 &&
-                      textEditingId == null ? (
+                      {hoveredObject && selectedIds.length === 0 && textEditingId == null ? (
                         <SelectionBoundsOverlay
                           bounds={getObjectRotatedBounds(hoveredObject)}
                           scale={scale}
                         />
                       ) : null}
-                      {!hoveredObject &&
-                      selectedIds.length === 0 &&
-                      textEditingId == null &&
-                      (backgroundActive || backgroundHovered) ? (
+                      {backgroundActive ||
+                      (!hoveredObject &&
+                        selectedIds.length === 0 &&
+                        textEditingId == null &&
+                        backgroundHovered) ? (
                         <SelectionBoundsOverlay
                           bounds={{ left: 0, top: 0, width: pageW, height: pageH }}
                           scale={scale}
                         />
                       ) : null}
                       {selectedObjects.length > 1 && selectionBounds ? (
-                        <SelectionBoundsOverlay
-                          bounds={selectionBounds}
-                          scale={scale}
+                        <SelectionBoundsOverlay bounds={selectionBounds} scale={scale} />
+                      ) : null}
+                      {imageRemovalEffect ? (
+                        <ImageRemovalOverlay
+                          object={imageRemovalEffect.object}
+                          phase={imageRemovalEffect.phase}
                         />
                       ) : null}
-                      {marqueeRect &&
-                      (marqueeRect.width > 0 || marqueeRect.height > 0) ? (
-                        <SelectionBoundsOverlay
-                          bounds={marqueeRect}
-                          scale={scale}
-                          dashed
-                          fill
-                        />
+                      {marqueeRect && (marqueeRect.width > 0 || marqueeRect.height > 0) ? (
+                        <SelectionBoundsOverlay bounds={marqueeRect} scale={scale} dashed fill />
                       ) : null}
-                      {selectedSingle &&
-                      !selectedSingle.locked &&
-                      !editingSelectedText ? (
+                      {selectedSingle && !selectedSingle.locked && !editingSelectedText ? (
                         <SelectionOverlay
                           object={selectedSingle}
                           scale={scale}
@@ -350,15 +319,6 @@ export function CanvasStage() {
                     </>
                   ) : null}
                 </div>
-                {showPageHover ? (
-                  <div
-                    className="pointer-events-none absolute inset-0 z-[24] rounded-sm"
-                    style={{
-                      boxShadow:
-                        '0 0 0 1.5px var(--accent), 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent)',
-                    }}
-                  />
-                ) : null}
               </div>
             </div>
           )

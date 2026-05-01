@@ -1,11 +1,10 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import { Cancel01Icon, Search01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useCallback, useEffect, useState } from 'react'
 import {
   editorSidebarPanelLeftClass,
   editorSidebarPanelTopClass,
 } from '../lib/editor-sidebar-panel-layout'
-import { useAiController } from './scene-editor/ai-controller-context'
 import type { UnsplashPhoto } from '../lib/unsplash-api'
 import {
   fetchUnsplashPopular,
@@ -14,6 +13,7 @@ import {
   trackUnsplashDownload,
   UNSPLASH_PLACE_MAX_EDGE_PX,
 } from '../lib/unsplash-api'
+import { useAiController } from './scene-editor/ai-controller-context'
 
 type Props = {
   open: boolean
@@ -48,7 +48,7 @@ export default function EditorImagesPanel({ open, onClose }: Props) {
     if (!open) return
     const t = window.setTimeout(() => {
       const next = input.trim()
-      setCommitted((c) => (c.q === next ? c : { q: next, page: 1 }))
+      setCommitted(c => (c.q === next ? c : { q: next, page: 1 }))
     }, DEBOUNCE_MS)
     return () => window.clearTimeout(t)
   }, [open, input])
@@ -64,10 +64,7 @@ export default function EditorImagesPanel({ open, onClose }: Props) {
         setLoadingMore(true)
       }
       setError(null)
-      const res =
-        q.length === 0
-          ? await fetchUnsplashPopular(pg)
-          : await fetchUnsplashSearch(q, pg)
+      const res = q.length === 0 ? await fetchUnsplashPopular(pg) : await fetchUnsplashSearch(q, pg)
       if (cancelled) return
       if (res.error) {
         setError(res.error)
@@ -75,7 +72,7 @@ export default function EditorImagesPanel({ open, onClose }: Props) {
         setLoadingMore(false)
         return
       }
-      setPhotos((prev) => (pg === 1 ? res.photos : [...prev, ...res.photos]))
+      setPhotos(prev => (pg === 1 ? res.photos : [...prev, ...res.photos]))
       setHasMore(res.hasMore)
       setLoading(false)
       setLoadingMore(false)
@@ -168,114 +165,105 @@ export default function EditorImagesPanel({ open, onClose }: Props) {
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="shrink-0 border-b border-black/[0.06] p-2">
-            <label className="relative block">
-              <span className="sr-only">Search Unsplash</span>
-              <HugeiconsIcon
-                icon={Search01Icon}
-                size={16}
-                strokeWidth={1.75}
-                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400"
-              />
-              <input
-                type="search"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Search Unsplash…"
-                autoComplete="off"
-                className="h-10 w-full rounded-xl border border-black/[0.08] bg-white pl-9 pr-3 text-[13px] text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/45"
-              />
-            </label>
-          </div>
+        <div className="shrink-0 border-b border-black/[0.06] p-2">
+          <label className="relative block">
+            <span className="sr-only">Search Unsplash</span>
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={16}
+              strokeWidth={1.75}
+              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400"
+            />
+            <input
+              type="search"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="Search Unsplash…"
+              autoComplete="off"
+              className="h-10 w-full rounded-xl border border-black/[0.08] bg-white pl-9 pr-3 text-[13px] text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/45"
+            />
+          </label>
+        </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-2">
-            {error ? (
-              <p className="px-1 py-2 text-[12px] text-red-600">{error}</p>
-            ) : null}
+        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+          {error ? <p className="px-1 py-2 text-[12px] text-red-600">{error}</p> : null}
 
-            {photos.length === 0 && !loading && !error ? (
-              <p className="px-1 py-6 text-center text-[12px] text-neutral-500">
-                No photos found.
-              </p>
-            ) : (
-              <ul className="grid grid-cols-2 gap-2">
-                {photos.map((photo) => {
-                  const label =
-                    photo.description ??
-                    photo.alt_description ??
-                    'Unsplash photo'
-                  const busy = addingId === photo.id
-                  const profileUrl = unsplashReferralLink(photo.user.links.html)
-                  return (
-                    <li key={photo.id}>
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => void addPhoto(photo)}
-                        className="group flex w-full flex-col overflow-hidden rounded-xl border border-black/[0.06] bg-white text-left transition-colors hover:border-black/[0.12] disabled:opacity-60"
-                      >
-                        <span className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
-                          <img
-                            src={photo.urls.small}
-                            alt={label}
-                            loading="lazy"
-                            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-                          />
-                          {busy ? (
-                            <span className="absolute inset-0 flex items-center justify-center bg-black/35 text-[11px] font-medium text-white">
-                              Adding…
-                            </span>
-                          ) : null}
-                        </span>
-                        <span className="border-t border-black/[0.06] px-1.5 py-1.5">
-                          <span className="line-clamp-2 text-[10.5px] leading-snug text-neutral-600">
-                            <a
-                              href={profileUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="font-medium text-neutral-800 underline-offset-2 hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {photo.user.name}
-                            </a>
-                            <span className="text-neutral-400"> on </span>
-                            <a
-                              href={unsplashReferralLink('https://unsplash.com/')}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="underline-offset-2 hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              Unsplash
-                            </a>
+          {photos.length === 0 && !loading && !error ? (
+            <p className="px-1 py-6 text-center text-[12px] text-neutral-500">No photos found.</p>
+          ) : (
+            <ul className="grid grid-cols-2 gap-2">
+              {photos.map(photo => {
+                const label = photo.description ?? photo.alt_description ?? 'Unsplash photo'
+                const busy = addingId === photo.id
+                const profileUrl = unsplashReferralLink(photo.user.links.html)
+                return (
+                  <li key={photo.id}>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void addPhoto(photo)}
+                      className="group flex w-full flex-col overflow-hidden rounded-xl border border-black/[0.06] bg-white text-left transition-colors hover:border-black/[0.12] disabled:opacity-60"
+                    >
+                      <span className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
+                        <img
+                          src={photo.urls.small}
+                          alt={label}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                        />
+                        {busy ? (
+                          <span className="absolute inset-0 flex items-center justify-center bg-black/35 text-[11px] font-medium text-white">
+                            Adding…
                           </span>
+                        ) : null}
+                      </span>
+                      <span className="border-t border-black/[0.06] px-1.5 py-1.5">
+                        <span className="line-clamp-2 text-[10.5px] leading-snug text-neutral-600">
+                          <a
+                            href={profileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-medium text-neutral-800 underline-offset-2 hover:underline"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            {photo.user.name}
+                          </a>
+                          <span className="text-neutral-400"> on </span>
+                          <a
+                            href={unsplashReferralLink('https://unsplash.com/')}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="underline-offset-2 hover:underline"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            Unsplash
+                          </a>
                         </span>
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
 
-            {hasMore && photos.length > 0 ? (
-              <div className="p-2 pt-1">
-                <button
-                  type="button"
-                  disabled={loadingMore}
-                  onClick={() =>
-                    setCommitted((c) => ({ ...c, page: c.page + 1 }))
-                  }
-                  className="w-full rounded-xl border border-black/[0.08] bg-[var(--surface-subtle)] px-3 py-2 text-[12px] font-medium text-neutral-800 transition-colors hover:bg-black/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {loadingMore ? 'Loading…' : 'Load more'}
-                </button>
-              </div>
-            ) : null}
+          {hasMore && photos.length > 0 ? (
+            <div className="p-2 pt-1">
+              <button
+                type="button"
+                disabled={loadingMore}
+                onClick={() => setCommitted(c => ({ ...c, page: c.page + 1 }))}
+                className="w-full rounded-xl border border-black/[0.08] bg-[var(--surface-subtle)] px-3 py-2 text-[12px] font-medium text-neutral-800 transition-colors hover:bg-black/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loadingMore ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
+          ) : null}
 
-            {loading && photos.length === 0 ? (
-              <p className="py-8 text-center text-[12px] text-neutral-500">Loading…</p>
-            ) : null}
-          </div>
+          {loading && photos.length === 0 ? (
+            <p className="py-8 text-center text-[12px] text-neutral-500">Loading…</p>
+          ) : null}
+        </div>
       </div>
     </div>
   )

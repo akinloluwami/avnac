@@ -1,0 +1,31 @@
+services:
+  rembg:
+    build:
+      context: ./docker/rembg
+      dockerfile: Dockerfile
+    image: avnac/rembg:2.0.75
+    command:
+      - s
+      - --host
+      - 0.0.0.0
+      - --port
+      - "7000"
+      - --log_level
+      - info
+      - --no-ui
+    environment:
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+      ORT_NUM_THREADS: "1"
+      REMBG_PRELOAD_MODEL: "birefnet-general-lite"
+    ports:
+      - "7000:7000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:7000/api"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s

@@ -1,12 +1,4 @@
 import {
-  AiMagicIcon as AiMagicSolidRoundedIcon,
-  Album02Icon as Album02SolidRoundedIcon,
-  CloudUploadIcon as CloudUploadSolidRoundedIcon,
-  DashboardCircleIcon as DashboardCircleSolidRoundedIcon,
-  Layers02Icon as Layers02SolidRoundedIcon,
-  PenTool01Icon as PenTool01SolidRoundedIcon,
-} from '@hugeicons-pro/core-solid-rounded'
-import {
   AiMagicIcon,
   Album02Icon,
   CloudUploadIcon,
@@ -14,6 +6,14 @@ import {
   Layers02Icon,
   PenTool01Icon,
 } from '@hugeicons/core-free-icons'
+import {
+  AiMagicIcon as AiMagicSolidRoundedIcon,
+  Album02Icon as Album02SolidRoundedIcon,
+  CloudUploadIcon as CloudUploadSolidRoundedIcon,
+  DashboardCircleIcon as DashboardCircleSolidRoundedIcon,
+  Layers02Icon as Layers02SolidRoundedIcon,
+  PenTool01Icon as PenTool01SolidRoundedIcon,
+} from '@hugeicons-pro/core-solid-rounded'
 import type { EditorSidebarIconSet } from './editor-sidebar-icons'
 
 export const editorSidebarIcons: EditorSidebarIconSet = {

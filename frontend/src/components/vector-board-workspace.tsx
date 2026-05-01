@@ -1,4 +1,3 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
   Add01Icon,
   ArrowDown01Icon,
@@ -15,36 +14,15 @@ import {
   ViewIcon,
   ViewOffSlashIcon,
 } from '@hugeicons/core-free-icons'
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
-import type { BgValue } from './background-popover'
-import PaintPopoverControl from './paint-popover-control'
-import StrokeToolbarPopover from './stroke-toolbar-popover'
-import {
-  FloatingToolbarDivider,
-  FloatingToolbarShell,
-  floatingToolbarIconButton,
-} from './floating-toolbar-shell'
-import {
-  applySmoothPlacementHandles,
-  ctrlInAbs,
-  ctrlOutAbs,
-  findNearestPointOnPenPath,
-  splitPenBezierSegment,
-  type VectorPenAnchor,
-} from '../lib/avnac-vector-pen-bezier'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   appendClonedStrokesToActiveLayer,
   applyScaleStrokesInDoc,
   applyTranslateStrokesInDoc,
   applyZOrderInDoc,
   createVectorBoardLayer,
+  type DocStrokeSelection,
   duplicateSelectionsInPlace,
   emptyVectorBoardDocument,
   findStrokesIntersectingRect,
@@ -56,13 +34,28 @@ import {
   removeStrokesFromDoc,
   updateStrokeInDocFull,
   updateVectorStrokeInDoc,
-  vectorDocHasRenderableStrokes,
-  vectorStrokeOutlineIsVisible,
-  type DocStrokeSelection,
   type VectorBoardDocument,
   type VectorBoardStroke,
   type VectorStrokeKind,
+  vectorDocHasRenderableStrokes,
+  vectorStrokeOutlineIsVisible,
 } from '../lib/avnac-vector-board-document'
+import {
+  applySmoothPlacementHandles,
+  ctrlInAbs,
+  ctrlOutAbs,
+  findNearestPointOnPenPath,
+  splitPenBezierSegment,
+  type VectorPenAnchor,
+} from '../lib/avnac-vector-pen-bezier'
+import type { BgValue } from './background-popover'
+import {
+  FloatingToolbarDivider,
+  FloatingToolbarShell,
+  floatingToolbarIconButton,
+} from './floating-toolbar-shell'
+import PaintPopoverControl from './paint-popover-control'
+import StrokeToolbarPopover from './stroke-toolbar-popover'
 
 const VECTOR_CLIPBOARD_PASTE_OFFSET_N = 0.02
 
@@ -73,10 +66,7 @@ const PEN_HIT_R = 0.017
 const PEN_HIT_R_SQ = PEN_HIT_R * PEN_HIT_R
 const PEN_CORNER_DRAG = 0.005
 
-type HugeiconSvgShape = readonly (readonly [
-  string,
-  { readonly [key: string]: string | number },
-])[]
+type HugeiconSvgShape = readonly (readonly [string, { readonly [key: string]: string | number }])[]
 
 function hugeiconToCursorCss(
   icon: HugeiconSvgShape,
@@ -90,7 +80,7 @@ function hugeiconToCursorCss(
       const attrs = Object.entries(raw)
         .filter(([k]) => k !== 'key')
         .map(([k, v]) => {
-          const kebab = k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)
+          const kebab = k.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`)
           const val = String(v).replace(/currentColor/g, color)
           return `${kebab}="${val}"`
         })
@@ -104,13 +94,7 @@ function hugeiconToCursorCss(
 
 const CURSOR_MOVE = hugeiconToCursorCss(Cursor01Icon, 7, 2, '#1e293b', 'default')
 
-const CURSOR_PEN_ADD = hugeiconToCursorCss(
-  CursorAddSelection01Icon,
-  10,
-  4,
-  '#1e293b',
-  'crosshair',
-)
+const CURSOR_PEN_ADD = hugeiconToCursorCss(CursorAddSelection01Icon, 10, 4, '#1e293b', 'crosshair')
 
 const CURSOR_PEN_REMOVE = hugeiconToCursorCss(
   CursorRemoveSelection01Icon,
@@ -120,19 +104,11 @@ const CURSOR_PEN_REMOVE = hugeiconToCursorCss(
   'not-allowed',
 )
 
-function pointerAltKey(
-  e: Pick<PointerEvent, 'altKey' | 'getModifierState'>,
-): boolean {
-  return (
-    e.altKey ||
-    (typeof e.getModifierState === 'function' && e.getModifierState('Alt'))
-  )
+function pointerAltKey(e: Pick<PointerEvent, 'altKey' | 'getModifierState'>): boolean {
+  return e.altKey || (typeof e.getModifierState === 'function' && e.getModifierState('Alt'))
 }
 
-function releasePointerIfCaptured(
-  el: HTMLElement | null,
-  pointerId: number,
-) {
+function releasePointerIfCaptured(el: HTMLElement | null, pointerId: number) {
   if (!el || pointerId < 0) return
   try {
     if (el.hasPointerCapture(pointerId)) el.releasePointerCapture(pointerId)
@@ -161,16 +137,7 @@ type MarqueeRect = {
 
 type ResizeHandleId = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
 
-const RESIZE_HANDLE_IDS: ResizeHandleId[] = [
-  'nw',
-  'n',
-  'ne',
-  'e',
-  'se',
-  's',
-  'sw',
-  'w',
-]
+const RESIZE_HANDLE_IDS: ResizeHandleId[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
 
 const RESIZE_HANDLE_CURSORS: Record<ResizeHandleId, string> = {
   nw: 'nwse-resize',
@@ -306,12 +273,9 @@ function hitTestPenBezier(
   return null
 }
 
-function removePenAnchorAt(
-  anchors: VectorPenAnchor[],
-  idx: number,
-): VectorPenAnchor[] {
+function removePenAnchorAt(anchors: VectorPenAnchor[], idx: number): VectorPenAnchor[] {
   if (idx < 0 || idx >= anchors.length) return anchors
-  const copy = anchors.map((a) => ({ ...a }))
+  const copy = anchors.map(a => ({ ...a }))
   copy.splice(idx, 1)
   if (idx > 0) {
     const prev = copy[idx - 1]!
@@ -341,36 +305,18 @@ function tracePenBezierPath(
     const b = anchors[i + 1]!
     const [x1, y1] = ctrlOutAbs(a)
     const [x2, y2] = ctrlInAbs(b)
-    ctx.bezierCurveTo(
-      x1 * w,
-      y1 * h,
-      x2 * w,
-      y2 * h,
-      b.x * w,
-      b.y * h,
-    )
+    ctx.bezierCurveTo(x1 * w, y1 * h, x2 * w, y2 * h, b.x * w, b.y * h)
   }
   if (closed && anchors.length >= 2) {
     const last = anchors[anchors.length - 1]!
     const first = anchors[0]!
     const [lx1, ly1] = ctrlOutAbs(last)
     const [lx2, ly2] = ctrlInAbs(first)
-    ctx.bezierCurveTo(
-      lx1 * w,
-      ly1 * h,
-      lx2 * w,
-      ly2 * h,
-      first.x * w,
-      first.y * h,
-    )
+    ctx.bezierCurveTo(lx1 * w, ly1 * h, lx2 * w, ly2 * h, first.x * w, first.y * h)
   }
 }
 
-function paintHandleDiamond(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-) {
+function paintHandleDiamond(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
   const s = 4
   ctx.fillStyle = '#2563eb'
   ctx.strokeStyle = '#1e40af'
@@ -401,12 +347,7 @@ function paintPenBezierDraft(
   if (anchors.length >= 2) {
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
-    if (
-      closeHover &&
-      fillColor &&
-      fillColor !== 'transparent' &&
-      anchors.length >= 3
-    ) {
+    if (closeHover && fillColor && fillColor !== 'transparent' && anchors.length >= 3) {
       ctx.beginPath()
       tracePenBezierPath(ctx, anchors, w, h, true)
       ctx.fillStyle = fillColor
@@ -437,14 +378,7 @@ function paintPenBezierDraft(
     ctx.moveTo(last.x * w, last.y * h)
     const [cx1, cy1] = ctrlOutAbs(last)
     const [cx2, cy2] = ctrlInAbs(first)
-    ctx.bezierCurveTo(
-      cx1 * w,
-      cy1 * h,
-      cx2 * w,
-      cy2 * h,
-      first.x * w,
-      first.y * h,
-    )
+    ctx.bezierCurveTo(cx1 * w, cy1 * h, cx2 * w, cy2 * h, first.x * w, first.y * h)
     ctx.stroke()
     ctx.restore()
   }
@@ -512,17 +446,11 @@ function drawGrid(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.stroke()
 }
 
-function paintStroke(
-  ctx: CanvasRenderingContext2D,
-  s: VectorBoardStroke,
-  w: number,
-  h: number,
-) {
+function paintStroke(ctx: CanvasRenderingContext2D, s: VectorBoardStroke, w: number, h: number) {
   const m = Math.max(1, Math.min(w, h))
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
-  const hasFill =
-    s.fill && s.fill.length > 0 && s.fill !== 'transparent'
+  const hasFill = s.fill && s.fill.length > 0 && s.fill !== 'transparent'
   const drawStroke = vectorStrokeOutlineIsVisible(s)
   if (drawStroke) {
     ctx.strokeStyle = s.stroke
@@ -538,28 +466,14 @@ function paintStroke(
         const b = s.penAnchors[i + 1]!
         const [x1, y1] = ctrlOutAbs(a)
         const [x2, y2] = ctrlInAbs(b)
-        ctx.bezierCurveTo(
-          x1 * w,
-          y1 * h,
-          x2 * w,
-          y2 * h,
-          b.x * w,
-          b.y * h,
-        )
+        ctx.bezierCurveTo(x1 * w, y1 * h, x2 * w, y2 * h, b.x * w, b.y * h)
       }
       if (s.penClosed === true && s.penAnchors.length >= 2) {
         const last = s.penAnchors[s.penAnchors.length - 1]!
         const first = s.penAnchors[0]!
         const [lx1, ly1] = ctrlOutAbs(last)
         const [lx2, ly2] = ctrlInAbs(first)
-        ctx.bezierCurveTo(
-          lx1 * w,
-          ly1 * h,
-          lx2 * w,
-          ly2 * h,
-          first.x * w,
-          first.y * h,
-        )
+        ctx.bezierCurveTo(lx1 * w, ly1 * h, lx2 * w, ly2 * h, first.x * w, first.y * h)
       }
       if (hasFill && s.penClosed === true) {
         ctx.fillStyle = s.fill
@@ -884,9 +798,9 @@ function paintPenEditOverlay(
   addHint: { x: number; y: number } | null,
 ) {
   if (!sel) return
-  const layer = doc.layers.find((l) => l.id === sel.layerId)
+  const layer = doc.layers.find(l => l.id === sel.layerId)
   if (!layer?.visible) return
-  const stroke = layer.strokes.find((s) => s.id === sel.strokeId)
+  const stroke = layer.strokes.find(s => s.id === sel.strokeId)
   if (!stroke || stroke.kind !== 'pen' || !stroke.penAnchors) return
   const anchors = stroke.penAnchors
   if (anchors.length === 0) return
@@ -899,13 +813,7 @@ function paintPenEditOverlay(
       : 'rgba(71, 85, 105, 0.88)'
     ctx.lineWidth = Math.max(0.75, 1 / Math.max(0.001, viewScale))
     ctx.beginPath()
-    tracePenBezierPath(
-      ctx,
-      anchors,
-      w,
-      h,
-      stroke.penClosed === true,
-    )
+    tracePenBezierPath(ctx, anchors, w, h, stroke.penClosed === true)
     ctx.stroke()
   }
   ctx.strokeStyle = 'rgba(37,99,235,0.5)'
@@ -990,9 +898,7 @@ export default function VectorBoardWorkspace({
   const [strokeWidthPx, setStrokeWidthPx] = useState(0)
   const [draft, setDraft] = useState<DraftState | null>(null)
   const draftRef = useRef<DraftState | null>(null)
-  const [penRemoveHintIndex, setPenRemoveHintIndex] = useState<number | null>(
-    null,
-  )
+  const [penRemoveHintIndex, setPenRemoveHintIndex] = useState<number | null>(null)
   const [penCloseHover, setPenCloseHover] = useState(false)
   const [docSelection, setDocSelection] = useState<DocStrokeSelection[]>([])
   const moveDragRef = useRef<{
@@ -1043,8 +949,7 @@ export default function VectorBoardWorkspace({
     pointerId: number
   } | null>(null)
 
-  const [penEditSelection, setPenEditSelection] =
-    useState<DocStrokeSelection | null>(null)
+  const [penEditSelection, setPenEditSelection] = useState<DocStrokeSelection | null>(null)
   const penEditSelectionRef = useRef<DocStrokeSelection | null>(null)
   penEditSelectionRef.current = penEditSelection
   const [penEditAddHint, setPenEditAddHint] = useState<{
@@ -1063,40 +968,31 @@ export default function VectorBoardWorkspace({
     last: [number, number]
   } | null>(null)
 
-  const lastCanvasPointerClientRef = useRef<{ x: number; y: number } | null>(
-    null,
-  )
+  const lastCanvasPointerClientRef = useRef<{ x: number; y: number } | null>(null)
   const altKeyHeldRef = useRef(false)
 
-  const primarySelection =
-    docSelection.length > 0 ? docSelection[docSelection.length - 1]! : null
+  const primarySelection = docSelection.length > 0 ? docSelection[docSelection.length - 1]! : null
   const selectionSyncKey = primarySelection
     ? `${primarySelection.layerId}:${primarySelection.strokeId}`
     : null
 
   const selectedStrokeForUi = useMemo(() => {
     if (!primarySelection) return null
-    const layer = document.layers.find((l) => l.id === primarySelection.layerId)
-    return (
-      layer?.strokes.find((s) => s.id === primarySelection.strokeId) ?? null
-    )
+    const layer = document.layers.find(l => l.id === primarySelection.layerId)
+    return layer?.strokes.find(s => s.id === primarySelection.strokeId) ?? null
   }, [document, primarySelection])
 
   useEffect(() => {
     if (!open || !selectionSyncKey || !primarySelection) return
-    const layer = documentRef.current.layers.find(
-      (l) => l.id === primarySelection.layerId,
-    )
-    const s = layer?.strokes.find((x) => x.id === primarySelection.strokeId)
+    const layer = documentRef.current.layers.find(l => l.id === primarySelection.layerId)
+    const s = layer?.strokes.find(x => x.id === primarySelection.strokeId)
     if (!s) return
     const canvas = canvasRef.current
     const rw = canvas?.getBoundingClientRect().width ?? 1
     const rh = canvas?.getBoundingClientRect().height ?? 1
     const m = Math.max(1, Math.min(rw, rh))
-    const nextStroke =
-      s.stroke && strokePaintVisible(s.stroke) ? s.stroke : '#1a1a1a'
-    const nextFill =
-      s.fill && s.fill !== 'transparent' ? s.fill : '#94a3b8'
+    const nextStroke = s.stroke && strokePaintVisible(s.stroke) ? s.stroke : '#1a1a1a'
+    const nextFill = s.fill && s.fill !== 'transparent' ? s.fill : '#94a3b8'
     const nextW = Math.min(16, Math.max(0, Math.round(s.strokeWidthN * m)))
     setStrokeColor(nextStroke)
     setFillColor(nextFill)
@@ -1141,15 +1037,7 @@ export default function VectorBoardWorkspace({
       const selBounds = normBoundsForSelections(document, docSelection)
       paintTransformHandles(ctx, selBounds, w, h, viewScale)
     }
-    paintPenEditOverlay(
-      ctx,
-      document,
-      penEditSelection,
-      w,
-      h,
-      viewScale,
-      penEditAddHint,
-    )
+    paintPenEditOverlay(ctx, document, penEditSelection, w, h, viewScale, penEditAddHint)
     ctx.restore()
   }, [
     document,
@@ -1248,23 +1136,17 @@ export default function VectorBoardWorkspace({
     return () => window.document.removeEventListener('mousedown', onDown)
   }, [saveSplitOpen])
 
-  const toNorm = useCallback(
-    (clientX: number, clientY: number): [number, number] | null => {
-      const canvas = canvasRef.current
-      if (!canvas) return null
-      const r = canvas.getBoundingClientRect()
-      const v = viewRef.current
-      const worldX = (clientX - r.left - v.tx) / v.scale
-      const worldY = (clientY - r.top - v.ty) / v.scale
-      const x = worldX / Math.max(1, r.width)
-      const y = worldY / Math.max(1, r.height)
-      return [
-        Math.max(0, Math.min(1, x)),
-        Math.max(0, Math.min(1, y)),
-      ]
-    },
-    [],
-  )
+  const toNorm = useCallback((clientX: number, clientY: number): [number, number] | null => {
+    const canvas = canvasRef.current
+    if (!canvas) return null
+    const r = canvas.getBoundingClientRect()
+    const v = viewRef.current
+    const worldX = (clientX - r.left - v.tx) / v.scale
+    const worldY = (clientY - r.top - v.ty) / v.scale
+    const x = worldX / Math.max(1, r.width)
+    const y = worldY / Math.max(1, r.height)
+    return [Math.max(0, Math.min(1, x)), Math.max(0, Math.min(1, y))]
+  }, [])
 
   const toNormUnclamped = useCallback(
     (clientX: number, clientY: number): [number, number] | null => {
@@ -1298,10 +1180,8 @@ export default function VectorBoardWorkspace({
           setPenEditAddHint(null)
           return
         }
-        const layer = documentRef.current.layers.find(
-          (l) => l.id === penEdit.layerId,
-        )
-        const stroke = layer?.strokes.find((s) => s.id === penEdit.strokeId)
+        const layer = documentRef.current.layers.find(l => l.id === penEdit.layerId)
+        const stroke = layer?.strokes.find(s => s.id === penEdit.strokeId)
         if (stroke?.kind !== 'pen' || !stroke.penAnchors) {
           setPenEditAddHint(null)
           canvas.style.cursor = CURSOR_MOVE
@@ -1400,11 +1280,7 @@ export default function VectorBoardWorkspace({
           setPenCloseHover(false)
           canvas.style.cursor = CURSOR_PEN_ADD
         }
-      } else if (
-        cur?.kind === 'pen-bezier' &&
-        !altHeld &&
-        cur.anchors.length >= 2
-      ) {
+      } else if (cur?.kind === 'pen-bezier' && !altHeld && cur.anchors.length >= 2) {
         const hit = hitTestPenBezier(cur, pt[0], pt[1])
         const ch = hit?.type === 'anchor' && hit.anchorIndex === 0
         setPenCloseHover(ch)
@@ -1422,11 +1298,7 @@ export default function VectorBoardWorkspace({
   useEffect(() => {
     if (!open) return
     const onKey = (ev: KeyboardEvent) => {
-      if (
-        ev.key !== 'Alt' &&
-        ev.code !== 'AltLeft' &&
-        ev.code !== 'AltRight'
-      ) {
+      if (ev.key !== 'Alt' && ev.code !== 'AltLeft' && ev.code !== 'AltRight') {
         return
       }
       const last = lastCanvasPointerClientRef.current
@@ -1457,8 +1329,7 @@ export default function VectorBoardWorkspace({
       const truncated = h.stack.slice(0, h.index + 1)
       truncated.push(doc)
       const MAX = 200
-      const trimmed =
-        truncated.length > MAX ? truncated.slice(truncated.length - MAX) : truncated
+      const trimmed = truncated.length > MAX ? truncated.slice(truncated.length - MAX) : truncated
       historyRef.current = { stack: trimmed, index: trimmed.length - 1 }
       onDocumentChange(doc)
     },
@@ -1480,10 +1351,10 @@ export default function VectorBoardWorkspace({
     const doc = h.stack[nextIndex]!
     historyRef.current = { ...h, index: nextIndex }
     documentRef.current = doc
-    setDocSelection((prev) =>
-      prev.filter((sel) => {
-        const L = doc.layers.find((l) => l.id === sel.layerId)
-        return L?.strokes.some((s) => s.id === sel.strokeId)
+    setDocSelection(prev =>
+      prev.filter(sel => {
+        const L = doc.layers.find(l => l.id === sel.layerId)
+        return L?.strokes.some(s => s.id === sel.strokeId)
       }),
     )
     setPenEditSelection(null)
@@ -1497,10 +1368,10 @@ export default function VectorBoardWorkspace({
     const doc = h.stack[nextIndex]!
     historyRef.current = { ...h, index: nextIndex }
     documentRef.current = doc
-    setDocSelection((prev) =>
-      prev.filter((sel) => {
-        const L = doc.layers.find((l) => l.id === sel.layerId)
-        return L?.strokes.some((s) => s.id === sel.strokeId)
+    setDocSelection(prev =>
+      prev.filter(sel => {
+        const L = doc.layers.find(l => l.id === sel.layerId)
+        return L?.strokes.some(s => s.id === sel.strokeId)
       }),
     )
     setPenEditSelection(null)
@@ -1515,21 +1386,18 @@ export default function VectorBoardWorkspace({
     setViewTy(0)
   }, [open])
 
-  const zoomAt = useCallback(
-    (cx: number, cy: number, factor: number) => {
-      const v = viewRef.current
-      const nextScale = Math.max(0.2, Math.min(8, v.scale * factor))
-      if (Math.abs(nextScale - v.scale) < 1e-6) return
-      const worldX = (cx - v.tx) / v.scale
-      const worldY = (cy - v.ty) / v.scale
-      const nextTx = cx - worldX * nextScale
-      const nextTy = cy - worldY * nextScale
-      setViewScale(nextScale)
-      setViewTx(nextTx)
-      setViewTy(nextTy)
-    },
-    [],
-  )
+  const zoomAt = useCallback((cx: number, cy: number, factor: number) => {
+    const v = viewRef.current
+    const nextScale = Math.max(0.2, Math.min(8, v.scale * factor))
+    if (Math.abs(nextScale - v.scale) < 1e-6) return
+    const worldX = (cx - v.tx) / v.scale
+    const worldY = (cy - v.ty) / v.scale
+    const nextTx = cx - worldX * nextScale
+    const nextTy = cy - worldY * nextScale
+    setViewScale(nextScale)
+    setViewTx(nextTx)
+    setViewTy(nextTy)
+  }, [])
 
   const zoomAtCenter = useCallback(
     (factor: number) => {
@@ -1553,8 +1421,8 @@ export default function VectorBoardWorkspace({
     const r = canvas.getBoundingClientRect()
     const b = normBoundsForSelections(
       documentRef.current,
-      documentRef.current.layers.flatMap((L) =>
-        L.visible ? L.strokes.map((s) => ({ layerId: L.id, strokeId: s.id })) : [],
+      documentRef.current.layers.flatMap(L =>
+        L.visible ? L.strokes.map(s => ({ layerId: L.id, strokeId: s.id })) : [],
       ),
     )
     if (!b) {
@@ -1572,10 +1440,7 @@ export default function VectorBoardWorkspace({
       resetView()
       return
     }
-    const nextScale = Math.max(
-      0.2,
-      Math.min(8, Math.min(r.width / worldW, r.height / worldH)),
-    )
+    const nextScale = Math.max(0.2, Math.min(8, Math.min(r.width / worldW, r.height / worldH)))
     const cx = ((minX + maxX) / 2) * r.width
     const cy = ((minY + maxY) / 2) * r.height
     setViewScale(nextScale)
@@ -1597,24 +1462,21 @@ export default function VectorBoardWorkspace({
         return
       }
       e.preventDefault()
-      setViewTx((tx) => tx - e.deltaX)
-      setViewTy((ty) => ty - e.deltaY)
+      setViewTx(tx => tx - e.deltaX)
+      setViewTy(ty => ty - e.deltaY)
     }
     c.addEventListener('wheel', onWheel, { passive: false })
     return () => c.removeEventListener('wheel', onWheel)
   }, [open, zoomAt])
 
-  const appendPoint = useCallback(
-    (pts: [number, number][], p: [number, number]) => {
-      const last = pts[pts.length - 1]
-      if (!last) return [...pts, p]
-      const dx = p[0] - last[0]
-      const dy = p[1] - last[1]
-      if (dx * dx + dy * dy < POINT_EPS * POINT_EPS) return pts
-      return [...pts, p]
-    },
-    [],
-  )
+  const appendPoint = useCallback((pts: [number, number][], p: [number, number]) => {
+    const last = pts[pts.length - 1]
+    if (!last) return [...pts, p]
+    const dx = p[0] - last[0]
+    const dy = p[1] - last[1]
+    if (dx * dx + dy * dy < POINT_EPS * POINT_EPS) return pts
+    return [...pts, p]
+  }, [])
 
   const commitStrokeToActiveLayer = useCallback(
     (stroke: VectorBoardStroke) => {
@@ -1622,10 +1484,8 @@ export default function VectorBoardWorkspace({
       if (!active) return
       commit({
         ...document,
-        layers: document.layers.map((L) =>
-          L.id !== active.id
-            ? L
-            : { ...L, strokes: [...L.strokes, stroke] },
+        layers: document.layers.map(L =>
+          L.id !== active.id ? L : { ...L, strokes: [...L.strokes, stroke] },
         ),
       })
       setDocSelection([{ layerId: active.id, strokeId: stroke.id }])
@@ -1646,17 +1506,12 @@ export default function VectorBoardWorkspace({
     (closed = false) => {
       const d = draftRef.current
       if (d?.kind !== 'pen-bezier' || d.anchors.length < 2) return
-      const fill =
-        closed &&
-        fillColor &&
-        fillColor !== 'transparent'
-          ? fillColor
-          : ''
+      const fill = closed && fillColor && fillColor !== 'transparent' ? fillColor : ''
       commitStrokeToActiveLayer({
         id: crypto.randomUUID(),
         kind: 'pen',
         points: [],
-        penAnchors: d.anchors.map((q) => ({ ...q })),
+        penAnchors: d.anchors.map(q => ({ ...q })),
         penClosed: closed ? true : undefined,
         stroke: strokeColor,
         strokeWidthN: strokeWidthNFromCanvas(),
@@ -1760,10 +1615,7 @@ export default function VectorBoardWorkspace({
             return
           }
           e.preventDefault()
-          const dup = duplicateSelectionsInPlace(
-            documentRef.current,
-            docSelection,
-          )
+          const dup = duplicateSelectionsInPlace(documentRef.current, docSelection)
           if (dup) {
             commit(dup.doc)
             setDocSelection(dup.newSelections)
@@ -1775,11 +1627,7 @@ export default function VectorBoardWorkspace({
           e.preventDefault()
           e.stopPropagation()
           commit(
-            applyZOrderInDoc(
-              documentRef.current,
-              docSelection,
-              e.shiftKey ? 'front' : 'forward',
-            ),
+            applyZOrderInDoc(documentRef.current, docSelection, e.shiftKey ? 'front' : 'forward'),
           )
           return
         }
@@ -1788,11 +1636,7 @@ export default function VectorBoardWorkspace({
           e.preventDefault()
           e.stopPropagation()
           commit(
-            applyZOrderInDoc(
-              documentRef.current,
-              docSelection,
-              e.shiftKey ? 'back' : 'backward',
-            ),
+            applyZOrderInDoc(documentRef.current, docSelection, e.shiftKey ? 'back' : 'backward'),
           )
           return
         }
@@ -1860,10 +1704,7 @@ export default function VectorBoardWorkspace({
       if (e.metaKey || e.ctrlKey) {
         if (e.key === 'c' || e.key === 'C') {
           if (docSelection.length === 0) return
-          const strokes = getStrokesForSelections(
-            documentRef.current,
-            docSelection,
-          )
+          const strokes = getStrokesForSelections(documentRef.current, docSelection)
           if (strokes.length === 0) return
           e.preventDefault()
           e.stopPropagation()
@@ -1898,7 +1739,7 @@ export default function VectorBoardWorkspace({
             const layer = getActiveLayer(appended.doc)
             if (layer) {
               setDocSelection(
-                appended.newStrokeIds.map((strokeId) => ({
+                appended.newStrokeIds.map(strokeId => ({
                   layerId: layer.id,
                   strokeId,
                 })),
@@ -1927,17 +1768,7 @@ export default function VectorBoardWorkspace({
       window.removeEventListener('keydown', onKey, true)
       window.removeEventListener('keyup', onKeyUp, true)
     }
-  }, [
-    open,
-    docSelection,
-    commit,
-    undoVector,
-    redoVector,
-    zoomAtCenter,
-    resetView,
-    fitView,
-    tool,
-  ])
+  }, [open, docSelection, commit, undoVector, redoVector, zoomAtCenter, resetView, fitView, tool])
 
   const shapeFill = useCallback(() => {
     if (tool === 'rect' || tool === 'ellipse' || tool === 'pen') {
@@ -1969,12 +1800,8 @@ export default function VectorBoardWorkspace({
     if (tool === 'move' && penEditSelection) {
       const pt = toNormUnclamped(e.clientX, e.clientY)
       if (pt && r) {
-        const layer = documentRef.current.layers.find(
-          (l) => l.id === penEditSelection.layerId,
-        )
-        const stroke = layer?.strokes.find(
-          (s) => s.id === penEditSelection.strokeId,
-        )
+        const layer = documentRef.current.layers.find(l => l.id === penEditSelection.layerId)
+        const stroke = layer?.strokes.find(s => s.id === penEditSelection.strokeId)
         if (stroke?.kind === 'pen' && stroke.penAnchors) {
           const hitR = 8 / (viewRef.current.scale * Math.min(r.width, r.height))
           const hitR2 = hitR * hitR
@@ -2019,9 +1846,7 @@ export default function VectorBoardWorkspace({
                   .slice(0, i)
                   .concat(stroke.penAnchors.slice(i + 1))
                 if (nextAnchors.length === 0) {
-                  const removed = removeStrokesFromDoc(documentRef.current, [
-                    penEditSelection,
-                  ])
+                  const removed = removeStrokesFromDoc(documentRef.current, [penEditSelection])
                   commit(removed)
                   setPenEditSelection(null)
                   setDocSelection([])
@@ -2091,10 +1916,7 @@ export default function VectorBoardWorkspace({
     }
 
     if (tool === 'move' && docSelection.length > 0 && r) {
-      const selBounds = normBoundsForSelections(
-        documentRef.current,
-        docSelection,
-      )
+      const selBounds = normBoundsForSelections(documentRef.current, docSelection)
       if (selBounds) {
         const pt = toNormUnclamped(e.clientX, e.clientY)
         if (pt) {
@@ -2162,18 +1984,14 @@ export default function VectorBoardWorkspace({
         strokeId: hit.stroke.id,
       }
       const alreadySelected = docSelection.some(
-        (s) => s.layerId === hitSel.layerId && s.strokeId === hitSel.strokeId,
+        s => s.layerId === hitSel.layerId && s.strokeId === hitSel.strokeId,
       )
 
       let nextSelection: DocStrokeSelection[]
       if (e.shiftKey) {
         nextSelection = alreadySelected
           ? docSelection.filter(
-              (s) =>
-                !(
-                  s.layerId === hitSel.layerId &&
-                  s.strokeId === hitSel.strokeId
-                ),
+              s => !(s.layerId === hitSel.layerId && s.strokeId === hitSel.strokeId),
             )
           : [...docSelection, hitSel]
       } else {
@@ -2181,10 +1999,7 @@ export default function VectorBoardWorkspace({
       }
 
       if (pointerAltKey(e) && nextSelection.length > 0) {
-        const dup = duplicateSelectionsInPlace(
-          documentRef.current,
-          nextSelection,
-        )
+        const dup = duplicateSelectionsInPlace(documentRef.current, nextSelection)
         if (dup) {
           commitLive(dup.doc)
           nextSelection = dup.newSelections
@@ -2194,7 +2009,7 @@ export default function VectorBoardWorkspace({
       setDocSelection(nextSelection)
 
       const clickedStaysSelected = nextSelection.some(
-        (s) => s.layerId === hitSel.layerId && s.strokeId === hitSel.strokeId,
+        s => s.layerId === hitSel.layerId && s.strokeId === hitSel.strokeId,
       )
       if (clickedStaysSelected && nextSelection.length > 0) {
         moveDragRef.current = {
@@ -2210,7 +2025,7 @@ export default function VectorBoardWorkspace({
     }
 
     const active = getActiveLayer(document)
-    if (!active || !active.visible) return
+    if (!active?.visible) return
 
     if (tool === 'pen') {
       const cur = draftRef.current
@@ -2266,9 +2081,7 @@ export default function VectorBoardWorkspace({
         }
       }
       const prevAnchors =
-        draftRef.current?.kind === 'pen-bezier'
-          ? draftRef.current.anchors.map((a) => ({ ...a }))
-          : []
+        draftRef.current?.kind === 'pen-bezier' ? draftRef.current.anchors.map(a => ({ ...a })) : []
       const anchors: VectorPenAnchor[] = [...prevAnchors, { x: p[0], y: p[1] }]
       const next: PenBezierDraftState = {
         kind: 'pen-bezier',
@@ -2389,15 +2202,11 @@ export default function VectorBoardWorkspace({
       const ped = penEditDragRef.current
       const pt2 = toNormUnclamped(e.clientX, e.clientY)
       if (!pt2 || !penEditSelection) return
-      const layer = documentRef.current.layers.find(
-        (l) => l.id === penEditSelection.layerId,
-      )
-      const stroke = layer?.strokes.find(
-        (s) => s.id === penEditSelection.strokeId,
-      )
+      const layer = documentRef.current.layers.find(l => l.id === penEditSelection.layerId)
+      const stroke = layer?.strokes.find(s => s.id === penEditSelection.strokeId)
       if (!stroke?.penAnchors) return
       const idx = ped.anchorIndex
-      const anchors = stroke.penAnchors.map((a) => ({ ...a }))
+      const anchors = stroke.penAnchors.map(a => ({ ...a }))
       const a = anchors[idx]
       if (!a) return
       if (ped.type === 'anchor') {
@@ -2435,12 +2244,7 @@ export default function VectorBoardWorkspace({
       const ddx = pt[0] - m.last[0]
       const ddy = pt[1] - m.last[1]
       m.last = pt
-      const moved = applyTranslateStrokesInDoc(
-        documentRef.current,
-        m.selections,
-        ddx,
-        ddy,
-      )
+      const moved = applyTranslateStrokesInDoc(documentRef.current, m.selections, ddx, ddy)
       commitLive(moved)
       return
     }
@@ -2475,10 +2279,7 @@ export default function VectorBoardWorkspace({
       return
     }
 
-    if (
-      (tool === 'pen' || (tool === 'move' && penEditSelection)) &&
-      canvas
-    ) {
+    if ((tool === 'pen' || (tool === 'move' && penEditSelection)) && canvas) {
       updatePenHoverCursor(e.clientX, e.clientY, pointerAltKey(e))
     } else if (tool !== 'pen') {
       setPenRemoveHintIndex(null)
@@ -2491,7 +2292,7 @@ export default function VectorBoardWorkspace({
 
     if (d.kind === 'pen-bezier' && d.drag) {
       if (d.drag.type === 'place') {
-        const nextAnchors = d.anchors.map((a) => ({ ...a }))
+        const nextAnchors = d.anchors.map(a => ({ ...a }))
         applySmoothPlacementHandles(nextAnchors, d.drag.anchorIndex, pt[0], pt[1])
         const nd: PenBezierDraftState = {
           ...d,
@@ -2502,7 +2303,7 @@ export default function VectorBoardWorkspace({
         return
       }
       if (d.drag.type === 'handle') {
-        const nextAnchors = d.anchors.map((a) => ({ ...a }))
+        const nextAnchors = d.anchors.map(a => ({ ...a }))
         const a = nextAnchors[d.drag.anchorIndex]!
         if (d.drag.which === 'in') {
           a.inX = pt[0]
@@ -2554,10 +2355,7 @@ export default function VectorBoardWorkspace({
   const onPointerUp = (e: React.PointerEvent) => {
     const el = e.target as HTMLElement
     const releaseCapture = () => {
-      if (
-        typeof el.hasPointerCapture === 'function' &&
-        el.hasPointerCapture(e.pointerId)
-      ) {
+      if (typeof el.hasPointerCapture === 'function' && el.hasPointerCapture(e.pointerId)) {
         el.releasePointerCapture(e.pointerId)
       }
     }
@@ -2615,7 +2413,7 @@ export default function VectorBoardWorkspace({
       const pt = toNorm(e.clientX, e.clientY)
       if (d.drag?.type === 'place' && pt) {
         const moved = Math.hypot(pt[0] - d.drag.startX, pt[1] - d.drag.startY)
-        const nextAnchors = d.anchors.map((a) => ({ ...a }))
+        const nextAnchors = d.anchors.map(a => ({ ...a }))
         const i = d.drag.anchorIndex
         if (moved < PEN_CORNER_DRAG && i >= 0) {
           const B = nextAnchors[i]!
@@ -2702,12 +2500,10 @@ export default function VectorBoardWorkspace({
   const clearActiveLayer = () => {
     const active = getActiveLayer(document)
     if (!active) return
-    setDocSelection((prev) => prev.filter((s) => s.layerId !== active.id))
+    setDocSelection(prev => prev.filter(s => s.layerId !== active.id))
     commit({
       ...document,
-      layers: document.layers.map((L) =>
-        L.id !== active.id ? L : { ...L, strokes: [] },
-      ),
+      layers: document.layers.map(L => (L.id !== active.id ? L : { ...L, strokes: [] })),
     })
   }
 
@@ -2728,14 +2524,14 @@ export default function VectorBoardWorkspace({
 
   const deleteLayer = (id: string) => {
     if (document.layers.length <= 1) return
-    const next = document.layers.filter((l) => l.id !== id)
+    const next = document.layers.filter(l => l.id !== id)
     let activeLayerId = document.activeLayerId
     if (activeLayerId === id) activeLayerId = next[0]!.id
     commit({ ...document, layers: next, activeLayerId })
   }
 
   const moveLayer = (id: string, dir: -1 | 1) => {
-    const i = document.layers.findIndex((l) => l.id === id)
+    const i = document.layers.findIndex(l => l.id === id)
     if (i < 0) return
     const j = i + dir
     if (j < 0 || j >= document.layers.length) return
@@ -2749,9 +2545,7 @@ export default function VectorBoardWorkspace({
   const setLayerVisible = (id: string, visible: boolean) => {
     commit({
       ...document,
-      layers: document.layers.map((L) =>
-        L.id !== id ? L : { ...L, visible },
-      ),
+      layers: document.layers.map(L => (L.id !== id ? L : { ...L, visible })),
     })
   }
 
@@ -2763,8 +2557,7 @@ export default function VectorBoardWorkspace({
     (selectedStrokeForUi.kind === 'rect' ||
       selectedStrokeForUi.kind === 'ellipse' ||
       selectedStrokeForUi.kind === 'polygon' ||
-      (selectedStrokeForUi.kind === 'pen' &&
-        selectedStrokeForUi.penClosed === true))
+      (selectedStrokeForUi.kind === 'pen' && selectedStrokeForUi.penClosed === true))
   const showFill =
     tool === 'rect' ||
     tool === 'ellipse' ||
@@ -2782,7 +2575,7 @@ export default function VectorBoardWorkspace({
     >
       <div
         className="flex h-[min(90vh,920px)] w-[min(96vw,1400px)] overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-[0_24px_80px_rgba(0,0,0,0.2)]"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <aside className="flex w-[13.5rem] shrink-0 flex-col border-r border-black/[0.06] bg-neutral-50/90">
           <div className="border-b border-black/[0.06] px-3 py-2">
@@ -2791,7 +2584,7 @@ export default function VectorBoardWorkspace({
             </span>
           </div>
           <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-auto p-2">
-            {document.layers.map((L) => {
+            {document.layers.map(L => {
               const active = L.id === document.activeLayerId
               return (
                 <div
@@ -2837,11 +2630,7 @@ export default function VectorBoardWorkspace({
                       title="Move down"
                       onClick={() => moveLayer(L.id, -1)}
                     >
-                      <HugeiconsIcon
-                        icon={ArrowDown01Icon}
-                        size={14}
-                        strokeWidth={1.75}
-                      />
+                      <HugeiconsIcon icon={ArrowDown01Icon} size={14} strokeWidth={1.75} />
                     </button>
                     <button
                       type="button"
@@ -2849,11 +2638,7 @@ export default function VectorBoardWorkspace({
                       title="Move up"
                       onClick={() => moveLayer(L.id, 1)}
                     >
-                      <HugeiconsIcon
-                        icon={ArrowUp01Icon}
-                        size={14}
-                        strokeWidth={1.75}
-                      />
+                      <HugeiconsIcon icon={ArrowUp01Icon} size={14} strokeWidth={1.75} />
                     </button>
                     <button
                       type="button"
@@ -2862,11 +2647,7 @@ export default function VectorBoardWorkspace({
                       title="Delete layer"
                       onClick={() => deleteLayer(L.id)}
                     >
-                      <HugeiconsIcon
-                        icon={Delete02Icon}
-                        size={14}
-                        strokeWidth={1.75}
-                      />
+                      <HugeiconsIcon icon={Delete02Icon} size={14} strokeWidth={1.75} />
                     </button>
                   </div>
                 </div>
@@ -2924,11 +2705,7 @@ export default function VectorBoardWorkspace({
                         aria-pressed={tool === id}
                         onClick={() => setTool(id)}
                       >
-                        <HugeiconsIcon
-                          icon={icon}
-                          size={18}
-                          strokeWidth={1.75}
-                        />
+                        <HugeiconsIcon icon={icon} size={18} strokeWidth={1.75} />
                       </button>
                     ))}
                   </div>
@@ -2939,7 +2716,7 @@ export default function VectorBoardWorkspace({
                       strokeWidthMax={16}
                       strokeWidthPx={strokeWidthPx}
                       strokePaint={{ type: 'solid', color: strokeColor }}
-                      onStrokeWidthChange={(px) => {
+                      onStrokeWidthChange={px => {
                         setStrokeWidthPx(px)
                         if (docSelection.length > 0) {
                           const canvas = canvasRef.current
@@ -2948,28 +2725,22 @@ export default function VectorBoardWorkspace({
                           const m = Math.max(1, Math.min(rw, rh))
                           let next = document
                           for (const sel of docSelection) {
-                            next = updateVectorStrokeInDoc(
-                              next,
-                              sel.layerId,
-                              sel.strokeId,
-                              { strokeWidthN: px / m },
-                            )
+                            next = updateVectorStrokeInDoc(next, sel.layerId, sel.strokeId, {
+                              strokeWidthN: px / m,
+                            })
                           }
                           commit(next)
                         }
                       }}
-                      onStrokePaintChange={(v) => {
+                      onStrokePaintChange={v => {
                         const hex = bgValuePreferSolid(v)
                         setStrokeColor(hex)
                         if (docSelection.length > 0) {
                           let next = document
                           for (const sel of docSelection) {
-                            next = updateVectorStrokeInDoc(
-                              next,
-                              sel.layerId,
-                              sel.strokeId,
-                              { stroke: hex },
-                            )
+                            next = updateVectorStrokeInDoc(next, sel.layerId, sel.strokeId, {
+                              stroke: hex,
+                            })
                           }
                           commit(next)
                         }
@@ -2981,20 +2752,16 @@ export default function VectorBoardWorkspace({
                         <PaintPopoverControl
                           compact
                           value={{ type: 'solid', color: fillColor }}
-                          onChange={(v) => {
+                          onChange={v => {
                             const hex = bgValuePreferSolid(v)
                             setFillColor(hex)
                             if (docSelection.length > 0) {
-                              const fill =
-                                hex && hex !== 'transparent' ? hex : ''
+                              const fill = hex && hex !== 'transparent' ? hex : ''
                               let next = document
                               for (const sel of docSelection) {
-                                next = updateVectorStrokeInDoc(
-                                  next,
-                                  sel.layerId,
-                                  sel.strokeId,
-                                  { fill },
-                                )
+                                next = updateVectorStrokeInDoc(next, sel.layerId, sel.strokeId, {
+                                  fill,
+                                })
                               }
                               commit(next)
                             }
@@ -3050,13 +2817,9 @@ export default function VectorBoardWorkspace({
                           aria-expanded={saveSplitOpen}
                           aria-haspopup="menu"
                           title="More save options"
-                          onClick={() => setSaveSplitOpen((o) => !o)}
+                          onClick={() => setSaveSplitOpen(o => !o)}
                         >
-                          <HugeiconsIcon
-                            icon={ArrowDown01Icon}
-                            size={16}
-                            strokeWidth={1.75}
-                          />
+                          <HugeiconsIcon icon={ArrowDown01Icon} size={16} strokeWidth={1.75} />
                         </button>
                       </div>
                       {saveSplitOpen ? (
@@ -3091,10 +2854,7 @@ export default function VectorBoardWorkspace({
             </div>
           </div>
 
-          <div
-            ref={wrapRef}
-            className="relative min-h-0 flex-1 bg-neutral-200/40 p-3 sm:p-4"
-          >
+          <div ref={wrapRef} className="relative min-h-0 flex-1 bg-neutral-200/40 p-3 sm:p-4">
             <canvas
               ref={canvasRef}
               className="block h-full w-full max-w-none touch-none rounded-lg border border-black/[0.08] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.6)]"
@@ -3104,7 +2864,7 @@ export default function VectorBoardWorkspace({
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
               onPointerCancel={onPointerUp}
-              onDoubleClick={(e) => {
+              onDoubleClick={e => {
                 if (tool !== 'move') return
                 const p = toNorm(e.clientX, e.clientY)
                 if (!p) return
@@ -3119,17 +2879,11 @@ export default function VectorBoardWorkspace({
                     layerId: hit.layerId,
                     strokeId: hit.stroke.id,
                   })
-                  setDocSelection([
-                    { layerId: hit.layerId, strokeId: hit.stroke.id },
-                  ])
+                  setDocSelection([{ layerId: hit.layerId, strokeId: hit.stroke.id }])
                   requestAnimationFrame(() => {
                     const last = lastCanvasPointerClientRef.current
                     if (last) {
-                      updatePenHoverCursor(
-                        last.x,
-                        last.y,
-                        altKeyHeldRef.current,
-                      )
+                      updatePenHoverCursor(last.x, last.y, altKeyHeldRef.current)
                     }
                   })
                 }

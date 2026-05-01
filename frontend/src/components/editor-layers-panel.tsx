@@ -1,4 +1,3 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ArrowDown01Icon,
   ArrowUp01Icon,
@@ -7,6 +6,7 @@ import {
   ViewIcon,
   ViewOffSlashIcon,
 } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { Reorder, useDragControls } from 'motion/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { useCallback, useEffect, useState } from 'react'
@@ -57,12 +57,12 @@ function LayerRowLabelControl({
         type="text"
         className="min-w-0 flex-1 rounded-md border border-black/15 bg-white px-2 py-1 text-sm text-neutral-800 outline-none focus:border-black/30"
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={e => setDraft(e.target.value)}
         onBlur={() => {
           setEditing(false)
           onRenameLayer(row.index, draft.trim())
         }}
-        onKeyDown={(e) => {
+        onKeyDown={e => {
           if (e.key === 'Enter') {
             e.preventDefault()
             ;(e.target as HTMLInputElement).blur()
@@ -74,7 +74,7 @@ function LayerRowLabelControl({
         }}
         autoFocus
         aria-label="Layer name"
-        onPointerDown={(e) => e.stopPropagation()}
+        onPointerDown={e => e.stopPropagation()}
       />
     )
   }
@@ -88,7 +88,7 @@ function LayerRowLabelControl({
     >
       <span
         className="truncate"
-        onDoubleClick={(e) => {
+        onDoubleClick={e => {
           if (!onRenameLayer) return
           e.preventDefault()
           e.stopPropagation()
@@ -151,21 +151,13 @@ function LayerReorderRow({
         title="Drag to reorder"
         className="flex h-8 w-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-neutral-400 hover:bg-black/[0.06] hover:text-neutral-600 active:cursor-grabbing"
         onPointerDown={onHandlePointerDown}
-        onKeyDown={(e) => {
+        onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') e.preventDefault()
         }}
       >
-        <HugeiconsIcon
-          icon={DragDropVerticalIcon}
-          size={16}
-          strokeWidth={1.75}
-        />
+        <HugeiconsIcon icon={DragDropVerticalIcon} size={16} strokeWidth={1.75} />
       </div>
-      <LayerRowLabelControl
-        row={row}
-        onSelectLayer={onSelectLayer}
-        onRenameLayer={onRenameLayer}
-      />
+      <LayerRowLabelControl row={row} onSelectLayer={onSelectLayer} onRenameLayer={onRenameLayer} />
       <button
         type="button"
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-600 hover:bg-black/[0.06]"
@@ -218,11 +210,7 @@ function StaticLayerRow({
 }) {
   return (
     <li className={layerRowClass(row.selected)}>
-      <LayerRowLabelControl
-        row={row}
-        onSelectLayer={onSelectLayer}
-        onRenameLayer={onRenameLayer}
-      />
+      <LayerRowLabelControl row={row} onSelectLayer={onSelectLayer} onRenameLayer={onRenameLayer} />
       <button
         type="button"
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-600 hover:bg-black/[0.06]"
@@ -297,19 +285,17 @@ export default function EditorLayersPanel({
       </div>
       {rows.length === 0 ? (
         <ul className={listClass}>
-          <li className="px-3 py-6 text-center text-sm text-neutral-500">
-            No objects yet
-          </li>
+          <li className="px-3 py-6 text-center text-sm text-neutral-500">No objects yet</li>
         </ul>
       ) : onReorder ? (
         <Reorder.Group
           as="ul"
           axis="y"
           className={listClass}
-          values={rows.map((r) => r.id)}
+          values={rows.map(r => r.id)}
           onReorder={onReorder}
         >
-          {rows.map((row) => (
+          {rows.map(row => (
             <LayerReorderRow
               key={row.id}
               value={row.id}
@@ -324,7 +310,7 @@ export default function EditorLayersPanel({
         </Reorder.Group>
       ) : (
         <ul className={listClass}>
-          {rows.map((row) => (
+          {rows.map(row => (
             <StaticLayerRow
               key={row.id}
               row={row}

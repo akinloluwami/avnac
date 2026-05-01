@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from '@hugeicons/react'
 import { Cancel01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import {
   editorSidebarPanelLeftClass,
   editorSidebarPanelTopClass,
@@ -35,9 +35,7 @@ export default function EditorUploadsPanel({ open, onClose }: Props) {
           <HugeiconsIcon icon={Cancel01Icon} size={18} strokeWidth={1.75} />
         </button>
       </div>
-      <div className="px-3 py-8 text-center text-sm text-neutral-500">
-        Coming soon
-      </div>
+      <div className="px-3 py-8 text-center text-sm text-neutral-500">Coming soon</div>
     </div>
   )
 }

@@ -1,10 +1,4 @@
-export type AvnacShapeKind =
-  | 'rect'
-  | 'ellipse'
-  | 'polygon'
-  | 'star'
-  | 'line'
-  | 'arrow'
+export type AvnacShapeKind = 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'arrow'
 
 export type ArrowLineStyle = 'solid' | 'dashed' | 'dotted'
 
@@ -36,23 +30,14 @@ export function getAvnacShapeMeta(
   return meta && typeof meta === 'object' && 'kind' in meta ? meta : null
 }
 
-export function setAvnacShapeMeta(
-  obj: MaybeShapeMetaCarrier,
-  meta: AvnacShapeMeta | null,
-): void {
+export function setAvnacShapeMeta(obj: MaybeShapeMetaCarrier, meta: AvnacShapeMeta | null): void {
   obj.avnacShape = meta
 }
 
-export function isAvnacStrokeLineLike(
-  meta: AvnacShapeMeta | null | undefined,
-): boolean {
+export function isAvnacStrokeLineLike(meta: AvnacShapeMeta | null | undefined): boolean {
   if (!meta) return false
   if (meta.kind === 'arrow') return true
-  return (
-    meta.kind === 'line' &&
-    !!meta.arrowEndpoints &&
-    meta.arrowStrokeWidth != null
-  )
+  return meta.kind === 'line' && !!meta.arrowEndpoints && meta.arrowStrokeWidth != null
 }
 
 export function avnacStrokeLineHeadFrac(meta: AvnacShapeMeta): number {

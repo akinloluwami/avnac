@@ -1,13 +1,6 @@
 import type { BgValue } from '../components/background-popover'
-import {
-  parseShadowColor,
-  type ShadowUi,
-} from './avnac-shadow'
-import type {
-  ArrowLineStyle,
-  ArrowPathType,
-  AvnacShapeMeta,
-} from './avnac-shape-meta'
+import { parseShadowColor, type ShadowUi } from './avnac-shadow'
+import type { ArrowLineStyle, ArrowPathType, AvnacShapeMeta } from './avnac-shape-meta'
 
 export const AVNAC_DOC_VERSION = 2 as const
 export const AVNAC_STORAGE_KEY = 'avnac-editor-document'
@@ -99,6 +92,7 @@ export type SceneText = SceneObjectBase & {
   strokeWidth: number
   fontFamily: string
   fontSize: number
+  letterSpacing: number
   lineHeight?: number
   fontWeight: number | 'normal' | 'bold'
   fontStyle: 'normal' | 'italic'
@@ -194,9 +188,12 @@ function clampLineHeight(n: number, fallback = 1.22): number {
   return Math.max(0.6, Math.min(4, n))
 }
 
-function parseFontWeight(
-  value: unknown,
-): SceneText['fontWeight'] {
+export function clampTextLetterSpacing(n: number): number {
+  if (!Number.isFinite(n)) return 0
+  return Math.max(-200, Math.min(400, Math.round(n)))
+}
+
+function parseFontWeight(value: unknown): SceneText['fontWeight'] {
   if (value === 'bold' || value === 'normal') return value
   if (typeof value === 'number' && Number.isFinite(value)) {
     return Math.max(100, Math.min(900, Math.round(value)))
@@ -224,11 +221,7 @@ function legacyStrokeScale(raw: Record<string, unknown>): number {
   return Math.sqrt(scaleX * scaleY)
 }
 
-function legacyStrokeWidth(
-  raw: Record<string, unknown>,
-  fallback: number,
-  min = 0,
-): number {
+function legacyStrokeWidth(raw: Record<string, unknown>, fallback: number, min = 0): number {
   const base =
     typeof raw.strokeWidth === 'number' && Number.isFinite(raw.strokeWidth)
       ? raw.strokeWidth
@@ -243,13 +236,11 @@ function cloneBgValue(value: BgValue): BgValue {
         type: 'gradient',
         css: value.css,
         angle: value.angle,
-        stops: value.stops.map((stop) => ({ ...stop })),
+        stops: value.stops.map(stop => ({ ...stop })),
       }
 }
 
-export function cloneShadow(
-  shadow: SceneShadow | null | undefined,
-): SceneShadow | null {
+export function cloneShadow(shadow: SceneShadow | null | undefined): SceneShadow | null {
   if (!shadow) return null
   return { ...shadow }
 }
@@ -258,7 +249,7 @@ function isGradientStopArray(raw: unknown): raw is BgValue['stops'] {
   return (
     Array.isArray(raw) &&
     raw.every(
-      (item) =>
+      item =>
         item &&
         typeof item === 'object' &&
         typeof (item as { color?: unknown }).color === 'string' &&
@@ -283,7 +274,7 @@ function parseBgValue(raw: unknown, fallback: BgValue): BgValue {
       type: 'gradient',
       css: obj.css,
       angle: obj.angle,
-      stops: obj.stops.map((stop) => ({ ...stop })),
+      stops: obj.stops.map(stop => ({ ...stop })),
     }
   }
   return cloneBgValue(fallback)
@@ -338,10 +329,7 @@ function baseObjectFromUnknown(
   type: SceneObjectType,
 ): SceneObjectBase {
   return {
-    id:
-      typeof raw.id === 'string' && raw.id.trim()
-        ? raw.id
-        : crypto.randomUUID(),
+    id: typeof raw.id === 'string' && raw.id.trim() ? raw.id : crypto.randomUUID(),
     type,
     x: typeof raw.x === 'number' ? raw.x : 0,
     y: typeof raw.y === 'number' ? raw.y : 0,
@@ -366,17 +354,14 @@ function baseObjectFromUnknown(
 function parseSceneObject(raw: unknown): SceneObject | null {
   if (!raw || typeof raw !== 'object') return null
   const obj = raw as Record<string, unknown>
-  const type =
-    typeof obj.type === 'string' ? obj.type.trim().toLowerCase() : ''
+  const type = typeof obj.type === 'string' ? obj.type.trim().toLowerCase() : ''
   if (type === 'rect') {
     return {
       ...baseObjectFromUnknown(obj, 'rect'),
       fill: parseBgValue(obj.fill, DEFAULT_SHAPE_FILL),
       stroke: parseBgValue(obj.stroke, DEFAULT_SHAPE_STROKE),
-      strokeWidth:
-        typeof obj.strokeWidth === 'number' ? Math.max(0, obj.strokeWidth) : 0,
-      cornerRadius:
-        typeof obj.cornerRadius === 'number' ? Math.max(0, obj.cornerRadius) : 0,
+      strokeWidth: typeof obj.strokeWidth === 'number' ? Math.max(0, obj.strokeWidth) : 0,
+      cornerRadius: typeof obj.cornerRadius === 'number' ? Math.max(0, obj.cornerRadius) : 0,
     }
   }
   if (type === 'ellipse') {
@@ -384,8 +369,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
       ...baseObjectFromUnknown(obj, 'ellipse'),
       fill: parseBgValue(obj.fill, DEFAULT_SHAPE_FILL),
       stroke: parseBgValue(obj.stroke, DEFAULT_SHAPE_STROKE),
-      strokeWidth:
-        typeof obj.strokeWidth === 'number' ? Math.max(0, obj.strokeWidth) : 0,
+      strokeWidth: typeof obj.strokeWidth === 'number' ? Math.max(0, obj.strokeWidth) : 0,
     }
   }
   if (type === 'polygon') {
@@ -393,12 +377,8 @@ function parseSceneObject(raw: unknown): SceneObject | null {
       ...baseObjectFromUnknown(obj, 'polygon'),
       fill: parseBgValue(obj.fill, DEFAULT_SHAPE_FILL),
       stroke: parseBgValue(obj.stroke, DEFAULT_SHAPE_STROKE),
-      strokeWidth:
-        typeof obj.strokeWidth === 'number' ? Math.max(0, obj.strokeWidth) : 0,
-      sides:
-        typeof obj.sides === 'number'
-          ? Math.max(3, Math.min(32, Math.round(obj.sides)))
-          : 6,
+      strokeWidth: typeof obj.strokeWidth === 'number' ? Math.max(0, obj.strokeWidth) : 0,
+      sides: typeof obj.sides === 'number' ? Math.max(3, Math.min(32, Math.round(obj.sides))) : 6,
     }
   }
   if (type === 'star') {
@@ -406,24 +386,17 @@ function parseSceneObject(raw: unknown): SceneObject | null {
       ...baseObjectFromUnknown(obj, 'star'),
       fill: parseBgValue(obj.fill, DEFAULT_SHAPE_FILL),
       stroke: parseBgValue(obj.stroke, DEFAULT_SHAPE_STROKE),
-      strokeWidth:
-        typeof obj.strokeWidth === 'number' ? Math.max(0, obj.strokeWidth) : 0,
+      strokeWidth: typeof obj.strokeWidth === 'number' ? Math.max(0, obj.strokeWidth) : 0,
       points:
-        typeof obj.points === 'number'
-          ? Math.max(4, Math.min(32, Math.round(obj.points)))
-          : 5,
+        typeof obj.points === 'number' ? Math.max(4, Math.min(32, Math.round(obj.points))) : 5,
     }
   }
   if (type === 'line') {
     return {
       ...baseObjectFromUnknown(obj, 'line'),
       stroke: parseBgValue(obj.stroke, DEFAULT_LINE_STROKE),
-      strokeWidth:
-        typeof obj.strokeWidth === 'number' ? Math.max(1, obj.strokeWidth) : 4,
-      lineStyle:
-        obj.lineStyle === 'dashed' || obj.lineStyle === 'dotted'
-          ? obj.lineStyle
-          : 'solid',
+      strokeWidth: typeof obj.strokeWidth === 'number' ? Math.max(1, obj.strokeWidth) : 4,
+      lineStyle: obj.lineStyle === 'dashed' || obj.lineStyle === 'dotted' ? obj.lineStyle : 'solid',
       roundedEnds: obj.roundedEnds !== false,
     }
   }
@@ -431,22 +404,13 @@ function parseSceneObject(raw: unknown): SceneObject | null {
     return {
       ...baseObjectFromUnknown(obj, 'arrow'),
       stroke: parseBgValue(obj.stroke, DEFAULT_LINE_STROKE),
-      strokeWidth:
-        typeof obj.strokeWidth === 'number' ? Math.max(1, obj.strokeWidth) : 4,
-      lineStyle:
-        obj.lineStyle === 'dashed' || obj.lineStyle === 'dotted'
-          ? obj.lineStyle
-          : 'solid',
+      strokeWidth: typeof obj.strokeWidth === 'number' ? Math.max(1, obj.strokeWidth) : 4,
+      lineStyle: obj.lineStyle === 'dashed' || obj.lineStyle === 'dotted' ? obj.lineStyle : 'solid',
       roundedEnds: obj.roundedEnds !== false,
       pathType: obj.pathType === 'curved' ? 'curved' : 'straight',
-      headSize:
-        typeof obj.headSize === 'number' ? Math.max(0.2, obj.headSize) : 1,
-      curveBulge:
-        typeof obj.curveBulge === 'number' ? obj.curveBulge : 0,
-      curveT:
-        typeof obj.curveT === 'number'
-          ? Math.max(0.1, Math.min(0.9, obj.curveT))
-          : 0.5,
+      headSize: typeof obj.headSize === 'number' ? Math.max(0.2, obj.headSize) : 1,
+      curveBulge: typeof obj.curveBulge === 'number' ? obj.curveBulge : 0,
+      curveT: typeof obj.curveT === 'number' ? Math.max(0.1, Math.min(0.9, obj.curveT)) : 0.5,
     }
   }
   if (type === 'text') {
@@ -455,33 +419,26 @@ function parseSceneObject(raw: unknown): SceneObject | null {
       text: typeof obj.text === 'string' ? obj.text : '',
       fill: parseBgValue(obj.fill, DEFAULT_TEXT_FILL),
       stroke: parseBgValue(obj.stroke, DEFAULT_SHAPE_STROKE),
-      strokeWidth:
-        typeof obj.strokeWidth === 'number' ? Math.max(0, obj.strokeWidth) : 0,
+      strokeWidth: typeof obj.strokeWidth === 'number' ? Math.max(0, obj.strokeWidth) : 0,
       fontFamily:
-        typeof obj.fontFamily === 'string' && obj.fontFamily.trim()
-          ? obj.fontFamily
-          : 'Inter',
-      fontSize:
-        typeof obj.fontSize === 'number' ? Math.max(8, obj.fontSize) : 64,
-      lineHeight: clampLineHeight(
-        typeof obj.lineHeight === 'number' ? obj.lineHeight : 1.22,
+        typeof obj.fontFamily === 'string' && obj.fontFamily.trim() ? obj.fontFamily : 'Inter',
+      fontSize: typeof obj.fontSize === 'number' ? Math.max(8, obj.fontSize) : 64,
+      letterSpacing: clampTextLetterSpacing(
+        typeof obj.letterSpacing === 'number' ? obj.letterSpacing : 0,
       ),
+      lineHeight: clampLineHeight(typeof obj.lineHeight === 'number' ? obj.lineHeight : 1.22),
       fontWeight: parseFontWeight(obj.fontWeight),
       fontStyle: obj.fontStyle === 'italic' ? 'italic' : 'normal',
       underline: obj.underline === true,
       textAlign:
-        obj.textAlign === 'center' ||
-        obj.textAlign === 'right' ||
-        obj.textAlign === 'justify'
+        obj.textAlign === 'center' || obj.textAlign === 'right' || obj.textAlign === 'justify'
           ? obj.textAlign
           : 'left',
     }
   }
   if (type === 'image') {
-    const naturalWidth =
-      typeof obj.naturalWidth === 'number' ? clampSize(obj.naturalWidth) : 1
-    const naturalHeight =
-      typeof obj.naturalHeight === 'number' ? clampSize(obj.naturalHeight) : 1
+    const naturalWidth = typeof obj.naturalWidth === 'number' ? clampSize(obj.naturalWidth) : 1
+    const naturalHeight = typeof obj.naturalHeight === 'number' ? clampSize(obj.naturalHeight) : 1
     const cropRaw = obj.crop as Record<string, unknown> | undefined
     return {
       ...baseObjectFromUnknown(obj, 'image'),
@@ -491,26 +448,16 @@ function parseSceneObject(raw: unknown): SceneObject | null {
       crop: {
         x: typeof cropRaw?.x === 'number' ? Math.max(0, cropRaw.x) : 0,
         y: typeof cropRaw?.y === 'number' ? Math.max(0, cropRaw.y) : 0,
-        width:
-          typeof cropRaw?.width === 'number'
-            ? Math.max(1, cropRaw.width)
-            : naturalWidth,
-        height:
-          typeof cropRaw?.height === 'number'
-            ? Math.max(1, cropRaw.height)
-            : naturalHeight,
+        width: typeof cropRaw?.width === 'number' ? Math.max(1, cropRaw.width) : naturalWidth,
+        height: typeof cropRaw?.height === 'number' ? Math.max(1, cropRaw.height) : naturalHeight,
       },
-      cornerRadius:
-        typeof obj.cornerRadius === 'number' ? Math.max(0, obj.cornerRadius) : 0,
+      cornerRadius: typeof obj.cornerRadius === 'number' ? Math.max(0, obj.cornerRadius) : 0,
     }
   }
   if (type === 'vector-board') {
     return {
       ...baseObjectFromUnknown(obj, 'vector-board'),
-      boardId:
-        typeof obj.boardId === 'string' && obj.boardId.trim()
-          ? obj.boardId
-          : '',
+      boardId: typeof obj.boardId === 'string' && obj.boardId.trim() ? obj.boardId : '',
     }
   }
   if (type === 'group') {
@@ -518,7 +465,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
     return {
       ...baseObjectFromUnknown(obj, 'group'),
       children: childrenRaw
-        .map((child) => parseSceneObject(child))
+        .map(child => parseSceneObject(child))
         .filter((child): child is SceneObject => child != null),
     }
   }
@@ -526,22 +473,12 @@ function parseSceneObject(raw: unknown): SceneObject | null {
 }
 
 function legacyBox(raw: Record<string, unknown>) {
-  const width = Math.max(
-    1,
-    Math.abs(Number(raw.width) || 0) * Math.abs(Number(raw.scaleX) || 1),
-  )
-  const height = Math.max(
-    1,
-    Math.abs(Number(raw.height) || 0) * Math.abs(Number(raw.scaleY) || 1),
-  )
+  const width = Math.max(1, Math.abs(Number(raw.width) || 0) * Math.abs(Number(raw.scaleX) || 1))
+  const height = Math.max(1, Math.abs(Number(raw.height) || 0) * Math.abs(Number(raw.scaleY) || 1))
   const left = typeof raw.left === 'number' ? raw.left : 0
   const top = typeof raw.top === 'number' ? raw.top : 0
-  const originX = raw.originX === 'center' || raw.originX === 'right'
-    ? raw.originX
-    : 'left'
-  const originY = raw.originY === 'center' || raw.originY === 'bottom'
-    ? raw.originY
-    : 'top'
+  const originX = raw.originX === 'center' || raw.originX === 'right' ? raw.originX : 'left'
+  const originY = raw.originY === 'center' || raw.originY === 'bottom' ? raw.originY : 'top'
   const x = originX === 'center' ? left - width / 2 : originX === 'right' ? left - width : left
   const y = originY === 'center' ? top - height / 2 : originY === 'bottom' ? top - height : top
   return {
@@ -550,21 +487,20 @@ function legacyBox(raw: Record<string, unknown>) {
     width,
     height,
     rotation: typeof raw.angle === 'number' ? raw.angle : 0,
-    opacity:
-      typeof raw.opacity === 'number' ? clampOpacity(raw.opacity) : 1,
+    opacity: typeof raw.opacity === 'number' ? clampOpacity(raw.opacity) : 1,
     visible: raw.visible !== false,
   }
 }
 
 function bgFromLegacyPaint(raw: Record<string, unknown>, key: 'fill' | 'stroke') {
   const customKey = key === 'fill' ? 'avnacFill' : 'avnacStroke'
-  return parseBgValue(raw[customKey], legacySolidPaint(raw[key], key === 'fill' ? DEFAULT_SHAPE_FILL : DEFAULT_SHAPE_STROKE))
+  return parseBgValue(
+    raw[customKey],
+    legacySolidPaint(raw[key], key === 'fill' ? DEFAULT_SHAPE_FILL : DEFAULT_SHAPE_STROKE),
+  )
 }
 
-function createLegacyBase(
-  raw: Record<string, unknown>,
-  type: SceneObjectType,
-): SceneObjectBase {
+function createLegacyBase(raw: Record<string, unknown>, type: SceneObjectType): SceneObjectBase {
   const box = legacyBox(raw)
   return {
     id:
@@ -583,8 +519,7 @@ function createLegacyBase(
     visible: box.visible,
     locked: raw.avnacLocked === true,
     name: typeof raw.avnacLayerName === 'string' ? raw.avnacLayerName : undefined,
-    blurPct:
-      typeof raw.avnacBlur === 'number' ? clampBlurPct(raw.avnacBlur) : 0,
+    blurPct: typeof raw.avnacBlur === 'number' ? clampBlurPct(raw.avnacBlur) : 0,
     shadow: parseShadow(raw.shadow),
   }
 }
@@ -597,8 +532,7 @@ function migrateLegacyObject(raw: unknown): SceneObject | null {
   if (!raw || typeof raw !== 'object') return null
   const obj = raw as Record<string, unknown>
   const meta = (obj.avnacShape as AvnacShapeMeta | undefined) ?? null
-  const type =
-    typeof obj.type === 'string' ? obj.type.trim().toLowerCase() : ''
+  const type = typeof obj.type === 'string' ? obj.type.trim().toLowerCase() : ''
   if (typeof obj.avnacVectorBoardId === 'string' && obj.avnacVectorBoardId) {
     return {
       ...createLegacyBase(obj, 'vector-board'),
@@ -612,15 +546,12 @@ function migrateLegacyObject(raw: unknown): SceneObject | null {
       const length = Math.max(1, pointDistance(ep.x1, ep.y1, ep.x2, ep.y2))
       const strokeWidth = Math.max(
         1,
-        typeof meta.arrowStrokeWidth === 'number' ? meta.arrowStrokeWidth : Number(obj.strokeWidth) || 4,
+        typeof meta.arrowStrokeWidth === 'number'
+          ? meta.arrowStrokeWidth
+          : Number(obj.strokeWidth) || 4,
       )
-      const curveBulge =
-        typeof meta.arrowCurveBulge === 'number' ? meta.arrowCurveBulge : 0
-      const height = Math.max(
-        strokeWidth * 4,
-        Math.abs(curveBulge) * 2 + strokeWidth * 3,
-        24,
-      )
+      const curveBulge = typeof meta.arrowCurveBulge === 'number' ? meta.arrowCurveBulge : 0
+      const height = Math.max(strokeWidth * 4, Math.abs(curveBulge) * 2 + strokeWidth * 3, 24)
       const cx = (ep.x1 + ep.x2) / 2
       const cy = (ep.y1 + ep.y2) / 2
       const rotation = (Math.atan2(ep.y2 - ep.y1, ep.x2 - ep.x1) * 180) / Math.PI
@@ -679,32 +610,26 @@ function migrateLegacyObject(raw: unknown): SceneObject | null {
       stroke: bgFromLegacyPaint(obj, 'stroke'),
       strokeWidth: legacyStrokeWidth(obj, 0),
       fontFamily:
-        typeof obj.fontFamily === 'string' && obj.fontFamily.trim()
-          ? obj.fontFamily
-          : 'Inter',
-      fontSize:
-        typeof obj.fontSize === 'number'
-          ? Math.max(8, obj.fontSize * scaleY)
-          : 64,
-      lineHeight: clampLineHeight(
-        typeof obj.lineHeight === 'number' ? obj.lineHeight : 1.22,
+        typeof obj.fontFamily === 'string' && obj.fontFamily.trim() ? obj.fontFamily : 'Inter',
+      fontSize: typeof obj.fontSize === 'number' ? Math.max(8, obj.fontSize * scaleY) : 64,
+      letterSpacing: clampTextLetterSpacing(
+        typeof obj.charSpacing === 'number' && typeof obj.fontSize === 'number'
+          ? (obj.fontSize * scaleY * obj.charSpacing) / 1000
+          : 0,
       ),
+      lineHeight: clampLineHeight(typeof obj.lineHeight === 'number' ? obj.lineHeight : 1.22),
       fontWeight: parseFontWeight(obj.fontWeight),
       fontStyle: obj.fontStyle === 'italic' ? 'italic' : 'normal',
       underline: obj.underline === true,
       textAlign:
-        obj.textAlign === 'center' ||
-        obj.textAlign === 'right' ||
-        obj.textAlign === 'justify'
+        obj.textAlign === 'center' || obj.textAlign === 'right' || obj.textAlign === 'justify'
           ? obj.textAlign
           : 'left',
     }
   }
   if (type === 'image') {
-    const naturalWidth =
-      typeof obj.width === 'number' ? Math.max(1, Math.round(obj.width)) : 1
-    const naturalHeight =
-      typeof obj.height === 'number' ? Math.max(1, Math.round(obj.height)) : 1
+    const naturalWidth = typeof obj.width === 'number' ? Math.max(1, Math.round(obj.width)) : 1
+    const naturalHeight = typeof obj.height === 'number' ? Math.max(1, Math.round(obj.height)) : 1
     const base = createLegacyBase(obj, 'image')
     return {
       ...base,
@@ -718,8 +643,7 @@ function migrateLegacyObject(raw: unknown): SceneObject | null {
         width: naturalWidth,
         height: naturalHeight,
       },
-      cornerRadius:
-        typeof obj.rx === 'number' ? Math.max(0, obj.rx) : 0,
+      cornerRadius: typeof obj.rx === 'number' ? Math.max(0, obj.rx) : 0,
     }
   }
   if (meta?.kind === 'rect' || type === 'rect') {
@@ -751,10 +675,7 @@ function migrateLegacyObject(raw: unknown): SceneObject | null {
       fill: bgFromLegacyPaint(obj, 'fill'),
       stroke: bgFromLegacyPaint(obj, 'stroke'),
       strokeWidth: legacyStrokeWidth(obj, 0),
-      sides:
-        typeof meta.polygonSides === 'number'
-          ? Math.max(3, Math.round(meta.polygonSides))
-          : 6,
+      sides: typeof meta.polygonSides === 'number' ? Math.max(3, Math.round(meta.polygonSides)) : 6,
     }
   }
   if (meta?.kind === 'star') {
@@ -765,15 +686,12 @@ function migrateLegacyObject(raw: unknown): SceneObject | null {
       fill: bgFromLegacyPaint(obj, 'fill'),
       stroke: bgFromLegacyPaint(obj, 'stroke'),
       strokeWidth: legacyStrokeWidth(obj, 0),
-      points:
-        typeof meta.starPoints === 'number'
-          ? Math.max(4, Math.round(meta.starPoints))
-          : 5,
+      points: typeof meta.starPoints === 'number' ? Math.max(4, Math.round(meta.starPoints)) : 5,
     }
   }
   if (type === 'group' && Array.isArray(obj.objects)) {
     const children = obj.objects
-      .map((child) => migrateLegacyObject(child))
+      .map(child => migrateLegacyObject(child))
       .filter((child): child is SceneObject => child != null)
     const base = createLegacyBase(obj, 'group')
     if (children.length === 0) return null
@@ -786,10 +704,7 @@ function migrateLegacyObject(raw: unknown): SceneObject | null {
   return null
 }
 
-export function createEmptyAvnacDocument(
-  width: number,
-  height: number,
-): AvnacDocument {
+export function createEmptyAvnacDocument(width: number, height: number): AvnacDocument {
   const page = createEmptyAvnacPage(width, height, 'Page 1')
   return {
     v: AVNAC_DOC_VERSION,
@@ -801,11 +716,7 @@ export function createEmptyAvnacDocument(
   }
 }
 
-export function createEmptyAvnacPage(
-  width: number,
-  height: number,
-  name = 'Page',
-): AvnacPage {
+export function createEmptyAvnacPage(width: number, height: number, name = 'Page'): AvnacPage {
   return createAvnacPage({
     name,
     artboard: {
@@ -838,21 +749,14 @@ export function createAvnacPage({
       height: clampSize(artboard.height, 100),
     },
     bg: cloneBgValue(bg),
-    objects: objects.map((obj) => cloneSceneObject(obj)),
+    objects: objects.map(obj => cloneSceneObject(obj)),
   }
 }
 
-function currentFieldsToPage(
-  doc: AvnacDocument,
-  id: string,
-  fallbackName = 'Page 1',
-): AvnacPage {
+function currentFieldsToPage(doc: AvnacDocument, id: string, fallbackName = 'Page 1'): AvnacPage {
   return createAvnacPage({
     id,
-    name:
-      doc.pages.find((page) => page.id === id)?.name ||
-      doc.pages[0]?.name ||
-      fallbackName,
+    name: doc.pages.find(page => page.id === id)?.name || doc.pages[0]?.name || fallbackName,
     artboard: doc.artboard,
     bg: doc.bg,
     objects: doc.objects,
@@ -866,24 +770,24 @@ export function cloneAvnacPage(page: AvnacPage): AvnacPage {
 export function syncActivePage(doc: AvnacDocument): AvnacDocument {
   const existingPages = doc.pages.length > 0 ? doc.pages : []
   const activePageId =
-    doc.activePageId && existingPages.some((page) => page.id === doc.activePageId)
+    doc.activePageId && existingPages.some(page => page.id === doc.activePageId)
       ? doc.activePageId
       : existingPages[0]?.id || makeId('page')
   const currentPage = currentFieldsToPage(doc, activePageId)
-  const pages = existingPages.map((page) =>
+  const pages = existingPages.map(page =>
     page.id === activePageId ? currentPage : cloneAvnacPage(page),
   )
   if (pages.length === 0) {
     pages.push(currentPage)
-  } else if (!pages.some((page) => page.id === activePageId)) {
+  } else if (!pages.some(page => page.id === activePageId)) {
     pages.unshift(currentPage)
   }
-  const activePage = pages.find((page) => page.id === activePageId) ?? pages[0]
+  const activePage = pages.find(page => page.id === activePageId) ?? pages[0]
   return {
     v: AVNAC_DOC_VERSION,
     artboard: { ...activePage.artboard },
     bg: cloneBgValue(activePage.bg),
-    objects: activePage.objects.map((obj) => cloneSceneObject(obj)),
+    objects: activePage.objects.map(obj => cloneSceneObject(obj)),
     activePageId: activePage.id,
     pages,
   }
@@ -891,29 +795,21 @@ export function syncActivePage(doc: AvnacDocument): AvnacDocument {
 
 export function activateAvnacPage(doc: AvnacDocument, pageId: string): AvnacDocument {
   const synced = syncActivePage(doc)
-  const activePage =
-    synced.pages.find((page) => page.id === pageId) ?? synced.pages[0]
+  const activePage = synced.pages.find(page => page.id === pageId) ?? synced.pages[0]
   return {
     ...synced,
     artboard: { ...activePage.artboard },
     bg: cloneBgValue(activePage.bg),
-    objects: activePage.objects.map((obj) => cloneSceneObject(obj)),
+    objects: activePage.objects.map(obj => cloneSceneObject(obj)),
     activePageId: activePage.id,
   }
 }
 
-function parseAvnacPage(
-  raw: unknown,
-  fallbackIndex: number,
-): AvnacPage | null {
+function parseAvnacPage(raw: unknown, fallbackIndex: number): AvnacPage | null {
   if (!raw || typeof raw !== 'object') return null
   const obj = raw as Record<string, unknown>
   const artboard = obj.artboard as Record<string, unknown> | undefined
-  if (
-    !artboard ||
-    typeof artboard.width !== 'number' ||
-    typeof artboard.height !== 'number'
-  ) {
+  if (!artboard || typeof artboard.width !== 'number' || typeof artboard.height !== 'number') {
     return null
   }
   const objectsRaw = Array.isArray(obj.objects) ? obj.objects : []
@@ -926,28 +822,24 @@ function parseAvnacPage(
     },
     bg: parseBgValue(obj.bg, DEFAULT_BG),
     objects: objectsRaw
-      .map((row) => parseSceneObject(row))
+      .map(row => parseSceneObject(row))
       .filter((row): row is SceneObject => row != null),
   })
 }
 
 function migrateLegacyDocument(raw: Record<string, unknown>): AvnacDocument | null {
   const artboardRaw = raw.artboard as Record<string, unknown> | undefined
-  const width =
-    typeof artboardRaw?.width === 'number' ? artboardRaw.width : Number.NaN
-  const height =
-    typeof artboardRaw?.height === 'number' ? artboardRaw.height : Number.NaN
+  const width = typeof artboardRaw?.width === 'number' ? artboardRaw.width : Number.NaN
+  const height = typeof artboardRaw?.height === 'number' ? artboardRaw.height : Number.NaN
   if (!Number.isFinite(width) || !Number.isFinite(height)) return null
-  const legacySceneState = raw['fabric'] as Record<string, unknown> | undefined
-  const objectsRaw = Array.isArray(legacySceneState?.objects)
-    ? legacySceneState.objects
-    : []
+  const legacySceneState = raw.fabric as Record<string, unknown> | undefined
+  const objectsRaw = Array.isArray(legacySceneState?.objects) ? legacySceneState.objects : []
   const doc = {
     v: AVNAC_DOC_VERSION,
     artboard: { width: clampSize(width, 100), height: clampSize(height, 100) },
     bg: parseBgValue(raw.bg, DEFAULT_BG),
     objects: objectsRaw
-      .map((obj) => migrateLegacyObject(obj))
+      .map(obj => migrateLegacyObject(obj))
       .filter((obj): obj is SceneObject => obj != null),
     activePageId: '',
     pages: [],
@@ -955,15 +847,13 @@ function migrateLegacyDocument(raw: Record<string, unknown>): AvnacDocument | nu
   return syncActivePage(doc)
 }
 
-export function getAvnacDocumentStorageKind(
-  raw: unknown,
-): AvnacDocumentStorageKind {
+export function getAvnacDocumentStorageKind(raw: unknown): AvnacDocumentStorageKind {
   if (!raw || typeof raw !== 'object') return 'invalid'
   const obj = raw as Record<string, unknown>
   if (obj.v === AVNAC_DOC_VERSION && Array.isArray(obj.objects)) {
     return 'current'
   }
-  const legacySceneState = obj['fabric']
+  const legacySceneState = obj.fabric
   if (obj.v === 1 && legacySceneState && typeof legacySceneState === 'object') {
     return 'legacy'
   }
@@ -976,16 +866,12 @@ export function parseAvnacDocument(raw: unknown): AvnacDocument | null {
   const obj = raw as Record<string, unknown>
   if (kind === 'current') {
     const artboard = obj.artboard as Record<string, unknown> | undefined
-    if (
-      !artboard ||
-      typeof artboard.width !== 'number' ||
-      typeof artboard.height !== 'number'
-    ) {
+    if (!artboard || typeof artboard.width !== 'number' || typeof artboard.height !== 'number') {
       return null
     }
     const objectsRaw = Array.isArray(obj.objects) ? obj.objects : []
     const objects = objectsRaw
-      .map((row) => parseSceneObject(row))
+      .map(row => parseSceneObject(row))
       .filter((row): row is SceneObject => row != null)
     const pages = Array.isArray(obj.pages)
       ? obj.pages
@@ -1045,7 +931,7 @@ export function cloneSceneObject<T extends SceneObject>(obj: T): T {
     case 'group':
       return {
         ...base,
-        children: obj.children.map((child) => cloneSceneObject(child)),
+        children: obj.children.map(child => cloneSceneObject(child)),
       } as T
   }
 }
@@ -1056,9 +942,9 @@ export function cloneAvnacDocument(doc: AvnacDocument): AvnacDocument {
     v: AVNAC_DOC_VERSION,
     artboard: { ...synced.artboard },
     bg: cloneBgValue(synced.bg),
-    objects: synced.objects.map((obj) => cloneSceneObject(obj)),
+    objects: synced.objects.map(obj => cloneSceneObject(obj)),
     activePageId: synced.activePageId,
-    pages: synced.pages.map((page) => cloneAvnacPage(page)),
+    pages: synced.pages.map(page => cloneAvnacPage(page)),
   }
 }
 
@@ -1164,10 +1050,7 @@ export function getObjectCornerRadius(obj: SceneObject): number {
   return 0
 }
 
-export function setObjectCornerRadius(
-  obj: SceneObject,
-  radius: number,
-): SceneObject {
+export function setObjectCornerRadius(obj: SceneObject, radius: number): SceneObject {
   if (obj.type !== 'rect' && obj.type !== 'image') return obj
   return {
     ...obj,
@@ -1204,27 +1087,24 @@ export function getObjectStrokeWidth(obj: SceneObject): number {
   return obj.strokeWidth
 }
 
-export function setObjectStrokeWidth(
-  obj: SceneObject,
-  strokeWidth: number,
-): SceneObject {
+export function setObjectStrokeWidth(obj: SceneObject, strokeWidth: number): SceneObject {
   if (!objectSupportsOutlineStroke(obj)) return obj
   return { ...obj, strokeWidth: Math.max(0, strokeWidth) } as SceneObject
 }
 
 export function normalizeGroup(group: SceneGroup): SceneGroup {
   if (group.children.length === 0) return group
-  const boxes = group.children.map((child) => ({
+  const boxes = group.children.map(child => ({
     x: child.x,
     y: child.y,
     maxX: child.x + child.width,
     maxY: child.y + child.height,
   }))
-  const minX = Math.min(...boxes.map((box) => box.x))
-  const minY = Math.min(...boxes.map((box) => box.y))
-  const maxX = Math.max(...boxes.map((box) => box.maxX))
-  const maxY = Math.max(...boxes.map((box) => box.maxY))
-  const children = group.children.map((child) => ({
+  const minX = Math.min(...boxes.map(box => box.x))
+  const minY = Math.min(...boxes.map(box => box.y))
+  const maxX = Math.max(...boxes.map(box => box.maxX))
+  const maxY = Math.max(...boxes.map(box => box.maxY))
+  const children = group.children.map(child => ({
     ...cloneSceneObject(child),
     x: child.x - minX,
     y: child.y - minY,
@@ -1274,19 +1154,13 @@ export function getObjectRotatedBounds(obj: SceneObject): {
   const corners = [
     rotatePoint(obj.x, obj.y, obj.rotation, center.x, center.y),
     rotatePoint(obj.x + obj.width, obj.y, obj.rotation, center.x, center.y),
-    rotatePoint(
-      obj.x + obj.width,
-      obj.y + obj.height,
-      obj.rotation,
-      center.x,
-      center.y,
-    ),
+    rotatePoint(obj.x + obj.width, obj.y + obj.height, obj.rotation, center.x, center.y),
     rotatePoint(obj.x, obj.y + obj.height, obj.rotation, center.x, center.y),
   ]
-  const left = Math.min(...corners.map((corner) => corner.x))
-  const top = Math.min(...corners.map((corner) => corner.y))
-  const right = Math.max(...corners.map((corner) => corner.x))
-  const bottom = Math.max(...corners.map((corner) => corner.y))
+  const left = Math.min(...corners.map(corner => corner.x))
+  const top = Math.min(...corners.map(corner => corner.y))
+  const right = Math.max(...corners.map(corner => corner.x))
+  const bottom = Math.max(...corners.map(corner => corner.y))
   return {
     left,
     top,
@@ -1302,15 +1176,11 @@ export function getSelectionBounds(objects: SceneObject[]): {
   height: number
 } | null {
   if (objects.length === 0) return null
-  const bounds = objects.map((obj) => getObjectRotatedBounds(obj))
-  const left = Math.min(...bounds.map((bound) => bound.left))
-  const top = Math.min(...bounds.map((bound) => bound.top))
-  const right = Math.max(
-    ...bounds.map((bound) => bound.left + bound.width),
-  )
-  const bottom = Math.max(
-    ...bounds.map((bound) => bound.top + bound.height),
-  )
+  const bounds = objects.map(obj => getObjectRotatedBounds(obj))
+  const left = Math.min(...bounds.map(bound => bound.left))
+  const top = Math.min(...bounds.map(bound => bound.top))
+  const right = Math.max(...bounds.map(bound => bound.left + bound.width))
+  const bottom = Math.max(...bounds.map(bound => bound.top + bound.height))
   return {
     left,
     top,
@@ -1324,7 +1194,7 @@ export function updateSceneObject(
   id: string,
   updater: (obj: SceneObject) => SceneObject,
 ): SceneObject[] {
-  return objects.map((obj) => {
+  return objects.map(obj => {
     if (obj.id === id) return updater(obj)
     if (obj.type !== 'group') return obj
     return {
@@ -1334,10 +1204,7 @@ export function updateSceneObject(
   })
 }
 
-export function findSceneObject(
-  objects: SceneObject[],
-  id: string,
-): SceneObject | null {
+export function findSceneObject(objects: SceneObject[], id: string): SceneObject | null {
   for (const obj of objects) {
     if (obj.id === id) return obj
     if (obj.type === 'group') {
@@ -1353,20 +1220,17 @@ export function replaceTopLevelObject(
   id: string,
   next: SceneObject,
 ): SceneObject[] {
-  return objects.map((obj) => (obj.id === id ? next : obj))
+  return objects.map(obj => (obj.id === id ? next : obj))
 }
 
-export function removeTopLevelObjects(
-  objects: SceneObject[],
-  ids: string[],
-): SceneObject[] {
+export function removeTopLevelObjects(objects: SceneObject[], ids: string[]): SceneObject[] {
   const set = new Set(ids)
-  return objects.filter((obj) => !set.has(obj.id))
+  return objects.filter(obj => !set.has(obj.id))
 }
 
 export function createGroupFromSelection(objects: SceneObject[]): SceneGroup | null {
   if (objects.length < 2) return null
-  const clones = objects.map((obj) => cloneSceneObject(obj))
+  const clones = objects.map(obj => cloneSceneObject(obj))
   return normalizeGroup({
     id: crypto.randomUUID(),
     type: 'group',
@@ -1377,7 +1241,7 @@ export function createGroupFromSelection(objects: SceneObject[]): SceneGroup | n
     rotation: 0,
     opacity: 1,
     visible: true,
-    locked: objects.every((obj) => obj.locked),
+    locked: objects.every(obj => obj.locked),
     name: 'Group',
     blurPct: 0,
     shadow: null,
@@ -1387,18 +1251,12 @@ export function createGroupFromSelection(objects: SceneObject[]): SceneGroup | n
 
 export function ungroupSceneObject(group: SceneGroup): SceneObject[] {
   const center = getObjectCenter(group)
-  return group.children.map((child) => {
+  return group.children.map(child => {
     const localCenter = {
       x: group.x + child.x + child.width / 2,
       y: group.y + child.y + child.height / 2,
     }
-    const rotated = rotatePoint(
-      localCenter.x,
-      localCenter.y,
-      group.rotation,
-      center.x,
-      center.y,
-    )
+    const rotated = rotatePoint(localCenter.x, localCenter.y, group.rotation, center.x, center.y)
     const next = cloneSceneObject(child)
     next.x = rotated.x - next.width / 2
     next.y = rotated.y - next.height / 2

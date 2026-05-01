@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useViewportAwarePopoverPlacement } from '../hooks/use-viewport-aware-popover'
-import BackgroundPopover, {
-  bgValueToSwatch,
-  type BgValue,
-} from './background-popover'
+import BackgroundPopover, { type BgValue, bgValueToSwatch } from './background-popover'
 import { floatingToolbarIconButton } from './floating-toolbar-shell'
 
 /** Approximate max height of `BackgroundPopover` for viewport fitting. */
@@ -60,7 +57,7 @@ export default function PaintPopoverControl({
         title={title}
         aria-expanded={open}
         aria-haspopup="dialog"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen(o => !o)}
       >
         <span
           className="h-5 w-5 rounded-md border border-black/15 shadow-inner"

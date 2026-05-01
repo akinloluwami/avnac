@@ -1,9 +1,5 @@
+import { Cancel01Icon, Delete02Icon, Download01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import {
-  Cancel01Icon,
-  Delete02Icon,
-  Download01Icon,
-} from '@hugeicons/core-free-icons'
 
 type FilesMultiselectBarProps = {
   count: number
@@ -29,12 +25,7 @@ export default function FilesMultiselectBar({
       role="toolbar"
       aria-label="Selected files actions"
     >
-      <button
-        type="button"
-        className={iconBtn}
-        aria-label="Clear selection"
-        onClick={onClear}
-      >
+      <button type="button" className={iconBtn} aria-label="Clear selection" onClick={onClear}>
         <HugeiconsIcon
           icon={Cancel01Icon}
           size={20}
@@ -67,12 +58,7 @@ export default function FilesMultiselectBar({
         title="Move to trash"
         onClick={onTrash}
       >
-        <HugeiconsIcon
-          icon={Delete02Icon}
-          size={20}
-          strokeWidth={1.75}
-          className="shrink-0"
-        />
+        <HugeiconsIcon icon={Delete02Icon} size={20} strokeWidth={1.75} className="shrink-0" />
       </button>
     </div>
   )

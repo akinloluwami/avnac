@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioRouteImport } from './routes/studio'
+import { Route as SponsorRouteImport } from './routes/sponsor'
 import { Route as FilesRouteImport } from './routes/files'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
   path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SponsorRoute = SponsorRouteImport.update({
+  id: '/sponsor',
+  path: '/sponsor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FilesRoute = FilesRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/files': typeof FilesRoute
+  '/sponsor': typeof SponsorRoute
   '/studio': typeof StudioRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/files': typeof FilesRoute
+  '/sponsor': typeof SponsorRoute
   '/studio': typeof StudioRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/files': typeof FilesRoute
+  '/sponsor': typeof SponsorRoute
   '/studio': typeof StudioRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create' | '/files' | '/studio'
+  fullPaths: '/' | '/create' | '/files' | '/sponsor' | '/studio'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/files' | '/studio'
-  id: '__root__' | '/' | '/create' | '/files' | '/studio'
+  to: '/' | '/create' | '/files' | '/sponsor' | '/studio'
+  id: '__root__' | '/' | '/create' | '/files' | '/sponsor' | '/studio'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
   FilesRoute: typeof FilesRoute
+  SponsorRoute: typeof SponsorRoute
   StudioRoute: typeof StudioRoute
 }
 
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/studio'
       fullPath: '/studio'
       preLoaderRoute: typeof StudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sponsor': {
+      id: '/sponsor'
+      path: '/sponsor'
+      fullPath: '/sponsor'
+      preLoaderRoute: typeof SponsorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/files': {
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
   FilesRoute: FilesRoute,
+  SponsorRoute: SponsorRoute,
   StudioRoute: StudioRoute,
 }
 export const routeTree = rootRouteImport
