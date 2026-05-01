@@ -21,6 +21,7 @@ import {
   type AvnacDocument,
   type AvnacPage,
   activateAvnacPage,
+  clampTextLetterSpacing,
   cloneAvnacDocument,
   cloneSceneObject,
   createAvnacPage,
@@ -349,8 +350,10 @@ function pdfStandardFontStyle(obj: SceneText) {
 
 function addSelectableTextLayerToPdf(
   pdf: {
+    getCharSpace: () => number
     setFont: (fontName: string, fontStyle?: string) => unknown
     setFontSize: (size: number) => unknown
+    setCharSpace: (charSpace: number) => unknown
     text: (
       text: string,
       x: number,
@@ -374,6 +377,8 @@ function addSelectableTextLayerToPdf(
     const baselineOffset = pdfTextBaselineOffset(measure, obj, text.lineHeight)
     pdf.setFont(pdfStandardFontFamily(obj.fontFamily), pdfStandardFontStyle(obj))
     pdf.setFontSize(obj.fontSize)
+    const previousCharSpace = pdf.getCharSpace()
+    pdf.setCharSpace(obj.letterSpacing)
     for (let i = 0; i < text.lines.length; i += 1) {
       const line = text.lines[i] ?? ''
       if (!line) continue
@@ -385,6 +390,7 @@ function addSelectableTextLayerToPdf(
         renderingMode: 'invisible',
       })
     }
+    pdf.setCharSpace(previousCharSpace)
   }
 }
 
@@ -604,6 +610,8 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
     return {
       fontFamily: selectedSingle.fontFamily,
       fontSize: selectedSingle.fontSize,
+      letterSpacing: selectedSingle.letterSpacing,
+      lineHeight: selectedSingle.lineHeight ?? 1.22,
       fillStyle: selectedSingle.fill,
       textAlign: selectedSingle.textAlign,
       bold:
@@ -960,6 +968,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
         strokeWidth: 0,
         fontFamily: 'Inter',
         fontSize: defaultShapeBox.fontSize,
+        letterSpacing: 0,
         lineHeight: 1.22,
         fontWeight: 'normal',
         fontStyle: 'normal',
@@ -1337,7 +1346,13 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
         if (obj.type !== 'text') return obj
         const next = { ...obj }
         if (patch.fontFamily) next.fontFamily = patch.fontFamily
-        if (patch.fontSize) next.fontSize = patch.fontSize
+        if (patch.fontSize !== undefined) next.fontSize = patch.fontSize
+        if (patch.letterSpacing !== undefined) {
+          next.letterSpacing = clampTextLetterSpacing(patch.letterSpacing)
+        }
+        if (patch.lineHeight !== undefined) {
+          next.lineHeight = Math.max(0.6, Math.min(4, patch.lineHeight))
+        }
         if (patch.fillStyle) next.fill = patch.fillStyle
         if (patch.textAlign) next.textAlign = patch.textAlign
         if (patch.bold !== undefined) next.fontWeight = patch.bold ? 'bold' : 'normal'
