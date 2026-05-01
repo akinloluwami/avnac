@@ -53,11 +53,15 @@ import {
 } from '../lib/avnac-scene'
 import {
   layoutSceneText,
+  renderAvnacDocumentToCanvas,
   renderAvnacDocumentToDataUrl,
   sceneTextLineHeight,
 } from '../lib/avnac-scene-render'
 import { averageShadowUi, DEFAULT_SHADOW_UI, type ShadowUi } from '../lib/avnac-shadow'
-import { AVNAC_VECTOR_BOARD_DRAG_MIME } from '../lib/avnac-vector-board-document'
+import {
+  AVNAC_VECTOR_BOARD_DRAG_MIME,
+  type VectorBoardDocument,
+} from '../lib/avnac-vector-board-document'
 import { extractImageUrlFromDataTransfer } from '../lib/extract-image-url-from-data-transfer'
 import { loadGoogleFontFamily } from '../lib/load-google-font'
 import {
@@ -94,7 +98,7 @@ import {
 import type { BgValue } from './background-popover'
 import BlurToolbarControl from './blur-toolbar-control'
 import type { CanvasAlignKind } from './canvas-element-toolbar'
-import type { ExportImageOptions } from './editor-export-menu'
+import type { ExportImageOptions, ExportPageOption } from './editor-export-menu'
 import type { EditorSidebarPanelId } from './editor-floating-sidebar'
 import EditorShortcutsModal from './editor-shortcuts-modal'
 import { FloatingToolbarDivider } from './floating-toolbar-shell'
@@ -149,6 +153,7 @@ function isPointerOnSceneObject(target: EventTarget | null) {
 
 export type SceneEditorHandle = {
   exportImage: (opts?: ExportImageOptions) => void
+  getExportPages: () => Promise<ExportPageOption[]>
   saveDocument: () => void
   loadDocument: (file: File) => Promise<void>
 }
@@ -216,6 +221,30 @@ function pageExportDocument(doc: AvnacDocument, page: AvnacPage): AvnacDocument 
     bg: page.bg,
     objects: page.objects,
     activePageId: page.id,
+  }
+}
+
+async function renderExportPagePreviewDataUrl(
+  doc: AvnacDocument,
+  page: AvnacPage,
+  vectorBoardDocs: Record<string, VectorBoardDocument>,
+): Promise<string | null> {
+  const pageDoc = pageExportDocument(doc, page)
+  const longestEdge = Math.max(page.artboard.width, page.artboard.height, 1)
+  const targetLongestEdge = 88
+  const scale = Math.max(0.04, Math.min(1, targetLongestEdge / longestEdge))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(page.artboard.width * scale))
+  canvas.height = Math.max(1, Math.round(page.artboard.height * scale))
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  ctx.setTransform(scale, 0, 0, scale, 0, 0)
+  try {
+    await renderAvnacDocumentToCanvas(ctx, pageDoc, vectorBoardDocs, { transparent: false })
+    return canvas.toDataURL('image/png')
+  } catch (error) {
+    console.error('[avnac] export page preview failed', error)
+    return null
   }
 }
 
@@ -1573,23 +1602,27 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
           const multiplier = opts?.multiplier ?? 1
           const transparent = opts?.transparent ?? false
           const fileBase = safeExportFileBaseName(persistDisplayNameRef.current || 'avnac')
-          const exportPages = doc.pages.length > 0 ? doc.pages : []
+          const defaultExportPages =
+            doc.pages.length > 0
+              ? doc.pages
+              : [
+                  createAvnacPage({
+                    name: 'Page 1',
+                    artboard: doc.artboard,
+                    bg: doc.bg,
+                    objects: doc.objects,
+                  }),
+                ]
+          const selectedPageIds = opts?.pageIds?.length ? new Set(opts.pageIds) : null
+          const filteredPages = selectedPageIds
+            ? defaultExportPages.filter(page => selectedPageIds.has(page.id))
+            : defaultExportPages
+          const exportPages = filteredPages.length > 0 ? filteredPages : defaultExportPages
 
           if (format === 'pdf') {
             const { jsPDF } = await import('jspdf')
-            const pages =
-              exportPages.length > 0
-                ? exportPages
-                : [
-                    createAvnacPage({
-                      name: 'Page 1',
-                      artboard: doc.artboard,
-                      bg: doc.bg,
-                      objects: doc.objects,
-                    }),
-                  ]
             let pdf: InstanceType<typeof jsPDF> | null = null
-            for (const page of pages) {
+            for (const page of exportPages) {
               const pageDoc = pageExportDocument(doc, page)
               const { width, height } = page.artboard
               const orientation: 'landscape' | 'portrait' =
@@ -1644,6 +1677,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
           }
 
           const pageDoc = exportPages[0] ? pageExportDocument(doc, exportPages[0]) : doc
+          const singlePage = exportPages[0] ?? null
           const url = await renderAvnacDocumentToDataUrl(pageDoc, vectorBoardDocs, {
             format,
             multiplier,
@@ -1651,7 +1685,13 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
           })
           const a = document.createElement('a')
           a.href = url
-          a.download = `${fileBase}.${format}`
+          if (singlePage && defaultExportPages.length > 1) {
+            const pageIndex = defaultExportPages.findIndex(page => page.id === singlePage.id)
+            const pageNumber = String((pageIndex >= 0 ? pageIndex : 0) + 1).padStart(2, '0')
+            a.download = `${fileBase}-page-${pageNumber}.${format}`
+          } else {
+            a.download = `${fileBase}.${format}`
+          }
           a.click()
         } catch (error) {
           console.error('[avnac] export failed', error)
@@ -1662,8 +1702,23 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
     [doc, vectorBoardDocs],
   )
 
-  useImperativeHandle(ref, () => ({ exportImage, saveDocument, loadDocument }), [
+  const getExportPages = useCallback(async (): Promise<ExportPageOption[]> => {
+    const pages = doc.pages.length > 0 ? doc.pages : []
+    return Promise.all(
+      pages.map(async page => ({
+        id: page.id,
+        name: page.name,
+        width: page.artboard.width,
+        height: page.artboard.height,
+        isCurrent: page.id === doc.activePageId,
+        previewUrl: await renderExportPagePreviewDataUrl(doc, page, vectorBoardDocs),
+      })),
+    )
+  }, [doc, vectorBoardDocs])
+
+  useImperativeHandle(ref, () => ({ exportImage, getExportPages, saveDocument, loadDocument }), [
     exportImage,
+    getExportPages,
     saveDocument,
     loadDocument,
   ])
@@ -2234,10 +2289,13 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
   }, [setHoveredId, setSelectedIds])
 
   const activatePage = useCallback(
-    (pageId: string) => {
+    (pageId: string, options?: { selectBackground?: boolean }) => {
       commitTextDraft()
       setDoc(prev => (prev.activePageId === pageId ? prev : activateAvnacPage(prev, pageId)))
       clearPageInteractionState()
+      if (options?.selectBackground) {
+        setBackgroundActive(true)
+      }
     },
     [clearPageInteractionState, commitTextDraft, setDoc],
   )
