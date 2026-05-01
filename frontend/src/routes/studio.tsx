@@ -529,7 +529,7 @@ function StudioPage() {
 
             <div className="grid gap-4 lg:grid-cols-2">
               {commandCards.map(card => (
-                <article key={card.eyebrow} className="landing-ai-card flex h-full flex-col">
+                <article key={card.eyebrow} className="landing-ai-card !min-w-0 flex h-full flex-col">
                   <div className="flex items-center gap-3">
                     <span className="inline-flex size-10 items-center justify-center rounded-2xl bg-black/5 text-(--text)">
                       <HugeiconsIcon icon={CommandLineIcon} size={18} strokeWidth={1.75} />
@@ -537,7 +537,7 @@ function StudioPage() {
                     <div className="landing-kicker">{card.eyebrow}</div>
                   </div>
                   <p className="mt-4">{card.body}</p>
-                  <pre className="mt-6 h-43 overflow-x-auto rounded-[1.2rem] bg-[#111111] px-4 py-4 text-sm leading-7 text-white">
+                  <pre className="mt-6 h-43 !min-w-0 overflow-x-auto rounded-[1.2rem] bg-[#111111] px-4 py-4 text-sm leading-7 text-white">
                     <code className="block whitespace-pre-wrap">{card.command}</code>
                   </pre>
                 </article>
