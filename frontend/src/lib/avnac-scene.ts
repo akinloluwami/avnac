@@ -110,6 +110,7 @@ export type SceneImage = SceneObjectBase & {
     y: number
     width: number
     height: number
+    rotation: number
   }
   cornerRadius: number
 }
@@ -450,6 +451,7 @@ function parseSceneObject(raw: unknown): SceneObject | null {
         y: typeof cropRaw?.y === 'number' ? Math.max(0, cropRaw.y) : 0,
         width: typeof cropRaw?.width === 'number' ? Math.max(1, cropRaw.width) : naturalWidth,
         height: typeof cropRaw?.height === 'number' ? Math.max(1, cropRaw.height) : naturalHeight,
+        rotation: typeof cropRaw?.rotation === 'number' ? cropRaw.rotation : 0,
       },
       cornerRadius: typeof obj.cornerRadius === 'number' ? Math.max(0, obj.cornerRadius) : 0,
     }
@@ -642,6 +644,7 @@ function migrateLegacyObject(raw: unknown): SceneObject | null {
         y: typeof obj.cropY === 'number' ? Math.max(0, obj.cropY) : 0,
         width: naturalWidth,
         height: naturalHeight,
+        rotation: 0,
       },
       cornerRadius: typeof obj.rx === 'number' ? Math.max(0, obj.rx) : 0,
     }
