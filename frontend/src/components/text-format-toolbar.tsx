@@ -26,6 +26,7 @@ export type TextFormatToolbarValues = {
   fontFamily: string
   fontSize: number
   letterSpacing: number
+  lineHeight: number
   fillStyle: BgValue
   textAlign: 'left' | 'center' | 'right' | 'justify'
   bold: boolean
@@ -232,6 +233,8 @@ export default function TextFormatToolbar({
             min={-40}
             max={200}
             onChange={letterSpacing => onChange({ letterSpacing })}
+            lineHeight={values.lineHeight}
+            onLineHeightChange={lineHeight => onChange({ lineHeight })}
           />
         </div>
 
