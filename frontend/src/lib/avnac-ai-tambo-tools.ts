@@ -387,6 +387,7 @@ export function buildAvnacTamboTools(
       y?: number
       origin?: 'top-left' | 'center'
       fontSize?: number
+      letterSpacing?: number
       fontFamily?: string
       fontWeight?: number | 'normal' | 'bold'
       fontStyle?: 'normal' | 'italic'
@@ -404,6 +405,7 @@ export function buildAvnacTamboTools(
     inputSchema: placementSchema.extend({
       text: z.string(),
       fontSize: z.number().positive().optional(),
+      letterSpacing: z.number().optional(),
       fontFamily: z.string().optional(),
       fontWeight: z.union([z.number(), z.literal('normal'), z.literal('bold')]).optional(),
       fontStyle: z.enum(['normal', 'italic']).optional(),
@@ -498,6 +500,7 @@ export function buildAvnacTamboTools(
       opacity?: number
       text?: string
       fontSize?: number
+      letterSpacing?: number
     }): Promise<OkResult> => {
       return withCtl(ctl => {
         const { id, ...patch } = args
@@ -520,6 +523,7 @@ export function buildAvnacTamboTools(
       opacity: z.number().min(0).max(1).optional(),
       text: z.string().optional(),
       fontSize: z.number().positive().optional(),
+      letterSpacing: z.number().optional(),
     }),
     outputSchema: okResultSchema,
   }
