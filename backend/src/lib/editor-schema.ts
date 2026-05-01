@@ -119,6 +119,7 @@ const sceneObjectSchema: z.ZodType = z.lazy(() =>
         y: z.number(),
         width: z.number(),
         height: z.number(),
+        rotation: z.number().optional(),
       }),
       cornerRadius: z.number(),
     }),
