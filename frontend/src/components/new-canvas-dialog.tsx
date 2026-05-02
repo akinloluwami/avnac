@@ -1,10 +1,12 @@
-import { StarIcon } from '@hugeicons/core-free-icons'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { useNavigate } from '@tanstack/react-router'
-import { usePostHog } from 'posthog-js/react'
-import { useEffect, useId, useRef, useState } from 'react'
-import { ARTBOARD_PRESETS, type ArtboardPresetCategory } from '../data/artboard-presets'
-import { useEditorUnsupportedOnThisDevice } from '../hooks/use-editor-device-support'
+import { StarIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { useEffect, useId, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { usePostHog } from "posthog-js/react";
+import { useEditorUnsupportedOnThisDevice } from "../hooks/use-editor-device-support";
+import { ARTBOARD_PRESETS,
+  type ArtboardPresetCategory, } from "../data/artboard-presets";
+import { useFocusTrap } from "../hooks/use-focus-trap";
 
 const CANVAS_MIN = 100
 const CANVAS_MAX = 16000
@@ -94,16 +96,19 @@ type NewCanvasDialogProps = {
   onClose: () => void
 }
 
-export default function NewCanvasDialog({ open, onClose }: NewCanvasDialogProps) {
-  const navigate = useNavigate()
-  const posthog = usePostHog()
-  const editorUnsupported = useEditorUnsupportedOnThisDevice()
-  const titleId = useId()
-  const panelRef = useRef<HTMLDivElement>(null)
-  const [mode, setMode] = useState<'presets' | 'custom'>('presets')
-  const [customW, setCustomW] = useState('1920')
-  const [customH, setCustomH] = useState('1080')
-  const [customError, setCustomError] = useState<string | null>(null)
+export default function NewCanvasDialog({
+  open,
+  onClose,
+}: NewCanvasDialogProps) {
+  const navigate = useNavigate();
+  const posthog = usePostHog();
+  const editorUnsupported = useEditorUnsupportedOnThisDevice();
+  const titleId = useId();
+  const panelRef = useFocusTrap(open); 
+  const [mode, setMode] = useState<"presets" | "custom">("presets");
+  const [customW, setCustomW] = useState("1920");
+  const [customH, setCustomH] = useState("1080");
+  const [customError, setCustomError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return

@@ -1,55 +1,56 @@
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef } from "react";
+import { useFocusTrap } from "../hooks/use-focus-trap";
 
 type DeleteConfirmDialogProps = {
-  open: boolean
-  title: string
-  message: string
-  confirmLabel?: string
-  cancelLabel?: string
-  onConfirm: () => void
-  onClose: () => void
-}
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onClose: () => void;
+};
 
 export default function DeleteConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Move to trash',
-  cancelLabel = 'Cancel',
+  confirmLabel = "Move to trash",
+  cancelLabel = "Cancel",
   onConfirm,
   onClose,
 }: DeleteConfirmDialogProps) {
-  const titleId = useId()
-  const descId = useId()
-  const panelRef = useRef<HTMLDivElement>(null)
-  const confirmRef = useRef<HTMLButtonElement>(null)
+  const titleId = useId();
+  const descId = useId();
+  const panelRef = useFocusTrap(open);
+  const confirmRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (!open) return
-    const t = window.setTimeout(() => confirmRef.current?.focus(), 0)
-    return () => window.clearTimeout(t)
-  }, [open])
+    if (!open) return;
+    const t = window.setTimeout(() => confirmRef.current?.focus(), 0);
+    return () => window.clearTimeout(t);
+  }, [open]);
 
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault()
-        onClose()
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
       }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
-  if (!open) return null
+  if (!open) return null;
 
   return (
     <div
       className="fixed inset-0 z-[260] flex items-center justify-center p-4 sm:p-6"
       role="presentation"
-      onMouseDown={e => {
-        if (e.target === e.currentTarget) onClose()
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
       }}
     >
       <div className="absolute inset-0 bg-black/35 backdrop-blur-[2px]" aria-hidden />
@@ -90,5 +91,5 @@ export default function DeleteConfirmDialog({
         </div>
       </div>
     </div>
-  )
+  );
 }

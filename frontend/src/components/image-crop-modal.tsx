@@ -3,6 +3,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useFocusTrap } from '../hooks/use-focus-trap'
 
 const MIN_SIDE = 12
 const HANDLE_PX = 9
@@ -35,7 +36,14 @@ function clampCrop(r: CropRect, nw: number, nh: number): CropRect {
   return { x, y, w, h }
 }
 
-export default function ImageCropModal({ open, imageSrc, initialCrop, onCancel, onApply }: Props) {
+export default function ImageCropModal({
+  open,
+  imageSrc,
+  initialCrop,
+  onCancel,
+  onApply,
+}: Props) {
+  const dialogRef = useFocusTrap(open) 
   const wrapRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const initialCropRef = useRef(initialCrop)
@@ -230,7 +238,7 @@ export default function ImageCropModal({ open, imageSrc, initialCrop, onCancel, 
         if (e.target === e.currentTarget) onCancel()
       }}
     >
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-black/10 bg-[var(--surface)] shadow-2xl">
+      <div ref={dialogRef} className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-black/10 bg-[var(--surface)] shadow-2xl">
         <div className="flex items-center justify-between border-b border-black/10 px-4 py-3">
           <h2 className="m-0 text-base font-semibold text-[var(--text)]">Crop image</h2>
           <button
@@ -309,6 +317,7 @@ export default function ImageCropModal({ open, imageSrc, initialCrop, onCancel, 
           </button>
           <button
             type="button"
+            data-autofocus
             disabled={nw <= 0}
             className="inline-flex items-center gap-1.5 rounded-lg border border-transparent bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:pointer-events-none disabled:opacity-40"
             onClick={() =>
