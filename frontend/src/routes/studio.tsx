@@ -550,18 +550,7 @@ function StudioPage() {
                     Windows SmartScreen Warning
                   </h3>
                   <p className="mt-2 max-w-3xl text-sm leading-6 text-(--text-muted)">
-                    Windows may block the installer with a SmartScreen prompt. The binary is
-                    completely safe — it&apos;s just unsigned. Code signing costs money; once the
-                    project grows enough to justify it, it&apos;s getting done. In the meantime,
-                    the entire source is{' '}
-                    <a
-                      href={studioRepoHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={textLinkClass}
-                    >
-                      open on GitHub
-                    </a>{' '}
+                    Windows may block the installer with a SmartScreen prompt. 
                   </p>
                 </div>
                 <span className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-(--text-subtle) transition-opacity group-open:opacity-0">
@@ -591,11 +580,14 @@ function StudioPage() {
                 </div>
 
                 <p className="text-sm leading-6 text-(--text-muted)">
-                  Prefer not to trust a pre-built binary? Fair enough — you can{' '}
+                  It&apos;s safe — just unsigned. The full source is{' '}
+                  <a href={studioRepoHref} target="_blank" rel="noopener noreferrer" className={textLinkClass}>
+                    open on GitHub
+                  </a>
+                  . Prefer to compile it yourself?{' '}
                   <a href="#developer-setup" className={textLinkClass}>
-                    build it yourself
-                  </a>{' '}
-                  from source in a few commands.
+                    Build steps are below.
+                  </a>
                 </p>
               </div>
             </details>
