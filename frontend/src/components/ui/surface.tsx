@@ -114,6 +114,21 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(function Toolbar
   )
 })
 
+export const ToolbarGroup = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<'div'>>(
+  function ToolbarGroup({ className, ...props }, ref) {
+    return (
+      <div
+        ref={ref}
+        className={cx(
+          'relative inline-flex items-center gap-0.5 rounded-full border border-black/[0.06] bg-black/[0.025] p-0.5',
+          className,
+        )}
+        {...props}
+      />
+    )
+  },
+)
+
 export type PopoverSurfaceProps = ComponentPropsWithoutRef<'div'> & {
   width?: string
 }
