@@ -6,6 +6,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import DocumentMigrationDialog from '../components/document-migration-dialog'
 import EditorExportMenu from '../components/editor-export-menu'
 import SceneEditor, { type SceneEditorHandle } from '../components/scene-editor'
+import { buttonClassName, iconButtonClassName, Kicker, Surface, Text } from '../components/ui'
 import { useEditorUnsupportedOnThisDevice } from '../hooks/use-editor-device-support'
 import {
   idbGetEditorRecord,
@@ -113,24 +114,32 @@ function CreatePage() {
 
         <div className="relative z-[1] mx-auto flex w-full max-w-2xl flex-1 items-center justify-center">
           <div className="w-full rounded-[2rem] border border-[var(--line)] bg-white/82 p-7 text-center shadow-[0_24px_80px_rgba(0,0,0,0.08)] backdrop-blur-md sm:p-10">
-            <div className="landing-kicker mb-3">Desktop Only</div>
+            <Kicker className="landing-kicker mb-3">Desktop Only</Kicker>
             <h1 className="display-title text-[clamp(2rem,8vw,3rem)] font-medium leading-[1.04] tracking-[-0.03em] text-[var(--text)]">
               The editor is not available on mobile.
             </h1>
-            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-[var(--text-muted)] sm:text-lg">
+            <Text className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-[var(--text-muted)] sm:text-lg">
               Open Avnac on a desktop or laptop to create and edit files. You can still return to
               your files from here.
-            </p>
+            </Text>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
                 to="/files"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border-0 bg-[var(--text)] px-8 py-3 text-base font-medium text-white no-underline hover:bg-[#262626]"
+                className={buttonClassName({
+                  variant: 'primary',
+                  size: 'lg',
+                  className: 'rounded-full border-0 px-8',
+                })}
               >
                 Go to files
               </Link>
               <Link
                 to="/"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-black/[0.14] bg-white/70 px-8 py-3 text-base font-medium text-[var(--text)] no-underline hover:border-black/[0.22] hover:bg-white"
+                className={buttonClassName({
+                  variant: 'secondary',
+                  size: 'lg',
+                  className: 'rounded-full border-black/[0.14] bg-white/70 px-8',
+                })}
               >
                 Back home
               </Link>
@@ -150,7 +159,11 @@ function CreatePage() {
       <header className="flex flex-shrink-0 items-center gap-3 border-b border-[var(--line)] bg-[var(--surface)] px-4 py-3 sm:px-5 sm:py-3.5">
         <Link
           to="/files"
-          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-[var(--text-muted)] no-underline transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]"
+          className={iconButtonClassName({
+            size: 'lg',
+            variant: 'ghost',
+            className: 'rounded-full text-[var(--text-muted)] no-underline',
+          })}
           aria-label="All files"
           title="All files"
         >
@@ -184,11 +197,15 @@ function CreatePage() {
       </header>
       <div className="flex min-h-0 flex-1 flex-col px-3 py-3 sm:px-4 sm:py-4">
         {loadingDocument || legacyBlocked ? (
-          <div className="flex min-h-0 flex-1 items-center justify-center rounded-[2rem] border border-[var(--line)] bg-white/60 backdrop-blur-md">
-            <p className="text-sm font-medium text-[var(--text-muted)]">
+          <Surface
+            variant="panel"
+            padding="none"
+            className="flex min-h-0 flex-1 items-center justify-center rounded-[2rem] border-[var(--line)] bg-white/60 shadow-none"
+          >
+            <Text className="text-sm font-medium text-[var(--text-muted)]">
               {legacyBlocked ? 'Legacy file detected' : 'Loading file…'}
-            </p>
-          </div>
+            </Text>
+          </Surface>
         ) : (
           <SceneEditor
             ref={editorRef}
