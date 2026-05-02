@@ -34,6 +34,26 @@ const buttonSizes: Record<ButtonSize, string> = {
   lg: 'h-12 rounded-xl px-5 text-base',
 }
 
+export function buttonClassName({
+  className,
+  fullWidth,
+  size = 'md',
+  variant = 'secondary',
+}: {
+  className?: string
+  fullWidth?: boolean
+  size?: ButtonSize
+  variant?: ButtonVariant
+} = {}) {
+  return cx(
+    buttonBase,
+    buttonVariants[variant],
+    buttonSizes[size],
+    fullWidth && 'w-full',
+    className,
+  )
+}
+
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant
   size?: ButtonSize
@@ -60,13 +80,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       type={type}
-      className={cx(
-        buttonBase,
-        buttonVariants[variant],
-        buttonSizes[size],
-        fullWidth && 'w-full',
-        className,
-      )}
+      className={buttonClassName({ className, fullWidth, size, variant })}
       {...props}
     >
       {iconBefore}
@@ -98,17 +112,7 @@ export const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>(functio
   ref,
 ) {
   return (
-    <a
-      ref={ref}
-      className={cx(
-        buttonBase,
-        buttonVariants[variant],
-        buttonSizes[size],
-        fullWidth && 'w-full',
-        className,
-      )}
-      {...props}
-    >
+    <a ref={ref} className={buttonClassName({ className, fullWidth, size, variant })} {...props}>
       {iconBefore}
       {children}
       {iconAfter}
@@ -136,6 +140,26 @@ const iconButtonSizes: Record<IconButtonSize, string> = {
   sm: 'h-8 w-8 rounded-lg',
   md: 'h-9 w-9 rounded-xl',
   lg: 'h-10 w-10 rounded-xl',
+}
+
+export function iconButtonClassName({
+  active,
+  className,
+  size = 'sm',
+  variant = 'chrome',
+}: {
+  active?: boolean
+  className?: string
+  size?: IconButtonSize
+  variant?: IconButtonVariant
+} = {}) {
+  return cx(
+    'inline-flex shrink-0 cursor-pointer items-center justify-center border outline-none transition-[background-color,border-color,color,box-shadow,opacity] focus-visible:ring-2 focus-visible:ring-[var(--accent)]/45 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-45',
+    iconButtonVariants[variant],
+    iconButtonSizes[size],
+    active && 'border-black/[0.08] bg-black/[0.08] text-neutral-950',
+    className,
+  )
 }
 
 export type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -167,13 +191,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       type={type}
       aria-label={label}
       title={label}
-      className={cx(
-        'inline-flex shrink-0 cursor-pointer items-center justify-center border outline-none transition-[background-color,border-color,color,box-shadow,opacity] focus-visible:ring-2 focus-visible:ring-[var(--accent)]/45 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-45',
-        iconButtonVariants[variant],
-        iconButtonSizes[size],
-        active && 'border-black/[0.08] bg-black/[0.08] text-neutral-950',
-        className,
-      )}
+      className={iconButtonClassName({ active, className, size, variant })}
       {...props}
     >
       <HugeiconsIcon icon={icon} size={size === 'lg' ? 20 : 18} strokeWidth={strokeWidth} />
