@@ -197,3 +197,28 @@ Right now they cover core areas such as:
 - If you change media proxy behavior, restart the backend before testing export flows that depend on remote images
 - If you are debugging editor behavior, the frontend is the main source of truth
 - If you are debugging old-file compatibility, start with `frontend/src/lib/avnac-scene.ts` and the files/create routes
+
+---
+
+## Community Ports
+
+Avnac has been ported to other frameworks by the community:
+
+### avnac-vue — Vue 3 port
+
+A full Vue 3 + Fabric.js adaptation of Avnac, built for embedding into Vue applications.
+
+- **Repo:** https://github.com/VenMail/avnac-vue
+- **Live demo:** https://venmail.github.io/avnac-vue/
+
+**Additional features in avnac-vue beyond the original:**
+
+| Feature | avnac-vue |
+|---|---|
+| Framework | Vue 3 + Vite + TypeScript (Vue SFCs) |
+| Animations | `motion.dev` animation runtime + PPTX animation export |
+| Present mode | Fullscreen slide presentation with keyboard navigation |
+| Charts | Bar, Stacked Bar, Line, Area, Pie, Doughnut, Scatter, Radar + data dialog |
+| Diagrams & infographics | Pyramid, Funnel, Timeline, Chevron, Venn, Cycle, Accordion, 2x2 Matrix |
+| Cross-canvas copy/paste | Full copy/paste across documents via system clipboard |
+| PPTX import/export | Improved: images, lines, charts, corrected animation XML |
