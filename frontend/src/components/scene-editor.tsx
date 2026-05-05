@@ -15,6 +15,12 @@ import { createPortal } from 'react-dom'
 import { useStore } from 'zustand'
 import { useViewportAwarePopoverPlacement } from '../hooks/use-viewport-aware-popover'
 import { removeBackgroundFromSceneImage } from '../lib/avnac-background-removal'
+import { cloneIconSvg } from '../lib/avnac-icon'
+import {
+  AVNAC_ICON_DRAG_MIME,
+  type AvnacIconDragPayload,
+  parseIconDragPayload,
+} from '../lib/avnac-icon-drag'
 import { loadImageMetadata } from '../lib/avnac-image-proxy'
 import {
   AVNAC_DOC_VERSION,
@@ -40,6 +46,7 @@ import {
   parseAvnacDocument,
   removeTopLevelObjects,
   type SceneArrow,
+  type SceneIcon,
   type SceneImage,
   type SceneLine,
   type SceneObject,
@@ -694,6 +701,12 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
     )
   }, [selectedObjects])
 
+  const selectionFillPaint = useMemo<BgValue | null>(() => {
+    const targets = selectedObjects.filter(obj => objectSupportsFill(obj))
+    if (targets.length === 0) return null
+    return getObjectFill(targets[0]) ?? DEFAULT_FILL
+  }, [selectedObjects])
+
   const selectionOutlineStrokeAllowed = useMemo(
     () => selectedObjects.some(obj => objectSupportsOutlineStroke(obj)),
     [selectedObjects],
@@ -1070,6 +1083,49 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
       }
       addObjects([obj])
       return obj.id
+    },
+    [addObjects, artboardH, artboardW],
+  )
+
+  const placeIconObject = useCallback(
+    (
+      payload: AvnacIconDragPayload,
+      opts?: {
+        x?: number
+        y?: number
+        origin?: 'center' | 'top-left'
+      },
+    ) => {
+      const size = Math.round(Math.max(96, Math.min(512, Math.min(artboardW, artboardH) * 0.12)))
+      const origin = opts?.origin ?? 'top-left'
+      const rawX =
+        origin === 'center'
+          ? (opts?.x ?? artboardW / 2) - size / 2
+          : (opts?.x ?? artboardW / 2 - size / 2)
+      const rawY =
+        origin === 'center'
+          ? (opts?.y ?? artboardH / 2) - size / 2
+          : (opts?.y ?? artboardH / 2 - size / 2)
+      const obj: SceneIcon = {
+        id: crypto.randomUUID(),
+        type: 'icon',
+        x: Math.max(0, Math.min(artboardW - size, rawX)),
+        y: Math.max(0, Math.min(artboardH - size, rawY)),
+        width: size,
+        height: size,
+        rotation: 0,
+        opacity: 1,
+        visible: true,
+        locked: false,
+        name: payload.label,
+        blurPct: 0,
+        shadow: null,
+        iconName: payload.iconName,
+        svg: cloneIconSvg(payload.svg),
+        fill: DEFAULT_FILL,
+        strokeWidth: 1.5,
+      }
+      addObjects([obj])
     },
     [addObjects, artboardH, artboardW],
   )
@@ -2518,6 +2574,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
   const onViewportDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     if (
       e.dataTransfer.types.includes(AVNAC_VECTOR_BOARD_DRAG_MIME) ||
+      e.dataTransfer.types.includes(AVNAC_ICON_DRAG_MIME) ||
       transferMayContainFiles(e.dataTransfer) ||
       imageFilesFromTransfer(e.dataTransfer).length > 0 ||
       extractImageUrlFromDataTransfer(e.dataTransfer)
@@ -2536,6 +2593,11 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
         placeVectorBoard(boardId, pt.x, pt.y)
         return
       }
+      const iconPayload = parseIconDragPayload(e.dataTransfer)
+      if (iconPayload) {
+        placeIconObject(iconPayload, { x: pt.x, y: pt.y, origin: 'top-left' })
+        return
+      }
       const files = imageFilesFromTransfer(e.dataTransfer)
       if (files.length > 0) {
         void addImageFromFiles(files, { x: pt.x, y: pt.y, origin: 'top-left' })
@@ -2544,7 +2606,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
       const imageUrl = extractImageUrlFromDataTransfer(e.dataTransfer)
       if (imageUrl) void placeImageObject(imageUrl, { x: pt.x, y: pt.y, origin: 'top-left' })
     },
-    [addImageFromFiles, placeImageObject, placeVectorBoard, pointerToScene],
+    [addImageFromFiles, placeIconObject, placeImageObject, placeVectorBoard, pointerToScene],
   )
 
   const aiController = useAiDesignController({
@@ -2619,6 +2681,7 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
       imageCornerToolbar,
       imageRemovalState,
       ready,
+      selectionFillPaint,
       selectionEffectsFooterSlot,
       shapeToolbarModel,
       textToolbarValues,
