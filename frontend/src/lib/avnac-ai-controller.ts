@@ -11,6 +11,7 @@ export type AiObjectKind =
   | 'text'
   | 'line'
   | 'image'
+  | 'icon'
   | 'polygon'
   | 'star'
   | 'arrow'
