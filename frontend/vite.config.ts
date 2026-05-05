@@ -15,6 +15,10 @@ const proEditorSidebarIconsModule = fileURLToPath(
   new URL('./src/lib/editor-sidebar-icons.pro.ts', import.meta.url),
 )
 
+const proHugeiconsBrandIconModule = fileURLToPath(
+  new URL('./src/lib/hugeicons-brand-icon.pro.ts', import.meta.url),
+)
+
 const hasHugeiconsPro = (() => {
   try {
     require.resolve('@hugeicons-pro/core-solid-rounded/package.json')
@@ -39,6 +43,10 @@ const config = defineConfig(({ mode }) => {
               {
                 find: /^@\/lib\/editor-sidebar-icons$/,
                 replacement: proEditorSidebarIconsModule,
+              },
+              {
+                find: /^@\/lib\/hugeicons-brand-icon$/,
+                replacement: proHugeiconsBrandIconModule,
               },
             ]
           : []),
