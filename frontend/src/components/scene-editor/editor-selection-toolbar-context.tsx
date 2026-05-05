@@ -33,6 +33,7 @@ type SelectionToolbarState = {
   imageCornerToolbar: SelectionImageCornerToolbar | null
   imageRemovalState: 'idle' | 'running' | 'success'
   ready: boolean
+  selectionFillPaint: BgValue | null
   selectionEffectsFooterSlot: ReactNode
   shapeToolbarModel: SelectionShapeToolbarModel | null
   textToolbarValues: TextFormatToolbarValues | null
