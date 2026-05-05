@@ -13,6 +13,7 @@ import { loadGoogleFontFamily } from './load-google-font'
 
 const imageElementCache = new Map<string, Promise<HTMLImageElement>>()
 let measureCanvas: HTMLCanvasElement | null = null
+let textStrokeCanvas: HTMLCanvasElement | null = null
 
 export function sceneTextLineHeight(obj: SceneText): number {
   const raw = obj.lineHeight
@@ -267,6 +268,26 @@ function drawSceneTextLine(
   }
 }
 
+function drawSceneTextLayout(
+  ctx: CanvasRenderingContext2D,
+  obj: SceneText,
+  text: ReturnType<typeof layoutSceneText>,
+  baselineOffset: number,
+  mode: 'fill' | 'stroke',
+) {
+  const textAlign = obj.textAlign === 'justify' ? 'left' : obj.textAlign
+  const anchorX = textAlign === 'center' ? obj.width / 2 : textAlign === 'right' ? obj.width : 0
+  for (let i = 0; i < text.lines.length; i += 1) {
+    const line = text.lines[i] ?? ''
+    const y = i * text.lineHeight
+    const baselineY = y + baselineOffset
+    const width = measureSceneTextLineWidth(ctx, obj, line)
+    const startX =
+      textAlign === 'center' ? anchorX - width / 2 : textAlign === 'right' ? anchorX - width : 0
+    drawSceneTextLine(ctx, obj, line, startX, baselineY, mode)
+  }
+}
+
 function splitSceneTextTokenToFit(
   ctx: CanvasRenderingContext2D,
   obj: SceneText,
@@ -405,10 +426,12 @@ function drawTextObject(ctx: CanvasRenderingContext2D, obj: SceneText) {
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
   const fillPaint = bgValueToCanvasPaint(ctx, obj.fill, obj.width, obj.height)
-  const strokePaint = bgValueToCanvasPaint(ctx, obj.stroke, obj.width, obj.height)
   const textAlign = obj.textAlign === 'justify' ? 'left' : obj.textAlign
   const anchorX = textAlign === 'center' ? obj.width / 2 : textAlign === 'right' ? obj.width : 0
   const baselineOffset = cssLineBoxBaselineOffset(ctx, obj, text.lineHeight)
+  if (obj.strokeWidth > 0) {
+    drawTextOutsideStroke(ctx, obj, text, baselineOffset)
+  }
   for (let i = 0; i < text.lines.length; i += 1) {
     const line = text.lines[i] ?? ''
     const y = i * text.lineHeight
@@ -416,11 +439,6 @@ function drawTextObject(ctx: CanvasRenderingContext2D, obj: SceneText) {
     const width = measureSceneTextLineWidth(ctx, obj, line)
     const startX =
       textAlign === 'center' ? anchorX - width / 2 : textAlign === 'right' ? anchorX - width : 0
-    if (obj.strokeWidth > 0) {
-      ctx.strokeStyle = strokePaint
-      ctx.lineWidth = obj.strokeWidth
-      drawSceneTextLine(ctx, obj, line, startX, baselineY, 'stroke')
-    }
     ctx.fillStyle = fillPaint
     drawSceneTextLine(ctx, obj, line, startX, baselineY, 'fill')
     if (obj.underline && line.length > 0) {
@@ -433,6 +451,47 @@ function drawTextObject(ctx: CanvasRenderingContext2D, obj: SceneText) {
       ctx.stroke()
     }
   }
+}
+
+function drawTextOutsideStroke(
+  ctx: CanvasRenderingContext2D,
+  obj: SceneText,
+  text: ReturnType<typeof layoutSceneText>,
+  baselineOffset: number,
+) {
+  if (typeof document === 'undefined') {
+    ctx.strokeStyle = bgValueToCanvasPaint(ctx, obj.stroke, obj.width, obj.height)
+    ctx.lineWidth = obj.strokeWidth
+    drawSceneTextLayout(ctx, obj, text, baselineOffset, 'stroke')
+    return
+  }
+  if (!textStrokeCanvas) textStrokeCanvas = document.createElement('canvas')
+  const pad = Math.ceil(Math.max(2, obj.strokeWidth * 2))
+  const matrix = ctx.getTransform()
+  const dpr = Math.max(1, Math.hypot(matrix.a, matrix.b) || 1)
+  const width = Math.max(1, Math.ceil((obj.width + pad * 2) * dpr))
+  const height = Math.max(1, Math.ceil((Math.max(obj.height, text.height) + pad * 2) * dpr))
+  textStrokeCanvas.width = width
+  textStrokeCanvas.height = height
+  const strokeCtx = textStrokeCanvas.getContext('2d')
+  if (!strokeCtx) return
+  strokeCtx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  strokeCtx.clearRect(0, 0, width / dpr, height / dpr)
+  strokeCtx.translate(pad, pad)
+  setTextFont(strokeCtx, obj)
+  strokeCtx.textBaseline = 'alphabetic'
+  strokeCtx.textAlign = 'left'
+  strokeCtx.lineJoin = 'round'
+  strokeCtx.lineCap = 'round'
+  strokeCtx.miterLimit = 2
+  strokeCtx.strokeStyle = bgValueToCanvasPaint(strokeCtx, obj.stroke, obj.width, obj.height)
+  strokeCtx.lineWidth = obj.strokeWidth * 2
+  drawSceneTextLayout(strokeCtx, obj, text, baselineOffset, 'stroke')
+  strokeCtx.globalCompositeOperation = 'destination-out'
+  strokeCtx.fillStyle = '#000000'
+  drawSceneTextLayout(strokeCtx, obj, text, baselineOffset, 'fill')
+  strokeCtx.globalCompositeOperation = 'source-over'
+  ctx.drawImage(textStrokeCanvas, -pad, -pad, width / dpr, height / dpr)
 }
 
 function drawArrowPath(ctx: CanvasRenderingContext2D, obj: SceneArrow) {
