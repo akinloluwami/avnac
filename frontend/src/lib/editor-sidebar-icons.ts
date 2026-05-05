@@ -5,10 +5,18 @@ import {
   DashboardCircleIcon,
   Layers02Icon,
   PenTool01Icon,
+  ShapeCollectionIcon,
 } from '@hugeicons/core-free-icons'
 import type { IconSvgElement } from '@hugeicons/react'
 
-export type EditorSidebarIconId = 'layers' | 'uploads' | 'images' | 'vector-board' | 'apps' | 'ai'
+export type EditorSidebarIconId =
+  | 'layers'
+  | 'uploads'
+  | 'images'
+  | 'icons'
+  | 'vector-board'
+  | 'apps'
+  | 'ai'
 
 export type EditorSidebarIconDefinition = {
   icon: IconSvgElement
@@ -26,6 +34,7 @@ export const editorSidebarIcons: EditorSidebarIconSet = {
   layers: { icon: Layers02Icon, activeIcon: Layers02Icon },
   uploads: { icon: CloudUploadIcon, activeIcon: CloudUploadIcon },
   images: { icon: Album02Icon, activeIcon: Album02Icon },
+  icons: { icon: ShapeCollectionIcon, activeIcon: ShapeCollectionIcon },
   'vector-board': { icon: PenTool01Icon, activeIcon: PenTool01Icon },
   apps: { icon: DashboardCircleIcon, activeIcon: DashboardCircleIcon },
   ai: { icon: AiMagicIcon, activeIcon: AiMagicIcon },
