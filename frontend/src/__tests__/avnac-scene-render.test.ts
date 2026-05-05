@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { SceneText } from '../lib/avnac-scene'
-import { layoutSceneText, renderVectorBoardDocumentToCanvas } from '../lib/avnac-scene-render'
+import {
+  containSquareInRect,
+  layoutSceneText,
+  renderVectorBoardDocumentToCanvas,
+} from '../lib/avnac-scene-render'
 import type { VectorBoardDocument } from '../lib/avnac-vector-board-document'
 
 function makeVectorDoc(): VectorBoardDocument {
@@ -82,5 +86,10 @@ describe('renderVectorBoardDocumentToCanvas', () => {
     expect(
       layoutSceneText(makeText({ text: 'THIS', width: 30, letterSpacing: 4 }), measure).lines,
     ).toEqual(['TH', 'IS'])
+  })
+
+  it('contains square icons inside non-square export bounds', () => {
+    expect(containSquareInRect(48, 24)).toEqual({ x: 12, y: 0, width: 24, height: 24 })
+    expect(containSquareInRect(24, 48)).toEqual({ x: 0, y: 12, width: 24, height: 24 })
   })
 })
