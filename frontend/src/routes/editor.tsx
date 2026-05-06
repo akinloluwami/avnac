@@ -83,7 +83,7 @@ const layers = [
   { id: 'shape', label: 'Orange ellipse', icon: CircleIcon, active: false },
 ]
 
-const colors = ['#0a0a0a', '#ffb88e', '#8B3DFF', '#34d399', '#f43f5e']
+const colors = ['#0a0a0a', '#ff0e70', '#8B3DFF', '#34d399', '#f43f5e']
 
 function EditorMockPage() {
   const [panel, setPanel] = useState<PanelId>('layers')
@@ -197,7 +197,7 @@ function EditorMockPage() {
               className="relative h-[620px] w-[440px] overflow-hidden bg-[#fff8ef]"
             >
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,10,0.035)_1px,transparent_1px),linear-gradient(rgba(10,10,10,0.035)_1px,transparent_1px)] bg-[size:44px_44px]" />
-              <div className="absolute left-10 top-10 rounded-full bg-[#ffb88e] px-4 py-2 text-[12px] font-bold uppercase tracking-[0.12em] text-neutral-950">
+              <div className="absolute left-10 top-10 rounded-full bg-[#ff0e70] px-4 py-2 text-[12px] font-bold uppercase tracking-[0.12em] text-neutral-950">
                 Live set
               </div>
               <div className="absolute left-10 top-28 max-w-[20rem]">
