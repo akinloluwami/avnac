@@ -50,7 +50,7 @@ export const Route = createFileRoute('/components')({
   component: ComponentsPage,
 })
 
-const colorOptions = ['#0a0a0a', '#ffb88e', '#8B3DFF', '#34d399', '#f59e0b', '#f43f5e']
+const colorOptions = ['#0a0a0a', '#ff0e70', '#8B3DFF', '#34d399', '#f59e0b', '#f43f5e']
 
 const componentList = [
   'Button',
