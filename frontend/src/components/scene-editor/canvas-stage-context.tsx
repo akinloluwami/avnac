@@ -8,7 +8,7 @@ import {
 
 import type { SceneImage, SceneObject, SceneText } from '../../lib/avnac-scene'
 import type { MarqueeRect, ResizeHandleId, SceneSnapGuide } from '../../scene-engine/primitives'
-import type { CanvasAlignKind } from '../canvas-element-toolbar'
+import type { CanvasAlignKind, CanvasSpacingAxis } from '../canvas-element-toolbar'
 
 type ElementToolbarLayout = {
   left: number
@@ -28,6 +28,7 @@ export type CanvasStageContextValue = {
     deletePage: (pageId?: string) => void
     duplicatePage: (sourcePageId?: string) => void
     duplicateElement: () => void
+    distributeGroupSpacing: (axis: CanvasSpacingAxis) => void
     groupSelection: () => void
     onArtboardPointerEnter: (e: ReactPointerEvent<HTMLDivElement>) => void
     onArtboardPointerLeave: () => void
@@ -43,6 +44,7 @@ export type CanvasStageContextValue = {
     onTextDraftChange: (value: string) => void
     onViewportPointerDown: (e: ReactPointerEvent<HTMLDivElement>) => void
     pasteFromClipboard: () => void
+    setGroupSpacing: (axis: CanvasSpacingAxis, gap: number) => void
     toggleElementLock: () => void
     ungroupSelection: () => void
   }
@@ -59,8 +61,11 @@ export type CanvasStageContextValue = {
     editingSelectedText: boolean
     elementToolbarAlignAlready: Record<CanvasAlignKind, boolean> | null
     elementToolbarCanAlignElements: boolean
+    elementToolbarCanDistributeGroupSpacing: boolean
     elementToolbarCanGroup: boolean
+    elementToolbarCanSpaceGroup: boolean
     elementToolbarCanUngroup: boolean
+    elementToolbarGroupSpacingValues: Record<CanvasSpacingAxis, number | null> | null
     elementToolbarLayout: ElementToolbarLayout | null
     elementToolbarLockedDisplay: boolean
     hasObjectSelected: boolean
