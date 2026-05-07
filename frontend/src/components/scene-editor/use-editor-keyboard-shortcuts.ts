@@ -1,4 +1,11 @@
-import { type Dispatch, type MutableRefObject, type SetStateAction, useEffect } from 'react'
+import {
+  type Dispatch,
+  type MutableRefObject,
+  type RefObject,
+  type SetStateAction,
+  useEffect,
+  useRef,
+} from 'react'
 
 import { type AvnacDocument, cloneAvnacDocument } from '../../lib/avnac-scene'
 import type { LayerReorderKind } from '../../scene-engine/primitives'
@@ -22,7 +29,30 @@ type UseEditorKeyboardShortcutsArgs = {
   reorderSelectionLayers: (kind: LayerReorderKind) => void
   setDoc: Dispatch<SetStateAction<AvnacDocument>>
   setShortcutsOpen: (open: boolean) => void
+  shortcutScopeRef: RefObject<HTMLElement | null>
   ungroupSelection: () => void
+}
+
+export function isEditableShortcutTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  return Boolean(
+    target.closest(
+      'input, textarea, select, [contenteditable="true"], [contenteditable=""], [role="textbox"]',
+    ),
+  )
+}
+
+function isDocumentShortcutTarget(target: EventTarget | null): boolean {
+  return target === document || target === document.body || target === document.documentElement
+}
+
+function targetIsInScope(target: EventTarget | null, scope: HTMLElement | null): boolean {
+  return !!scope && target instanceof Node && scope.contains(target)
+}
+
+function hasNativeTextSelection(): boolean {
+  const selection = window.getSelection()
+  return !!selection && !selection.isCollapsed && selection.toString().length > 0
 }
 
 export function useEditorKeyboardShortcuts({
@@ -42,8 +72,24 @@ export function useEditorKeyboardShortcuts({
   reorderSelectionLayers,
   setDoc,
   setShortcutsOpen,
+  shortcutScopeRef,
   ungroupSelection,
 }: UseEditorKeyboardShortcutsArgs) {
+  const shortcutScopeActiveRef = useRef(false)
+
+  useEffect(() => {
+    const syncShortcutScope = (event: Event) => {
+      shortcutScopeActiveRef.current = targetIsInScope(event.target, shortcutScopeRef.current)
+    }
+
+    window.addEventListener('pointerdown', syncShortcutScope, true)
+    window.addEventListener('focusin', syncShortcutScope, true)
+    return () => {
+      window.removeEventListener('pointerdown', syncShortcutScope, true)
+      window.removeEventListener('focusin', syncShortcutScope, true)
+    }
+  }, [shortcutScopeRef])
+
   useEffect(() => {
     const restoreHistorySnapshot = (nextIndex: number) => {
       const snap = historyRef.current[nextIndex]
@@ -57,22 +103,25 @@ export function useEditorKeyboardShortcuts({
     }
 
     const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null
-      const editingTextInput =
-        target &&
-        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
-      if (e.key === '?' && !editingTextInput) {
+      const target = e.target
+      const targetInScope = targetIsInScope(target, shortcutScopeRef.current)
+      const targetUsesActiveScope =
+        isDocumentShortcutTarget(target) && shortcutScopeActiveRef.current
+      const useEditorShortcuts = targetInScope || targetUsesActiveScope
+      const editingTextInput = isEditableShortcutTarget(target)
+      if (e.key === '?' && !editingTextInput && useEditorShortcuts) {
         e.preventDefault()
         setShortcutsOpen(true)
         return
       }
       if (editingTextInput) {
-        if (e.key === 'Escape') {
+        if (useEditorShortcuts && e.key === 'Escape') {
           e.preventDefault()
           commitTextDraft()
         }
         return
       }
+      if (!useEditorShortcuts) return
       const mod = e.metaKey || e.ctrlKey
       if (mod && e.key.toLowerCase() === 'z') {
         e.preventDefault()
@@ -94,6 +143,7 @@ export function useEditorKeyboardShortcuts({
         return
       }
       if (mod && e.key.toLowerCase() === 'c') {
+        if (hasNativeTextSelection()) return
         e.preventDefault()
         void copyElementToClipboard()
         return
@@ -178,6 +228,7 @@ export function useEditorKeyboardShortcuts({
     reorderSelectionLayers,
     setDoc,
     setShortcutsOpen,
+    shortcutScopeRef,
     ungroupSelection,
   ])
 }
