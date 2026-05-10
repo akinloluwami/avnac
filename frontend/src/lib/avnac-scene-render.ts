@@ -122,6 +122,10 @@ export async function loadSceneImageElement(rawUrl: string): Promise<HTMLImageEl
   }
 }
 
+function svgMarkupToDataUrl(markup: string): string {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`
+}
+
 function applyShadow(ctx: CanvasRenderingContext2D, obj: SceneObject) {
   if (!obj.shadow) {
     ctx.shadowColor = 'transparent'
@@ -725,6 +729,11 @@ async function drawSceneObject(
       )
       const iconBox = containSquareInRect(obj.width, obj.height)
       ctx.drawImage(img, iconBox.x, iconBox.y, iconBox.width, iconBox.height)
+      break
+    }
+    case 'svg': {
+      const img = await loadSceneImageElement(svgMarkupToDataUrl(obj.markup))
+      ctx.drawImage(img, 0, 0, obj.width, obj.height)
       break
     }
     case 'vector-board': {

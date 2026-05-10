@@ -15,6 +15,7 @@ export type SceneObjectType =
   | 'arrow'
   | 'text'
   | 'image'
+  | 'svg'
   | 'icon'
   | 'vector-board'
   | 'group'
@@ -117,6 +118,13 @@ export type SceneImage = SceneObjectBase & {
   cornerRadius: number
 }
 
+export type SceneSvg = SceneObjectBase & {
+  type: 'svg'
+  markup: string
+  naturalWidth: number
+  naturalHeight: number
+}
+
 export type SceneIcon = SceneObjectBase & {
   type: 'icon'
   iconName: string
@@ -144,6 +152,7 @@ export type SceneObject =
   | SceneArrow
   | SceneText
   | SceneImage
+  | SceneSvg
   | SceneIcon
   | SceneVectorBoard
   | SceneGroup
@@ -467,6 +476,21 @@ function parseSceneObject(raw: unknown): SceneObject | null {
         rotation: typeof cropRaw?.rotation === 'number' ? cropRaw.rotation : 0,
       },
       cornerRadius: typeof obj.cornerRadius === 'number' ? Math.max(0, obj.cornerRadius) : 0,
+    }
+  }
+  if (type === 'svg') {
+    return {
+      ...baseObjectFromUnknown(obj, 'svg'),
+      type: 'svg' as const,
+      markup: typeof obj.markup === 'string' ? obj.markup : '',
+      naturalWidth:
+        typeof obj.naturalWidth === 'number' && Number.isFinite(obj.naturalWidth)
+          ? Math.max(1, obj.naturalWidth)
+          : 100,
+      naturalHeight:
+        typeof obj.naturalHeight === 'number' && Number.isFinite(obj.naturalHeight)
+          ? Math.max(1, obj.naturalHeight)
+          : 100,
     }
   }
   if (type === 'icon') {
@@ -954,6 +978,8 @@ export function cloneSceneObject<T extends SceneObject>(obj: T): T {
         ...base,
         crop: { ...obj.crop },
       } as T
+    case 'svg':
+      return { ...base } as T
     case 'icon':
       return {
         ...base,
@@ -1001,6 +1027,8 @@ export function objectDisplayName(obj: SceneObject): string {
       return obj.text.trim() || 'Text'
     case 'image':
       return 'Image'
+    case 'svg':
+      return 'SVG'
     case 'icon':
       return obj.iconName.replace(/Icon$/, '').replace(/([a-z0-9])([A-Z])/g, '$1 $2') || 'Icon'
     case 'vector-board':

@@ -16,6 +16,7 @@ export {
   type SceneGroup,
   type SceneIcon,
   type SceneImage,
+  type SceneSvg,
   type SceneLine,
   type SceneObject,
   type ScenePolygon,
