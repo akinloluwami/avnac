@@ -1,6 +1,5 @@
 import { AiMagicIcon, CropIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-
 import ArtboardResizeToolbarControl from '../artboard-resize-toolbar-control'
 import BackgroundPopover, { bgValueToSwatch } from '../background-popover'
 import CornerRadiusToolbarControl from '../corner-radius-toolbar-control'
