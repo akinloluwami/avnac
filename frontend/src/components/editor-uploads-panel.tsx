@@ -33,6 +33,7 @@ function parseSvgNaturalSize(markup: string): { width: number; height: number } 
   if (doc.querySelector('parsererror')) return null
 
   const root = doc.documentElement
+  if (root.tagName.toLowerCase() !== 'svg') return null
   const wAttr = root.getAttribute('width')
   const hAttr = root.getAttribute('height')
   const viewBox = root.getAttribute('viewBox')
@@ -73,12 +74,17 @@ export default function EditorUploadsPanel({ open, onClose }: Props) {
     for (const file of Array.from(files)) {
       if (!file.name.toLowerCase().endsWith('.svg') && file.type !== 'image/svg+xml') continue
 
-      const rawMarkup = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(String(reader.result))
-        reader.onerror = () => reject(reader.error)
-        reader.readAsText(file)
-      })
+      let rawMarkup: string
+      try {
+        rawMarkup = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(String(reader.result))
+          reader.onerror = () => reject(reader.error)
+          reader.readAsText(file)
+        })
+      } catch {
+        continue
+      }
 
       const markup = sanitizeSvgMarkup(rawMarkup)
       const size = parseSvgNaturalSize(markup)
@@ -87,8 +93,8 @@ export default function EditorUploadsPanel({ open, onClose }: Props) {
       const { width: naturalWidth, height: naturalHeight } = size
       const maxEdge = 800
       const scale = Math.min(1, maxEdge / Math.max(naturalWidth, naturalHeight))
-      const displayWidth = Math.round(naturalWidth * scale)
-      const displayHeight = Math.round(naturalHeight * scale)
+      const displayWidth = Math.max(1, Math.round(naturalWidth * scale))
+      const displayHeight = Math.max(1, Math.round(naturalHeight * scale))
 
       const obj: SceneSvg = {
         id: crypto.randomUUID(),
