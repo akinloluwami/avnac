@@ -50,13 +50,14 @@ const ITEMS: Item[] = [
     icon: editorSidebarIcons.apps.icon,
     activeIcon: editorSidebarIcons.apps.activeIcon,
   },
-  {
-    id: 'ai',
-    label: 'Magic',
-    icon: editorSidebarIcons.ai.icon,
-    activeIcon: editorSidebarIcons.ai.activeIcon,
-    fancy: true,
-  },
+  // Magic is temporarily hidden while the hosted AI path is paused.
+  // {
+  //   id: 'ai',
+  //   label: 'Magic',
+  //   icon: editorSidebarIcons.ai.icon,
+  //   activeIcon: editorSidebarIcons.ai.activeIcon,
+  //   fancy: true,
+  // },
 ]
 
 type Props = {
