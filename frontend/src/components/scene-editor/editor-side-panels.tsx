@@ -5,7 +5,6 @@ import {
   editorSidebarPanelLeftClass,
   editorSidebarPanelTopClass,
 } from '../../lib/editor-sidebar-panel-layout'
-import EditorAiPanel from '../editor-ai-panel'
 import EditorAppsPanel from '../editor-apps-panel'
 import EditorFloatingSidebar, { type EditorSidebarPanelId } from '../editor-floating-sidebar'
 import EditorImagesPanel from '../editor-images-panel'
@@ -104,7 +103,7 @@ export function EditorSidePanels({
         onDeleteBoard={deleteVectorBoard}
       />
       <EditorAppsPanel open={ready && activePanel === 'apps'} onClose={onClosePanel} />
-      <EditorAiPanel open={ready && activePanel === 'ai'} onClose={onClosePanel} />
+      {/* Magic is temporarily hidden while the hosted AI path is paused. */}
       {vectorWorkspaceId ? (
         <VectorBoardWorkspace
           open
