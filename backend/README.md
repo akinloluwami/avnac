@@ -35,22 +35,6 @@ The document endpoints are intentionally backend-only for now. Nothing in the fr
 3. Apply the starter SQL in `drizzle/0000_initial.sql` or run Drizzle migrations
 4. Start the API with `bun run dev`
 
-## Optional Paystack setup
-
-Set `PAYSTACK_SECRET_KEY` to enable sponsor checkout links, and `PAYSTACK_CURRENCY`
-if you want something other than the default `NGN`.
-
-## Background Removal Providers
-
-The backend can proxy background removal to either:
-
-- the existing `rembg` service
-- the separate BRIA `RMBG-2.0` service
-
-Set `BACKGROUND_REMOVAL_PROVIDER` to `rembg` or `bria` to choose the backend default.
-Set `REMBG_URL` for the local rembg service and `BRIA_RMBG_URL` for the BRIA service.
-The `POST /media/remove-background` route also accepts an optional `provider` field in JSON or multipart requests if a caller needs to override the server default per request.
-
 ## Notes on Better Auth schema
 
 This repo includes a starter Postgres/Drizzle auth schema based on Better Auth's documented Drizzle adapter setup.
