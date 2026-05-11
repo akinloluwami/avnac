@@ -216,6 +216,26 @@ export function SceneObjectView({
     )
   }
 
+  if (obj.type === 'svg') {
+    return (
+      <div
+        style={style}
+        data-avnac-scene-object
+        onPointerDown={e => onObjectPointerDown(e, obj)}
+        {...hoverProps}
+        title={obj.locked ? 'Locked SVG' : undefined}
+      >
+        <img
+          src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(obj.markup)}`}
+          alt=""
+          draggable={false}
+          className="pointer-events-none block h-full w-full select-none"
+          style={{ objectFit: 'fill' }}
+        />
+      </div>
+    )
+  }
+
   if (obj.type === 'vector-board') {
     return (
       <div
