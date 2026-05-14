@@ -171,6 +171,7 @@ export type SceneEditorHandle = {
   getExportPages: () => Promise<ExportPageOption[]>
   saveDocument: () => void
   loadDocument: (file: File) => Promise<void>
+  clearCanvas: () => void
 }
 
 type SceneEditorProps = {
@@ -1733,6 +1734,17 @@ const SceneEditor = forwardRef<SceneEditorHandle, SceneEditorProps>(function Sce
             return
           }
 
+    const clearCanvas = useCallback(() => {
+      setDoc((prev) => ({ ...prev, objects: [] }))
+      setSelectedIds([])
+      setTextEditingId(null)
+    }, [setDoc, setSelectedIds])
+
+    useImperativeHandle(
+      ref,
+      () => ({ exportImage, saveDocument, loadDocument, clearCanvas }),
+      [exportImage, saveDocument, loadDocument, clearCanvas],
+    )
           const pageDoc = exportPages[0] ? pageExportDocument(doc, exportPages[0]) : doc
           const singlePage = exportPages[0] ?? null
           const url = await renderAvnacDocumentToDataUrl(pageDoc, vectorBoardDocs, {
